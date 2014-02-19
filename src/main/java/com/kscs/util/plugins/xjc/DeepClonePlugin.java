@@ -36,7 +36,7 @@ public class DeepClonePlugin extends Plugin {
 			boolean argTrue = isTrue(arg);
 			boolean argFalse = isFalse(arg);
 			if(!argTrue && !argFalse) {
-				throw new BadCommandLineException("-constrained"+BOOLEAN_OPTION_ERROR_MSG);
+				throw new BadCommandLineException("-clone-throws"+BOOLEAN_OPTION_ERROR_MSG);
 			} else {
 				this.throwCloneNotSupported = argTrue;
 			}
@@ -47,7 +47,7 @@ public class DeepClonePlugin extends Plugin {
 
 	@Override
 	public String getUsage() {
-		return " -Xclone: Generates Cloneable JAXB classes.";
+		return " -Xclone: Generates Cloneable JAXB classes.\n\t-clone-throws={yes|no}:\t declare CloneNotSupportedException to be thrown by 'clone()' (yes), or suppress throws clause (no). Default: no";
 	}
 
 	@Override
@@ -69,32 +69,30 @@ public class DeepClonePlugin extends Plugin {
 			method.annotate(Override.class);
 
 
-			boolean needsThrow = false;
+			boolean mustCatch = cloneMethodThrows(generatedClasses, definedClass._extends());
 			for(final JFieldVar field : definedClass.fields().values()) {
 				if(field.type().isReference()) {
 					final JClass fieldType = (JClass)field.type();
 					if(collectionClass.isAssignableFrom(fieldType)) {
 						final JClass elementType = fieldType.getTypeParameters().get(0);
 						if(cloneableInterface.isAssignableFrom(elementType)) {
-							needsThrow |= cloneMethodThrows(generatedClasses, elementType);
+							mustCatch |= cloneMethodThrows(generatedClasses, elementType);
 						}
 					} else {
 						if(cloneableInterface.isAssignableFrom(fieldType)) {
-							needsThrow |= cloneMethodThrows(generatedClasses, fieldType);
+							mustCatch |= cloneMethodThrows(generatedClasses, fieldType);
 						}
 					}
 				}
 			}
 
-
-
 			final JBlock outer;
 			final JBlock body;
 			final JTryBlock tryBlock;
-			if(throwCloneNotSupported || !needsThrow) {
-				if(needsThrow) {
-					method._throws(CloneNotSupportedException.class);
-				}
+			if(throwCloneNotSupported) {
+				method._throws(CloneNotSupportedException.class);
+			}
+			if(throwCloneNotSupported || !mustCatch) {
 				outer = method.body();
 				tryBlock = null;
 				body = outer;
@@ -103,7 +101,7 @@ public class DeepClonePlugin extends Plugin {
 				tryBlock = outer._try();
 				body = tryBlock.body();
 			}
-			final JVar newObjectVar = body.decl(JMod.FINAL, definedClass, "newObject", castOnDemand(generatedClasses, definedClass, JExpr._super().invoke("clone")));
+			final JVar newObjectVar = body.decl(JMod.FINAL, definedClass, "newObject", JExpr.cast(definedClass, JExpr._super().invoke("clone")));
 			for (final JFieldVar field : definedClass.fields().values()) {
 				if (field.type().isReference()) {
 					final JClass fieldType = (JClass) field.type();
@@ -137,52 +135,15 @@ public class DeepClonePlugin extends Plugin {
 		return true;
 	}
 
-	private boolean cloneMethodThrows(Set<String> generatedClasses, JClass fieldType) {
+	private boolean cloneMethodThrows(final Set<String> generatedClasses, final JClass fieldType) {
 		try {
-			return !generatedClasses.contains(fieldType.fullName()) && Class.forName(fieldType.fullName()).getMethod("clone").getExceptionTypes().length == 0;
+			return fieldType.fullName().equals(Object.class.getName()) || (!generatedClasses.contains(fieldType.fullName())
+					&&
+					Class.forName(fieldType.fullName()).getMethod("clone").getExceptionTypes().length > 0);
 		} catch (Exception e) {
 			System.err.println("WARNING: "+e);
 			e.printStackTrace();
 			return true;
-		}
-	}
-
-
-	private static final class JClassNClass implements NClass {
-
-		private final JClass clazz;
-
-		JClassNClass(JClass clazz) {
-			this.clazz = clazz;
-		}
-
-		public JClass toType(Outline o, Aspect aspect) {
-			return clazz;
-		}
-
-		public boolean isAbstract() {
-			return clazz.isAbstract();
-		}
-
-		public boolean isBoxedType() {
-			return clazz.getPrimitiveType()!=null;
-		}
-
-		public String fullName() {
-			return clazz.fullName();
-		}
-
-		@Override
-		public boolean equals(Object o) {
-			if (this == o) return true;
-			if(o == null) return false;
-			NClass other = (NClass)o;
-			return other.fullName().equals(fullName());
-		}
-
-		@Override
-		public int hashCode() {
-			return fullName().hashCode();
 		}
 	}
 
@@ -194,9 +155,10 @@ public class DeepClonePlugin extends Plugin {
 		return arg.endsWith("n") || arg.endsWith("false") || arg.endsWith("off") || arg.endsWith("no");
 	}
 
-	private JExpression castOnDemand(final Set<String> generatedClasses, JType fieldType, JExpression expression) {
+	private JExpression castOnDemand(final Set<String> generatedClasses, final JType fieldType, final JExpression expression) {
 		return generatedClasses.contains(fieldType.fullName()) ? expression : JExpr.cast(fieldType, expression);
 	}
+
 
 
 }

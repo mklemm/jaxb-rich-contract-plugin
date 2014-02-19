@@ -31,11 +31,11 @@ public class BoundPropertiesPlugin extends Plugin {
 	@Override
 	public int parseArgument(Options opt, String[] args, int i) throws BadCommandLineException, IOException {
 		final String arg = args[i].toLowerCase();
-		if(arg.startsWith("-constrained=")) {
+		if (arg.startsWith("-constrained=")) {
 			boolean argConstrained = isTrue(arg);
 			boolean argNotConstrained = isFalse(arg);
-			if(!argConstrained && !argNotConstrained) {
-				throw new BadCommandLineException("-constrained"+BOOLEAN_OPTION_ERROR_MSG);
+			if (!argConstrained && !argNotConstrained) {
+				throw new BadCommandLineException("-constrained" + BOOLEAN_OPTION_ERROR_MSG);
 			} else {
 				this.constrained = argConstrained;
 			}
@@ -43,17 +43,17 @@ public class BoundPropertiesPlugin extends Plugin {
 		} else if (arg.startsWith("-bound=")) {
 			boolean argBound = isTrue(arg);
 			boolean argNotBound = isFalse(arg);
-			if(!argBound && !argNotBound) {
-				throw new BadCommandLineException("-bound"+BOOLEAN_OPTION_ERROR_MSG);
+			if (!argBound && !argNotBound) {
+				throw new BadCommandLineException("-bound" + BOOLEAN_OPTION_ERROR_MSG);
 			} else {
 				this.bound = argBound;
 			}
 			return 1;
-		} else if(arg.startsWith("-setter-throws=")) {
+		} else if (arg.startsWith("-setter-throws=")) {
 			boolean argSetterThrows = isTrue(arg);
 			boolean argNoSetterThrows = isFalse(arg);
-			if(!argSetterThrows && !argNoSetterThrows) {
-				throw new BadCommandLineException("-setter-throws"+BOOLEAN_OPTION_ERROR_MSG);
+			if (!argSetterThrows && !argNoSetterThrows) {
+				throw new BadCommandLineException("-setter-throws" + BOOLEAN_OPTION_ERROR_MSG);
 			} else {
 				this.setterThrows = argSetterThrows;
 			}
@@ -80,7 +80,7 @@ public class BoundPropertiesPlugin extends Plugin {
 
 	@Override
 	public boolean run(Outline outline, Options opt, ErrorHandler errorHandler) throws SAXException {
-		if(!constrained && !bound) {
+		if (!constrained && !bound) {
 			return true;
 		}
 
@@ -88,8 +88,21 @@ public class BoundPropertiesPlugin extends Plugin {
 		for (final ClassOutline classOutline : outline.getClasses()) {
 			final JDefinedClass definedClass = classOutline.implClass;
 
-			if(constrained) createSupportProperty(outline, classOutline, VetoableChangeSupport.class, VetoableChangeListener.class, "vetoableChange");
-			if(bound) createSupportProperty(outline, classOutline, PropertyChangeSupport.class, PropertyChangeListener.class, "propertyChange");
+			if (constrained && setterThrows) {
+				for (final JMethod method : definedClass.methods()) {
+					if (method.name().startsWith("with")
+							&& !method.name().equals("withVetoableChangeListener")
+							&& !method.name().equals("withPropertyChangeListener")
+							) {
+						method._throws(PropertyVetoException.class);
+					}
+				}
+			}
+
+			if (constrained)
+				createSupportProperty(outline, classOutline, VetoableChangeSupport.class, VetoableChangeListener.class, "vetoableChange");
+			if (bound)
+				createSupportProperty(outline, classOutline, PropertyChangeSupport.class, PropertyChangeListener.class, "propertyChange");
 
 
 			for (final JFieldVar field : definedClass.fields().values()) {
@@ -99,14 +112,12 @@ public class BoundPropertiesPlugin extends Plugin {
 					final JMethod setter = definedClass.method(JMod.PUBLIC, m.VOID, "set" + outline.getModel().getNameConverter().toPropertyName(field.name()));
 					final JVar setterArg = setter.param(JMod.FINAL, field.type(), "value");
 					final JBlock body = setter.body();
-					//setter._throws(PropertyVetoException.class);
 					final JVar oldValueVar = body.decl(JMod.FINAL, field.type(), "oldValue", JExpr._this().ref(field));
 
-					if(constrained) {
+					if (constrained) {
 						final JTryBlock tryBlock;
 						final JBlock block;
-						if(setterThrows) {
-							tryBlock = null;
+						if (setterThrows) {
 							block = body;
 							setter._throws(PropertyVetoException.class);
 						} else {
@@ -121,7 +132,7 @@ public class BoundPropertiesPlugin extends Plugin {
 
 					body.assign(JExpr._this().ref(field), setterArg);
 
-					if(bound) {
+					if (bound) {
 						invokeListener(body, field, oldValueVar, setterArg, "propertyChange");
 					}
 				}
@@ -138,26 +149,26 @@ public class BoundPropertiesPlugin extends Plugin {
 		final JCodeModel m = outline.getCodeModel();
 		final JDefinedClass definedClass = classOutline.implClass;
 
-		final String aspectNameCap = aspectName.substring(0,1).toUpperCase() + aspectName.substring(1);
+		final String aspectNameCap = aspectName.substring(0, 1).toUpperCase() + aspectName.substring(1);
 
 		if (classOutline.getSuperClass() == null) { // only generate fields in topmost classes
-			final JFieldVar supportField = definedClass.field(JMod.PROTECTED | JMod.FINAL | JMod.TRANSIENT, supportClass, aspectName+"Support", JExpr._new(m.ref(supportClass)).arg(JExpr._this()));
-			final JMethod addMethod = definedClass.method(JMod.PUBLIC, m.VOID, "add"+aspectNameCap+"Listener");
-			final JVar addParam = addMethod.param(JMod.FINAL, listenerClass, aspectName+"Listener");
+			final JFieldVar supportField = definedClass.field(JMod.PROTECTED | JMod.FINAL | JMod.TRANSIENT, supportClass, aspectName + "Support", JExpr._new(m.ref(supportClass)).arg(JExpr._this()));
+			final JMethod addMethod = definedClass.method(JMod.PUBLIC, m.VOID, "add" + aspectNameCap + "Listener");
+			final JVar addParam = addMethod.param(JMod.FINAL, listenerClass, aspectName + "Listener");
 			addMethod.body().invoke(JExpr._this().ref(supportField), "add" + aspectNameCap + "Listener").arg(addParam);
 		}
-		final JMethod withMethod = definedClass.method(JMod.PUBLIC, definedClass, "with"+aspectNameCap+"Listener");
-		final JVar withParam = withMethod.param(JMod.FINAL, listenerClass, aspectName+"Listener");
-		withMethod.body().invoke("add"+aspectNameCap+"Listener").arg(withParam);
+		final JMethod withMethod = definedClass.method(JMod.PUBLIC, definedClass, "with" + aspectNameCap + "Listener");
+		final JVar withParam = withMethod.param(JMod.FINAL, listenerClass, aspectName + "Listener");
+		withMethod.body().invoke("add" + aspectNameCap + "Listener").arg(withParam);
 		withMethod.body()._return(JExpr._this());
 
-		if(classOutline.getSuperClass() != null) {
+		if (classOutline.getSuperClass() != null) {
 			withMethod.annotate(Override.class);
 		}
 	}
 
 	private JInvocation invokeListener(JBlock block, JFieldVar field, JVar oldValueVar, JVar setterArg, final String aspectName) {
-		final String aspectNameCap = aspectName.substring(0,1).toUpperCase() + aspectName.substring(1);
+		final String aspectNameCap = aspectName.substring(0, 1).toUpperCase() + aspectName.substring(1);
 		final JInvocation fvcInvoke = block.invoke(JExpr._this().ref(aspectName + "Support"), "fire" + aspectNameCap);
 		fvcInvoke.arg(JExpr.lit(field.name()));
 		fvcInvoke.arg(oldValueVar);
@@ -165,5 +176,15 @@ public class BoundPropertiesPlugin extends Plugin {
 		return fvcInvoke;
 	}
 
+	public boolean isConstrained() {
+		return constrained;
+	}
 
+	public boolean isBound() {
+		return bound;
+	}
+
+	public boolean isSetterThrows() {
+		return setterThrows;
+	}
 }

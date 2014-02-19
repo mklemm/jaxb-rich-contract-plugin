@@ -1,5 +1,6 @@
 package com.kscs.util.plugins.xjc;
 
+import java.beans.PropertyVetoException;
 import java.io.IOException;
 import java.util.*;
 
@@ -38,7 +39,7 @@ public class GroupInterfacePlugin extends Plugin {
 	@Override
 	public boolean run(final Outline outline, final Options opt, final ErrorHandler errorHandler)
 			throws SAXException {
-		final Map<QName, TypeDef<XSAttContainer>> groupInterfaces = generateAttributeGroupInterfaces(outline);
+		final Map<QName, TypeDef<XSAttContainer>> groupInterfaces = generateAttributeGroupInterfaces(outline, opt);
 		final Map<QName, TypeDef<XSModelGroupDecl>> modelGroupInterfaces = generateModelGroupInterfaces(outline, opt);
 		for (final TypeDef<XSAttContainer> typeDef : groupInterfaces.values()) {
 			final XSAttContainer classComponent = typeDef.schemaComponent;
@@ -92,6 +93,8 @@ public class GroupInterfacePlugin extends Plugin {
 	}
 
 	private Map<QName, TypeDef<XSModelGroupDecl>> generateModelGroupInterfaces(final Outline outline, final Options opt) {
+		final BoundPropertiesPlugin boundPropertiesPlugin = findPlugin(opt, BoundPropertiesPlugin.class);
+		boolean throwsPropertyVetoException = boundPropertiesPlugin != null && boundPropertiesPlugin.isConstrained() && boundPropertiesPlugin.isSetterThrows();
 		final NameConverter nameConverter = outline.getModel().getNameConverter();
 		final Map<QName, TypeDef<XSModelGroupDecl>> groupInterfaces = new HashMap<QName, TypeDef<XSModelGroupDecl>>();
 		final Iterator<XSModelGroupDecl> modelGroupIterator =
@@ -121,6 +124,9 @@ public class GroupInterfacePlugin extends Plugin {
 								final JMethod newSetter = groupInterface.method(JMod.NONE, implementedSetter.type(),
 										implementedSetter.name());
 								newSetter.param(implementedSetter.listParamTypes()[0], implementedSetter.listParams()[0].name());
+								if(throwsPropertyVetoException) {
+									newSetter._throws(PropertyVetoException.class);
+								}
 							}
 						}
 					}
@@ -134,7 +140,10 @@ public class GroupInterfacePlugin extends Plugin {
 		return groupInterfaces;
 	}
 
-	private Map<QName, TypeDef<XSAttContainer>> generateAttributeGroupInterfaces(final Outline outline) {
+	private Map<QName, TypeDef<XSAttContainer>> generateAttributeGroupInterfaces(final Outline outline, final Options opt) {
+		final BoundPropertiesPlugin boundPropertiesPlugin = findPlugin(opt, BoundPropertiesPlugin.class);
+		boolean throwsPropertyVetoException = boundPropertiesPlugin != null && boundPropertiesPlugin.isConstrained() && boundPropertiesPlugin.isSetterThrows();
+
 		final NameConverter nameConverter = outline.getModel().getNameConverter();
 		final Map<QName, TypeDef<XSAttContainer>> groupInterfaces = new HashMap<QName, TypeDef<XSAttContainer>>();
 		final Iterator<XSAttGroupDecl> attributeGroupIterator = outline.getModel().schemaComponent.iterateAttGroupDecls();
@@ -162,6 +171,9 @@ public class GroupInterfacePlugin extends Plugin {
 								final JMethod newSetter = groupInterface.method(JMod.NONE, implementedSetter.type(),
 										implementedSetter.name());
 								newSetter.param(implementedSetter.listParamTypes()[0], implementedSetter.listParams()[0].name());
+								if(throwsPropertyVetoException) {
+									newSetter._throws(PropertyVetoException.class);
+								}
 							}
 						}
 					}
@@ -316,5 +328,15 @@ public class GroupInterfacePlugin extends Plugin {
 			this.definedClass = definedClass;
 			this.schemaComponent = schemaComponent;
 		}
+	}
+
+	@SuppressWarnings("unchecked")
+	private static <P extends Plugin> P findPlugin(final Options opt, final Class<P> pluginClass) {
+		for(final Plugin p : opt.activePlugins) {
+			if(pluginClass.isAssignableFrom(p.getClass())) {
+				return (P)p;
+			}
+		}
+		return null;
 	}
 }
