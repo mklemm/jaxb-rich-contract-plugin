@@ -14,6 +14,7 @@ import org.xml.sax.SAXException;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.Set;
 
 /**
@@ -56,19 +57,44 @@ public class DeepClonePlugin extends Plugin {
 		final JClass cloneableInterface = m.ref(Cloneable.class);
 		final JClass arrayListClass = m.ref(ArrayList.class);
 
+		final Set<String> generatedClasses = new HashSet<String>();
 		for(final ClassOutline classOutline : outline.getClasses()) {
 			classOutline.implClass._implements(Cloneable.class);
+			generatedClasses.add(classOutline.implClass.fullName());
 		}
 
 		for (final ClassOutline classOutline : outline.getClasses()) {
 			final JDefinedClass definedClass = classOutline.implClass;
 			final JMethod method = definedClass.method(JMod.PUBLIC, definedClass, "clone");
 			method.annotate(Override.class);
+
+
+			boolean needsThrow = false;
+			for(final JFieldVar field : definedClass.fields().values()) {
+				if(field.type().isReference()) {
+					final JClass fieldType = (JClass)field.type();
+					if(collectionClass.isAssignableFrom(fieldType)) {
+						final JClass elementType = fieldType.getTypeParameters().get(0);
+						if(cloneableInterface.isAssignableFrom(elementType)) {
+							needsThrow |= cloneMethodThrows(generatedClasses, elementType);
+						}
+					} else {
+						if(cloneableInterface.isAssignableFrom(fieldType)) {
+							needsThrow |= cloneMethodThrows(generatedClasses, fieldType);
+						}
+					}
+				}
+			}
+
+
+
 			final JBlock outer;
 			final JBlock body;
 			final JTryBlock tryBlock;
-			if(throwCloneNotSupported) {
-				method._throws(CloneNotSupportedException.class);
+			if(throwCloneNotSupported || !needsThrow) {
+				if(needsThrow) {
+					method._throws(CloneNotSupportedException.class);
+				}
 				outer = method.body();
 				tryBlock = null;
 				body = outer;
@@ -77,7 +103,7 @@ public class DeepClonePlugin extends Plugin {
 				tryBlock = outer._try();
 				body = tryBlock.body();
 			}
-			final JVar newObjectVar = body.decl(JMod.FINAL, definedClass, "newObject", JExpr.cast(definedClass, JExpr._super().invoke("clone")));
+			final JVar newObjectVar = body.decl(JMod.FINAL, definedClass, "newObject", castOnDemand(generatedClasses, definedClass, JExpr._super().invoke("clone")));
 			for (final JFieldVar field : definedClass.fields().values()) {
 				if (field.type().isReference()) {
 					final JClass fieldType = (JClass) field.type();
@@ -88,21 +114,13 @@ public class DeepClonePlugin extends Plugin {
 						final JForEach forLoop = body.forEach(elementType, "item", JExpr._this().ref(field));
 						final JInvocation addInvoke = forLoop.body().invoke(newField, "add");
 						if(cloneableInterface.isAssignableFrom(elementType)) {
-							if(outline.getModel().beans().containsKey(new JClassNClass(elementType))) {
-								addInvoke.arg(forLoop.var().invoke("clone"));
-							} else {
-								addInvoke.arg(JExpr.cast(elementType, forLoop.var().invoke("clone")));
-							}
+							addInvoke.arg(castOnDemand(generatedClasses, elementType, forLoop.var().invoke("clone")));
 						} else {
 							addInvoke.arg(forLoop.var());
 						}
 					}
 					if (cloneableInterface.isAssignableFrom(fieldType)) {
-						if(outline.getModel().beans().containsKey(new JClassNClass(fieldType))) {
-							body.assign(newField, JExpr._this().ref(field).invoke("clone"));
-						} else {
-							body.assign(newField, JExpr.cast(fieldType, JExpr._this().ref(field).invoke("clone")));
-						}
+						body.assign(newField, castOnDemand(generatedClasses,fieldType, JExpr._this().ref(field).invoke("clone")));
 					} else {
 						// body.assign(newField, JExpr._this().ref(field));
 					}
@@ -117,6 +135,16 @@ public class DeepClonePlugin extends Plugin {
 			}
 		}
 		return true;
+	}
+
+	private boolean cloneMethodThrows(Set<String> generatedClasses, JClass fieldType) {
+		try {
+			return !generatedClasses.contains(fieldType.fullName()) && Class.forName(fieldType.fullName()).getMethod("clone").getExceptionTypes().length == 0;
+		} catch (Exception e) {
+			System.err.println("WARNING: "+e);
+			e.printStackTrace();
+			return true;
+		}
 	}
 
 
@@ -143,6 +171,19 @@ public class DeepClonePlugin extends Plugin {
 		public String fullName() {
 			return clazz.fullName();
 		}
+
+		@Override
+		public boolean equals(Object o) {
+			if (this == o) return true;
+			if(o == null) return false;
+			NClass other = (NClass)o;
+			return other.fullName().equals(fullName());
+		}
+
+		@Override
+		public int hashCode() {
+			return fullName().hashCode();
+		}
 	}
 
 	private boolean isTrue(final String arg) {
@@ -152,5 +193,10 @@ public class DeepClonePlugin extends Plugin {
 	private boolean isFalse(final String arg) {
 		return arg.endsWith("n") || arg.endsWith("false") || arg.endsWith("off") || arg.endsWith("no");
 	}
+
+	private JExpression castOnDemand(final Set<String> generatedClasses, JType fieldType, JExpression expression) {
+		return generatedClasses.contains(fieldType.fullName()) ? expression : JExpr.cast(fieldType, expression);
+	}
+
 
 }
