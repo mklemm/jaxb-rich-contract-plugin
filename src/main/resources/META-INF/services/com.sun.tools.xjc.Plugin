@@ -1,1 +1,3 @@
+com.kscs.util.plugins.xjc.BoundPropertiesPlugin
+com.kscs.util.plugins.xjc.DeepClonePlugin
 com.kscs.util.plugins.xjc.GroupInterfacePlugin
