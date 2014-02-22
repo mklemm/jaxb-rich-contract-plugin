@@ -4,24 +4,33 @@ import com.sun.codemodel.*;
 import com.sun.tools.xjc.BadCommandLineException;
 import com.sun.tools.xjc.Options;
 import com.sun.tools.xjc.Plugin;
-import com.sun.tools.xjc.model.Model;
 import com.sun.tools.xjc.outline.ClassOutline;
+import com.sun.tools.xjc.outline.FieldOutline;
 import com.sun.tools.xjc.outline.Outline;
 import org.xml.sax.ErrorHandler;
 import org.xml.sax.SAXException;
 
-import javax.xml.bind.annotation.XmlTransient;
 import java.beans.*;
-import java.io.IOException;
+import java.io.*;
+import java.util.*;
 
 /**
  * Created by klemm0 on 18/02/14.
  */
 public class BoundPropertiesPlugin extends Plugin {
 	public static final String BOOLEAN_OPTION_ERROR_MSG = " option must be either (\"true\",\"on\",\"y\",\"yes\") or (\"false\", \"off\", \"n\",\"no\").";
+	public static final String CHANGE_EVENT_CLASS_NAME = "com.kscs.util.jaxb.CollectionChangeEvent";
+	public static final String CHANGE_LISTENER_CLASS_NAME = "com.kscs.util.jaxb.CollectionChangeListener";
+	public static final String VETOABLE_CHANGE_LISTENER_CLASS_NAME = "com.kscs.util.jaxb.VetoableCollectionChangeListener";
+	public static final String EVENT_TYPE_ENUM_NAME = "com.kscs.util.jaxb.CollectionChangeEventType";
+	public static final String BOUND_LIST_INTERFACE_NAME = "com.kscs.util.jaxb.BoundList";
+	public static final String PROXY_CLASS_NAME = "com.kscs.util.jaxb.BoundListProxy";
+
+
 	private boolean constrained = true;
 	private boolean bound = true;
 	private boolean setterThrows = false;
+	private boolean generateTools = true;
 
 	@Override
 	public String getOptionName() {
@@ -58,9 +67,20 @@ public class BoundPropertiesPlugin extends Plugin {
 				this.setterThrows = argSetterThrows;
 			}
 			return 1;
+		} else if (arg.startsWith("-generate-tools=")) {
+			boolean argGenerateTools = isTrue(arg);
+			boolean argNoGenerateTools = isFalse(arg);
+			if (!argGenerateTools && !argNoGenerateTools) {
+				throw new BadCommandLineException("-generate-tools" + BOOLEAN_OPTION_ERROR_MSG);
+			} else {
+				this.generateTools = argGenerateTools;
+			}
+			return 1;
 		}
 		return 0;
 	}
+
+
 
 	private boolean isTrue(final String arg) {
 		return arg.endsWith("y") || arg.endsWith("true") || arg.endsWith("on") || arg.endsWith("yes");
@@ -75,7 +95,8 @@ public class BoundPropertiesPlugin extends Plugin {
 		return "-Xconstrained-properties: Generate bound properties for JAXB serializable classes.\n" +
 				"\t-constrained={yes|no}: \tswitch \"constrained\" property contract generation on/off. Default: yes\n" +
 				"\t-bound={yes|no}: \tswitch \"bound\" property contract generation on/off. Default: yes\n" +
-				"\t-setter-throws={yes|no}: \tDeclare setXXX methods to throw PropertyVetoException (yes), or rethrow as RuntimeException (no). Default: no";
+				"\t-setter-throws={yes|no}: \tDeclare setXXX methods to throw PropertyVetoException (yes), or rethrow as RuntimeException (no). Default: no\n" +
+				"\t-generate-tools={yes|no}: \tGenerate helper classes needed for collection change event detection. Turn off in modules that import other generated modules. Default: yes\n";
 	}
 
 	@Override
@@ -85,8 +106,28 @@ public class BoundPropertiesPlugin extends Plugin {
 		}
 
 		final JCodeModel m = outline.getCodeModel();
+
+		// generate bound collection helper classes
+		writeSourceFile(opt.targetDir, BOUND_LIST_INTERFACE_NAME);
+		writeSourceFile(opt.targetDir, EVENT_TYPE_ENUM_NAME);
+		writeSourceFile(opt.targetDir, CHANGE_EVENT_CLASS_NAME);
+		writeSourceFile(opt.targetDir, CHANGE_LISTENER_CLASS_NAME);
+		writeSourceFile(opt.targetDir, VETOABLE_CHANGE_LISTENER_CLASS_NAME);
+		writeSourceFile(opt.targetDir, PROXY_CLASS_NAME);
+
 		for (final ClassOutline classOutline : outline.getClasses()) {
+			System.out.println("Generating bound properties for class "+classOutline.implClass.name());
+
 			final JDefinedClass definedClass = classOutline.implClass;
+
+			// Create bound collection proxies
+			for(final FieldOutline fieldOutline : classOutline.getDeclaredFields()) {
+				if(fieldOutline.getPropertyInfo().isCollection() && !definedClass.fields().get(fieldOutline.getPropertyInfo().getName(false)).type().isArray()) {
+					generateProxyField(classOutline, fieldOutline);
+					generateLazyProxyInitGetter(classOutline, fieldOutline);
+				}
+			}
+
 
 			if (constrained && setterThrows) {
 				for (final JMethod method : definedClass.methods()) {
@@ -106,6 +147,8 @@ public class BoundPropertiesPlugin extends Plugin {
 
 
 			for (final JFieldVar field : definedClass.fields().values()) {
+				//final JFieldVar field = definedClass.fields().get(fieldOutline.getPropertyInfo().getName(false));
+				System.out.println("---> Generating bound property for field "+field.name());
 				final JMethod oldSetter = definedClass.getMethod("set" + outline.getModel().getNameConverter().toPropertyName(field.name()), new JType[]{field.type()});
 				if (oldSetter != null && !field.type().isArray()) {
 					definedClass.methods().remove(oldSetter);
@@ -175,6 +218,80 @@ public class BoundPropertiesPlugin extends Plugin {
 		fvcInvoke.arg(setterArg);
 		return fvcInvoke;
 	}
+
+	private JFieldVar generateProxyField(final ClassOutline classOutline, final FieldOutline fieldOutline) {
+		final JCodeModel m = classOutline.parent().getCodeModel();
+		final JDefinedClass definedClass = classOutline.implClass;
+		final JFieldVar collectionField = definedClass.fields().get(fieldOutline.getPropertyInfo().getName(false));
+		final JClass elementType = ((JClass)collectionField.type()).getTypeParameters().get(0);
+		return definedClass.field(JMod.PRIVATE | JMod.TRANSIENT, m.ref(BOUND_LIST_INTERFACE_NAME).narrow(elementType), collectionField.name()+"Proxy", JExpr._null() );
+	}
+
+	private JMethod generateLazyProxyInitGetter(final ClassOutline classOutline, final FieldOutline fieldOutline) {
+		final JCodeModel m = classOutline.parent().getCodeModel();
+		final JDefinedClass definedClass = classOutline.implClass;
+		final String fieldName = fieldOutline.getPropertyInfo().getName(false);
+		final String getterName = "get"+fieldOutline.getPropertyInfo().getName(true);
+		final JFieldVar collectionField = definedClass.fields().get(fieldName);
+		final JClass elementType = ((JClass)collectionField.type()).getTypeParameters().get(0);
+		final JClass proxyFieldType = m.ref(BOUND_LIST_INTERFACE_NAME).narrow(elementType);
+		final JFieldRef collectionFieldRef = JExpr._this().ref(collectionField);
+		final JFieldRef proxyField = JExpr._this().ref(collectionField.name()+"Proxy");
+		final JMethod oldGetter = definedClass.getMethod(getterName, new JType[0]);
+		definedClass.methods().remove(oldGetter);
+		final JMethod newGetter = definedClass.method(JMod.PUBLIC, proxyFieldType, getterName);
+		newGetter.body()._if(collectionFieldRef.eq(JExpr._null()))._then().assign(collectionFieldRef, JExpr._new(m.ref(ArrayList.class).narrow(elementType)));
+		final JBlock ifProxyNull = newGetter.body()._if(proxyField.eq(JExpr._null()))._then();
+		ifProxyNull.assign(proxyField, JExpr._new(m.ref(PROXY_CLASS_NAME).narrow(elementType)).arg(collectionFieldRef));
+		newGetter.body()._return(proxyField);
+		return newGetter;
+	}
+
+	private String loadBody(final String resourceName) {
+		try {
+			final StringBuilder sb = new StringBuilder();
+			final BufferedReader reader = new BufferedReader(new InputStreamReader(getClass().getResourceAsStream("/" + resourceName.replace('.','/')+".java")));
+			try {
+				String line;
+				while((line = reader.readLine()) != null) {
+					sb.append(line);
+					sb.append("\n");
+				}
+				final String sourceCode = sb.toString();
+				final int beginIndex = sourceCode.indexOf('{') + 1;
+				final int endIndex = sourceCode.lastIndexOf("}");
+				return sourceCode.substring(beginIndex, endIndex);
+			} finally {
+				reader.close();
+			}
+		} catch(IOException iox) {
+			throw new RuntimeException(iox);
+		}
+	}
+
+	private void writeSourceFile(final File targetDir, final String resourceName) {
+		try {
+			final String resourcePath = "/" + resourceName.replace('.', '/') + ".java";
+			final File targetFile = new File(targetDir.getPath()+resourcePath);
+			final File packageDir = targetFile.getParentFile();
+			final boolean created = packageDir.mkdirs();
+			final BufferedReader reader = new BufferedReader(new InputStreamReader(getClass().getResourceAsStream(resourcePath)));
+			final BufferedWriter writer = new BufferedWriter(new FileWriter(targetFile));
+			try {
+				String line;
+				while((line = reader.readLine()) != null) {
+					writer.write(line+"\n");
+				}
+			} finally {
+				reader.close();
+				writer.close();
+			}
+		} catch(IOException iox) {
+			throw new RuntimeException(iox);
+		}
+	}
+
+
 
 	public boolean isConstrained() {
 		return constrained;

@@ -94,7 +94,10 @@ public class GroupInterfacePlugin extends Plugin {
 
 	private Map<QName, TypeDef<XSModelGroupDecl>> generateModelGroupInterfaces(final Outline outline, final Options opt) {
 		final BoundPropertiesPlugin boundPropertiesPlugin = findPlugin(opt, BoundPropertiesPlugin.class);
-		boolean throwsPropertyVetoException = boundPropertiesPlugin != null && boundPropertiesPlugin.isConstrained() && boundPropertiesPlugin.isSetterThrows();
+		final boolean throwsPropertyVetoException = boundPropertiesPlugin != null && boundPropertiesPlugin.isConstrained() && boundPropertiesPlugin.isSetterThrows();
+		final DeepClonePlugin deepClonePlugin = findPlugin(opt, DeepClonePlugin.class);
+		final boolean needsCloneMethod = deepClonePlugin != null;
+		final boolean cloneMethodThrows = deepClonePlugin.isThrowCloneNotSupported();
 		final NameConverter nameConverter = outline.getModel().getNameConverter();
 		final Map<QName, TypeDef<XSModelGroupDecl>> groupInterfaces = new HashMap<QName, TypeDef<XSModelGroupDecl>>();
 		final Iterator<XSModelGroupDecl> modelGroupIterator =
@@ -131,6 +134,13 @@ public class GroupInterfacePlugin extends Plugin {
 						}
 					}
 
+					if(needsCloneMethod) {
+						final JMethod cloneMethod = groupInterface.method(JMod.PUBLIC, groupInterface, "clone");
+						if(cloneMethodThrows) {
+							cloneMethod._throws(CloneNotSupportedException.class);
+						}
+					}
+
 					groupInterfaces.put(new QName(modelGroup.getTargetNamespace(), modelGroup.getName()), new
 							TypeDef<XSModelGroupDecl>(groupInterface,
 									modelGroup));
@@ -142,7 +152,10 @@ public class GroupInterfacePlugin extends Plugin {
 
 	private Map<QName, TypeDef<XSAttContainer>> generateAttributeGroupInterfaces(final Outline outline, final Options opt) {
 		final BoundPropertiesPlugin boundPropertiesPlugin = findPlugin(opt, BoundPropertiesPlugin.class);
-		boolean throwsPropertyVetoException = boundPropertiesPlugin != null && boundPropertiesPlugin.isConstrained() && boundPropertiesPlugin.isSetterThrows();
+		final boolean throwsPropertyVetoException = boundPropertiesPlugin != null && boundPropertiesPlugin.isConstrained() && boundPropertiesPlugin.isSetterThrows();
+		final DeepClonePlugin deepClonePlugin = findPlugin(opt, DeepClonePlugin.class);
+		final boolean needsCloneMethod = deepClonePlugin != null;
+		final boolean cloneMethodThrows = deepClonePlugin.isThrowCloneNotSupported();
 
 		final NameConverter nameConverter = outline.getModel().getNameConverter();
 		final Map<QName, TypeDef<XSAttContainer>> groupInterfaces = new HashMap<QName, TypeDef<XSAttContainer>>();
@@ -175,6 +188,13 @@ public class GroupInterfacePlugin extends Plugin {
 									newSetter._throws(PropertyVetoException.class);
 								}
 							}
+						}
+					}
+
+					if(needsCloneMethod) {
+						final JMethod cloneMethod = groupInterface.method(JMod.PUBLIC, groupInterface, "clone");
+						if(cloneMethodThrows) {
+							cloneMethod._throws(CloneNotSupportedException.class);
 						}
 					}
 
