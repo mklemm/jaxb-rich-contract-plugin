@@ -12,7 +12,7 @@ import org.xml.sax.SAXException;
 
 import java.beans.*;
 import java.io.*;
-import java.util.*;
+import java.util.ArrayList;
 
 /**
  * Created by klemm0 on 18/02/14.
@@ -38,40 +38,40 @@ public class BoundPropertiesPlugin extends Plugin {
 	}
 
 	@Override
-	public int parseArgument(Options opt, String[] args, int i) throws BadCommandLineException, IOException {
+	public int parseArgument(final Options opt, final String[] args, final int i) throws BadCommandLineException, IOException {
 		final String arg = args[i].toLowerCase();
 		if (arg.startsWith("-constrained=")) {
-			boolean argConstrained = isTrue(arg);
-			boolean argNotConstrained = isFalse(arg);
+			final boolean argConstrained = isTrue(arg);
+			final boolean argNotConstrained = isFalse(arg);
 			if (!argConstrained && !argNotConstrained) {
-				throw new BadCommandLineException("-constrained" + BOOLEAN_OPTION_ERROR_MSG);
+				throw new BadCommandLineException("-constrained" + BoundPropertiesPlugin.BOOLEAN_OPTION_ERROR_MSG);
 			} else {
 				this.constrained = argConstrained;
 			}
 			return 1;
 		} else if (arg.startsWith("-bound=")) {
-			boolean argBound = isTrue(arg);
-			boolean argNotBound = isFalse(arg);
+			final boolean argBound = isTrue(arg);
+			final boolean argNotBound = isFalse(arg);
 			if (!argBound && !argNotBound) {
-				throw new BadCommandLineException("-bound" + BOOLEAN_OPTION_ERROR_MSG);
+				throw new BadCommandLineException("-bound" + BoundPropertiesPlugin.BOOLEAN_OPTION_ERROR_MSG);
 			} else {
 				this.bound = argBound;
 			}
 			return 1;
 		} else if (arg.startsWith("-setter-throws=")) {
-			boolean argSetterThrows = isTrue(arg);
-			boolean argNoSetterThrows = isFalse(arg);
+			final boolean argSetterThrows = isTrue(arg);
+			final boolean argNoSetterThrows = isFalse(arg);
 			if (!argSetterThrows && !argNoSetterThrows) {
-				throw new BadCommandLineException("-setter-throws" + BOOLEAN_OPTION_ERROR_MSG);
+				throw new BadCommandLineException("-setter-throws" + BoundPropertiesPlugin.BOOLEAN_OPTION_ERROR_MSG);
 			} else {
 				this.setterThrows = argSetterThrows;
 			}
 			return 1;
 		} else if (arg.startsWith("-generate-tools=")) {
-			boolean argGenerateTools = isTrue(arg);
-			boolean argNoGenerateTools = isFalse(arg);
+			final boolean argGenerateTools = isTrue(arg);
+			final boolean argNoGenerateTools = isFalse(arg);
 			if (!argGenerateTools && !argNoGenerateTools) {
-				throw new BadCommandLineException("-generate-tools" + BOOLEAN_OPTION_ERROR_MSG);
+				throw new BadCommandLineException("-generate-tools" + BoundPropertiesPlugin.BOOLEAN_OPTION_ERROR_MSG);
 			} else {
 				this.generateTools = argGenerateTools;
 			}
@@ -100,20 +100,20 @@ public class BoundPropertiesPlugin extends Plugin {
 	}
 
 	@Override
-	public boolean run(Outline outline, Options opt, ErrorHandler errorHandler) throws SAXException {
-		if (!constrained && !bound) {
+	public boolean run(final Outline outline, final Options opt, final ErrorHandler errorHandler) throws SAXException {
+		if (!this.constrained && !this.bound) {
 			return true;
 		}
 
 		final JCodeModel m = outline.getCodeModel();
 
 		// generate bound collection helper classes
-		writeSourceFile(opt.targetDir, BOUND_LIST_INTERFACE_NAME);
-		writeSourceFile(opt.targetDir, EVENT_TYPE_ENUM_NAME);
-		writeSourceFile(opt.targetDir, CHANGE_EVENT_CLASS_NAME);
-		writeSourceFile(opt.targetDir, CHANGE_LISTENER_CLASS_NAME);
-		writeSourceFile(opt.targetDir, VETOABLE_CHANGE_LISTENER_CLASS_NAME);
-		writeSourceFile(opt.targetDir, PROXY_CLASS_NAME);
+		writeSourceFile(opt.targetDir, BoundPropertiesPlugin.BOUND_LIST_INTERFACE_NAME);
+		writeSourceFile(opt.targetDir, BoundPropertiesPlugin.EVENT_TYPE_ENUM_NAME);
+		writeSourceFile(opt.targetDir, BoundPropertiesPlugin.CHANGE_EVENT_CLASS_NAME);
+		writeSourceFile(opt.targetDir, BoundPropertiesPlugin.CHANGE_LISTENER_CLASS_NAME);
+		writeSourceFile(opt.targetDir, BoundPropertiesPlugin.VETOABLE_CHANGE_LISTENER_CLASS_NAME);
+		writeSourceFile(opt.targetDir, BoundPropertiesPlugin.PROXY_CLASS_NAME);
 
 		for (final ClassOutline classOutline : outline.getClasses()) {
 			System.out.println("Generating bound properties for class "+classOutline.implClass.name());
@@ -129,7 +129,7 @@ public class BoundPropertiesPlugin extends Plugin {
 			}
 
 
-			if (constrained && setterThrows) {
+			if (this.constrained && this.setterThrows) {
 				for (final JMethod method : definedClass.methods()) {
 					if (method.name().startsWith("with")
 							&& !method.name().equals("withVetoableChangeListener")
@@ -140,9 +140,9 @@ public class BoundPropertiesPlugin extends Plugin {
 				}
 			}
 
-			if (constrained)
+			if (this.constrained)
 				createSupportProperty(outline, classOutline, VetoableChangeSupport.class, VetoableChangeListener.class, "vetoableChange");
-			if (bound)
+			if (this.bound)
 				createSupportProperty(outline, classOutline, PropertyChangeSupport.class, PropertyChangeListener.class, "propertyChange");
 
 
@@ -157,10 +157,10 @@ public class BoundPropertiesPlugin extends Plugin {
 					final JBlock body = setter.body();
 					final JVar oldValueVar = body.decl(JMod.FINAL, field.type(), "oldValue", JExpr._this().ref(field));
 
-					if (constrained) {
+					if (this.constrained) {
 						final JTryBlock tryBlock;
 						final JBlock block;
-						if (setterThrows) {
+						if (this.setterThrows) {
 							block = body;
 							setter._throws(PropertyVetoException.class);
 						} else {
@@ -175,7 +175,7 @@ public class BoundPropertiesPlugin extends Plugin {
 
 					body.assign(JExpr._this().ref(field), setterArg);
 
-					if (bound) {
+					if (this.bound) {
 						invokeListener(body, field, oldValueVar, setterArg, "propertyChange");
 					}
 				}
@@ -210,7 +210,7 @@ public class BoundPropertiesPlugin extends Plugin {
 		}
 	}
 
-	private JInvocation invokeListener(JBlock block, JFieldVar field, JVar oldValueVar, JVar setterArg, final String aspectName) {
+	private JInvocation invokeListener(final JBlock block, final JFieldVar field, final JVar oldValueVar, final JVar setterArg, final String aspectName) {
 		final String aspectNameCap = aspectName.substring(0, 1).toUpperCase() + aspectName.substring(1);
 		final JInvocation fvcInvoke = block.invoke(JExpr._this().ref(aspectName + "Support"), "fire" + aspectNameCap);
 		fvcInvoke.arg(JExpr.lit(field.name()));
@@ -224,7 +224,7 @@ public class BoundPropertiesPlugin extends Plugin {
 		final JDefinedClass definedClass = classOutline.implClass;
 		final JFieldVar collectionField = definedClass.fields().get(fieldOutline.getPropertyInfo().getName(false));
 		final JClass elementType = ((JClass)collectionField.type()).getTypeParameters().get(0);
-		return definedClass.field(JMod.PRIVATE | JMod.TRANSIENT, m.ref(BOUND_LIST_INTERFACE_NAME).narrow(elementType), collectionField.name()+"Proxy", JExpr._null() );
+		return definedClass.field(JMod.PRIVATE | JMod.TRANSIENT, m.ref(BoundPropertiesPlugin.BOUND_LIST_INTERFACE_NAME).narrow(elementType), collectionField.name()+"Proxy", JExpr._null() );
 	}
 
 	private JMethod generateLazyProxyInitGetter(final ClassOutline classOutline, final FieldOutline fieldOutline) {
@@ -234,7 +234,7 @@ public class BoundPropertiesPlugin extends Plugin {
 		final String getterName = "get"+fieldOutline.getPropertyInfo().getName(true);
 		final JFieldVar collectionField = definedClass.fields().get(fieldName);
 		final JClass elementType = ((JClass)collectionField.type()).getTypeParameters().get(0);
-		final JClass proxyFieldType = m.ref(BOUND_LIST_INTERFACE_NAME).narrow(elementType);
+		final JClass proxyFieldType = m.ref(BoundPropertiesPlugin.BOUND_LIST_INTERFACE_NAME).narrow(elementType);
 		final JFieldRef collectionFieldRef = JExpr._this().ref(collectionField);
 		final JFieldRef proxyField = JExpr._this().ref(collectionField.name()+"Proxy");
 		final JMethod oldGetter = definedClass.getMethod(getterName, new JType[0]);
@@ -242,7 +242,7 @@ public class BoundPropertiesPlugin extends Plugin {
 		final JMethod newGetter = definedClass.method(JMod.PUBLIC, proxyFieldType, getterName);
 		newGetter.body()._if(collectionFieldRef.eq(JExpr._null()))._then().assign(collectionFieldRef, JExpr._new(m.ref(ArrayList.class).narrow(elementType)));
 		final JBlock ifProxyNull = newGetter.body()._if(proxyField.eq(JExpr._null()))._then();
-		ifProxyNull.assign(proxyField, JExpr._new(m.ref(PROXY_CLASS_NAME).narrow(elementType)).arg(collectionFieldRef));
+		ifProxyNull.assign(proxyField, JExpr._new(m.ref(BoundPropertiesPlugin.PROXY_CLASS_NAME).narrow(elementType)).arg(collectionFieldRef));
 		newGetter.body()._return(proxyField);
 		return newGetter;
 	}
@@ -264,7 +264,7 @@ public class BoundPropertiesPlugin extends Plugin {
 			} finally {
 				reader.close();
 			}
-		} catch(IOException iox) {
+		} catch(final IOException iox) {
 			throw new RuntimeException(iox);
 		}
 	}
@@ -286,7 +286,7 @@ public class BoundPropertiesPlugin extends Plugin {
 				reader.close();
 				writer.close();
 			}
-		} catch(IOException iox) {
+		} catch(final IOException iox) {
 			throw new RuntimeException(iox);
 		}
 	}
@@ -294,14 +294,14 @@ public class BoundPropertiesPlugin extends Plugin {
 
 
 	public boolean isConstrained() {
-		return constrained;
+		return this.constrained;
 	}
 
 	public boolean isBound() {
-		return bound;
+		return this.bound;
 	}
 
 	public boolean isSetterThrows() {
-		return setterThrows;
+		return this.setterThrows;
 	}
 }
