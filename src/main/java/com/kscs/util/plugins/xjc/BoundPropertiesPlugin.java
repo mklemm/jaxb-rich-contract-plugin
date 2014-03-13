@@ -38,7 +38,7 @@ public class BoundPropertiesPlugin extends Plugin {
 	}
 
 	@Override
-	public int parseArgument(final Options opt, final String[] args, final int i) throws BadCommandLineException, IOException {
+	public int parseArgument(final Options opt, final String[] args, final int i) throws BadCommandLineException {
 		final String arg = args[i].toLowerCase();
 		if (arg.startsWith("-constrained=")) {
 			final boolean argConstrained = isTrue(arg);
@@ -108,12 +108,12 @@ public class BoundPropertiesPlugin extends Plugin {
 		final JCodeModel m = outline.getCodeModel();
 
 		// generate bound collection helper classes
-		writeSourceFile(opt.targetDir, BoundPropertiesPlugin.BOUND_LIST_INTERFACE_NAME);
-		writeSourceFile(opt.targetDir, BoundPropertiesPlugin.EVENT_TYPE_ENUM_NAME);
-		writeSourceFile(opt.targetDir, BoundPropertiesPlugin.CHANGE_EVENT_CLASS_NAME);
-		writeSourceFile(opt.targetDir, BoundPropertiesPlugin.CHANGE_LISTENER_CLASS_NAME);
-		writeSourceFile(opt.targetDir, BoundPropertiesPlugin.VETOABLE_CHANGE_LISTENER_CLASS_NAME);
-		writeSourceFile(opt.targetDir, BoundPropertiesPlugin.PROXY_CLASS_NAME);
+		PluginUtil.writeSourceFile(getClass(), opt.targetDir, BoundPropertiesPlugin.BOUND_LIST_INTERFACE_NAME);
+		PluginUtil.writeSourceFile(getClass(),opt.targetDir, BoundPropertiesPlugin.EVENT_TYPE_ENUM_NAME);
+		PluginUtil.writeSourceFile(getClass(),opt.targetDir, BoundPropertiesPlugin.CHANGE_EVENT_CLASS_NAME);
+		PluginUtil.writeSourceFile(getClass(),opt.targetDir, BoundPropertiesPlugin.CHANGE_LISTENER_CLASS_NAME);
+		PluginUtil.writeSourceFile(getClass(),opt.targetDir, BoundPropertiesPlugin.VETOABLE_CHANGE_LISTENER_CLASS_NAME);
+		PluginUtil.writeSourceFile(getClass(),opt.targetDir, BoundPropertiesPlugin.PROXY_CLASS_NAME);
 
 		for (final ClassOutline classOutline : outline.getClasses()) {
 			System.out.println("Generating bound properties for class "+classOutline.implClass.name());
@@ -269,27 +269,6 @@ public class BoundPropertiesPlugin extends Plugin {
 		}
 	}
 
-	private void writeSourceFile(final File targetDir, final String resourceName) {
-		try {
-			final String resourcePath = "/" + resourceName.replace('.', '/') + ".java";
-			final File targetFile = new File(targetDir.getPath()+resourcePath);
-			final File packageDir = targetFile.getParentFile();
-			final boolean created = packageDir.mkdirs();
-			final BufferedReader reader = new BufferedReader(new InputStreamReader(getClass().getResourceAsStream(resourcePath)));
-			final BufferedWriter writer = new BufferedWriter(new FileWriter(targetFile));
-			try {
-				String line;
-				while((line = reader.readLine()) != null) {
-					writer.write(line+"\n");
-				}
-			} finally {
-				reader.close();
-				writer.close();
-			}
-		} catch(final IOException iox) {
-			throw new RuntimeException(iox);
-		}
-	}
 
 
 
