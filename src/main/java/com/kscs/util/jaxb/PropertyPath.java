@@ -68,6 +68,19 @@ public class PropertyPath {
 			}
 			return Collections.unmodifiableMap(childProducts);
 		}
+
+
+		public Builder parent() {
+			return this.parent;
+		}
+
+		public Builder root() {
+			if(this.parent != null) {
+				return this.parent.root();
+			} else {
+				return this;
+			}
+		}
 	}
 
 	public static Builder includeAll() {
