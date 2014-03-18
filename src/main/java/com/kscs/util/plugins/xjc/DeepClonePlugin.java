@@ -227,8 +227,7 @@ public class DeepClonePlugin extends Plugin {
 						} else {
 							forLoop.body().invoke(newField, "add").arg(forLoop.var());
 						}
-					}
-					if (cloneableInterface.isAssignableFrom(fieldType)) {
+					} else if (cloneableInterface.isAssignableFrom(fieldType)) {
 						final JConditional ifStmt = currentBlock._if(fieldRef.ne(JExpr._null()));
 						ifStmt._then().assign(newField, castOnDemand(generatedClasses, fieldType, fieldRef.invoke("clone").arg(fieldPathVar)));
 						ifStmt._else().assign(newField, JExpr._null());
