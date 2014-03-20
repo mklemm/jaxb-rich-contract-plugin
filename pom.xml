@@ -49,12 +49,12 @@
 				<executions>
 					<execution>
 						<id>copy-resources</id>
-						<phase>generate-sources</phase>
+						<phase>generate-resources</phase>
 						<goals>
 							<goal>copy-resources</goal>
 						</goals>
 						<configuration>
-							<outputDirectory>${basedir}/src/main/resources</outputDirectory>
+							<outputDirectory>${project.build.outputDirectory}</outputDirectory>
 							<resources>
 								<resource>
 									<directory>src/main/java</directory>
