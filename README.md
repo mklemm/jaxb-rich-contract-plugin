@@ -27,7 +27,7 @@ In order to make it work, you need to:
   see below for details of each of the plugins
 
 #### From Maven
-There is a maven reporitory for this project under:
+There is a maven repository for this project under:
 
 http://maven.klemm-scs.com/release
 
@@ -92,7 +92,8 @@ Then add "jaxb2-group-contract":
                         </plugin>
                     </plugins>
                     <dependencies>
-                        <!-- Put this in if your default JAXB version is 2.1 or lower, or if &quot;tools.jar&quot; isn't in your classpath -->
+                        <!-- Put this in if your default JAXB version is 2.1 or lower,
+                        or if &quot;tools.jar&quot; isn't in your classpath -->
        					<dependency>
        						<groupId>com.sun.xml.bind</groupId>
        						<artifactId>jaxb-xjc</artifactId>
@@ -113,11 +114,11 @@ Note: the `<extension>` flag must be set to "true" in order to make XJC accept a
 
 
 ### Version History
-1.0.0:		Initial Version
-1.0.1:		Added constrained-property plugin
-1.0.2:		Added partial clone method generation
-1.0.3:      Improvements in partial clone
-1.0.4:      Added fluent builder and immutable plugins
+* 1.0.0	Initial Version
+* 1.0.1	Added constrained-property plugin
+* 1.0.2	Added partial clone method generation
+* 1.0.3	Improvements in partial clone
+* 1.0.4	Added fluent builder and immutable plugins
 
 group-interface
 --------------------
