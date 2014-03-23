@@ -16,7 +16,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * @description
+ * Plugin to generate fluent Builders for generated classes
  */
 public class FluentBuilderPlugin extends Plugin {
 

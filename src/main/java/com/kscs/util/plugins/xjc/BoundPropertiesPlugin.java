@@ -14,7 +14,7 @@ import java.beans.*;
 import java.util.ArrayList;
 
 /**
- * Created by klemm0 on 18/02/14.
+ * XJC Plugin generated conatrained and bound JavaBeans properties
  */
 public class BoundPropertiesPlugin extends Plugin {
 	public static final String BOOLEAN_OPTION_ERROR_MSG = " option must be either (\"true\",\"on\",\"y\",\"yes\") or (\"false\", \"off\", \"n\",\"no\").";

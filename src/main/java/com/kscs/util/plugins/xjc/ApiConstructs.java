@@ -11,7 +11,7 @@ import java.util.Collection;
 import java.util.Collections;
 
 /**
- * @description
+ * Common constants and constructs
  */
 public class ApiConstructs {
 	public static final String BUILDER_CLASS_NAME = "Builder";

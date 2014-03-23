@@ -18,7 +18,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 /**
- * Created by klemm0 on 18/02/14.
+ * XJC Plugin to generate clone and partial clone methods
  */
 public class DeepClonePlugin extends Plugin {
 	private boolean cloneMethodThrows(final Set<String> generatedClasses, final JClass fieldType) {

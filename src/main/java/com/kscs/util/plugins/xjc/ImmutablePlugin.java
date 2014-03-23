@@ -12,7 +12,7 @@ import org.xml.sax.ErrorHandler;
 import org.xml.sax.SAXException;
 
 /**
- * @description
+ * XJC Plugin to make generated classes immutable
  */
 public class ImmutablePlugin extends Plugin {
 

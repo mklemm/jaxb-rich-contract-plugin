@@ -8,7 +8,7 @@ import com.sun.tools.xjc.outline.FieldOutline;
 import java.util.Iterator;
 
 /**
- * @description
+ * Helper class to generate fluent builder classes in two steps
  */
 public class BuilderGenerator {
 	private final ApiConstructs apiConstructs;

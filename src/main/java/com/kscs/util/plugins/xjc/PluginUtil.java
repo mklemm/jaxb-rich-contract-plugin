@@ -7,7 +7,7 @@ import com.sun.tools.xjc.Plugin;
 import java.io.*;
 
 /**
- * Created by klemm0 on 13/03/14.
+ * Common utilities for XJC plugins
  */
 public final class PluginUtil {
 	public static final String BOOLEAN_OPTION_ERROR_MSG = " option must be either (\"true\",\"on\",\"y\",\"yes\") or (\"false\", \"off\", \"n\",\"no\").";
