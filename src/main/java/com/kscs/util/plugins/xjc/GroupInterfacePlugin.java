@@ -83,11 +83,13 @@ public class GroupInterfacePlugin extends Plugin {
 	}
 
 	private Map<QName, TypeDef<XSModelGroupDecl>> generateModelGroupInterfaces(final Outline outline, final Options opt) {
-		final BoundPropertiesPlugin boundPropertiesPlugin = GroupInterfacePlugin.findPlugin(opt, BoundPropertiesPlugin.class);
+		final BoundPropertiesPlugin boundPropertiesPlugin = PluginUtil.findPlugin(opt, BoundPropertiesPlugin.class);
 		final boolean throwsPropertyVetoException = boundPropertiesPlugin != null && boundPropertiesPlugin.isConstrained() && boundPropertiesPlugin.isSetterThrows();
-		final DeepClonePlugin deepClonePlugin = GroupInterfacePlugin.findPlugin(opt, DeepClonePlugin.class);
+		final DeepClonePlugin deepClonePlugin = PluginUtil.findPlugin(opt, DeepClonePlugin.class);
 		final boolean needsCloneMethod = deepClonePlugin != null;
-		final boolean cloneMethodThrows = deepClonePlugin.isThrowCloneNotSupported();
+		final boolean cloneMethodThrows = needsCloneMethod && deepClonePlugin.isThrowCloneNotSupported();
+		final boolean immutable = PluginUtil.hasPlugin(opt, ImmutablePlugin.class);
+
 		final NameConverter nameConverter = outline.getModel().getNameConverter();
 		final Map<QName, TypeDef<XSModelGroupDecl>> groupInterfaces = new HashMap<QName, TypeDef<XSModelGroupDecl>>();
 		final Iterator<XSModelGroupDecl> modelGroupIterator =
@@ -112,13 +114,15 @@ public class GroupInterfacePlugin extends Plugin {
 							final JMethod implementedGetter = GroupInterfacePlugin.findGetter(nameConverter, implementingClass, elementDecl);
 							final JMethod newGetter = groupInterface.method(JMod.NONE, implementedGetter.type(),
 									implementedGetter.name());
-							final JMethod implementedSetter = GroupInterfacePlugin.findSetter(nameConverter, implementingClass, elementDecl);
-							if (implementedSetter != null) {
-								final JMethod newSetter = groupInterface.method(JMod.NONE, implementedSetter.type(),
-										implementedSetter.name());
-								newSetter.param(implementedSetter.listParamTypes()[0], implementedSetter.listParams()[0].name());
-								if(throwsPropertyVetoException) {
-									newSetter._throws(PropertyVetoException.class);
+							if(!immutable) {
+								final JMethod implementedSetter = GroupInterfacePlugin.findSetter(nameConverter, implementingClass, elementDecl);
+								if (implementedSetter != null) {
+									final JMethod newSetter = groupInterface.method(JMod.NONE, implementedSetter.type(),
+											implementedSetter.name());
+									newSetter.param(implementedSetter.listParamTypes()[0], implementedSetter.listParams()[0].name());
+									if (throwsPropertyVetoException) {
+										newSetter._throws(PropertyVetoException.class);
+									}
 								}
 							}
 						}
@@ -141,11 +145,12 @@ public class GroupInterfacePlugin extends Plugin {
 	}
 
 	private Map<QName, TypeDef<XSAttContainer>> generateAttributeGroupInterfaces(final Outline outline, final Options opt) {
-		final BoundPropertiesPlugin boundPropertiesPlugin = GroupInterfacePlugin.findPlugin(opt, BoundPropertiesPlugin.class);
+		final BoundPropertiesPlugin boundPropertiesPlugin = PluginUtil.findPlugin(opt, BoundPropertiesPlugin.class);
 		final boolean throwsPropertyVetoException = boundPropertiesPlugin != null && boundPropertiesPlugin.isConstrained() && boundPropertiesPlugin.isSetterThrows();
-		final DeepClonePlugin deepClonePlugin = GroupInterfacePlugin.findPlugin(opt, DeepClonePlugin.class);
+		final DeepClonePlugin deepClonePlugin = PluginUtil.findPlugin(opt, DeepClonePlugin.class);
 		final boolean needsCloneMethod = deepClonePlugin != null;
-		final boolean cloneMethodThrows = deepClonePlugin.isThrowCloneNotSupported();
+		final boolean cloneMethodThrows = needsCloneMethod && deepClonePlugin.isThrowCloneNotSupported();
+		final boolean immutable = PluginUtil.hasPlugin(opt, ImmutablePlugin.class);
 
 		final NameConverter nameConverter = outline.getModel().getNameConverter();
 		final Map<QName, TypeDef<XSAttContainer>> groupInterfaces = new HashMap<QName, TypeDef<XSAttContainer>>();
@@ -169,13 +174,15 @@ public class GroupInterfacePlugin extends Plugin {
 							final JMethod implementedGetter = GroupInterfacePlugin.findGetter(nameConverter, implementingClass, attributeUse);
 							final JMethod newGetter = groupInterface.method(JMod.NONE, implementedGetter.type(),
 									implementedGetter.name());
-							final JMethod implementedSetter = GroupInterfacePlugin.findSetter(nameConverter, implementingClass, attributeUse);
-							if (implementedSetter != null) {
-								final JMethod newSetter = groupInterface.method(JMod.NONE, implementedSetter.type(),
-										implementedSetter.name());
-								newSetter.param(implementedSetter.listParamTypes()[0], implementedSetter.listParams()[0].name());
-								if(throwsPropertyVetoException) {
-									newSetter._throws(PropertyVetoException.class);
+							if(!immutable) {
+								final JMethod implementedSetter = GroupInterfacePlugin.findSetter(nameConverter, implementingClass, attributeUse);
+								if (implementedSetter != null) {
+									final JMethod newSetter = groupInterface.method(JMod.NONE, implementedSetter.type(),
+											implementedSetter.name());
+									newSetter.param(implementedSetter.listParamTypes()[0], implementedSetter.listParams()[0].name());
+									if (throwsPropertyVetoException) {
+										newSetter._throws(PropertyVetoException.class);
+									}
 								}
 							}
 						}
@@ -340,13 +347,4 @@ public class GroupInterfacePlugin extends Plugin {
 		}
 	}
 
-	@SuppressWarnings("unchecked")
-	private static <P extends Plugin> P findPlugin(final Options opt, final Class<P> pluginClass) {
-		for(final Plugin p : opt.activePlugins) {
-			if(pluginClass.isAssignableFrom(p.getClass())) {
-				return (P)p;
-			}
-		}
-		return null;
-	}
 }

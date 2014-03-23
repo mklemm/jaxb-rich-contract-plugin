@@ -13,7 +13,7 @@ public class CollectionChangeEvent<E> {
 	private final Collection<? extends E> newItems;
 	private final int index;
 
-	public CollectionChangeEvent(Collection<E> source, String methodName, CollectionChangeEventType eventType, Collection<E> oldItems, Collection<? extends E> newItems, int index) {
+	public CollectionChangeEvent(final Collection<E> source, final String methodName, final CollectionChangeEventType eventType, final Collection<E> oldItems, final Collection<? extends E> newItems, final int index) {
 		this.source = source;
 		this.methodName = methodName;
 		this.eventType = eventType;
@@ -23,26 +23,26 @@ public class CollectionChangeEvent<E> {
 	}
 
 	public Collection<E> getSource() {
-		return source;
+		return this.source;
 	}
 
 	public String getMethodName() {
-		return methodName;
+		return this.methodName;
 	}
 
 	public CollectionChangeEventType getEventType() {
-		return eventType;
+		return this.eventType;
 	}
 
 	public Collection<E> getOldItems() {
-		return oldItems;
+		return this.oldItems;
 	}
 
 	public Collection<? extends E> getNewItems() {
-		return newItems;
+		return this.newItems;
 	}
 
 	public int getIndex() {
-		return index;
+		return this.index;
 	}
 }

@@ -2,6 +2,7 @@ package com.kscs.util.plugins.xjc;
 
 import com.sun.tools.xjc.BadCommandLineException;
 import com.sun.tools.xjc.Options;
+import com.sun.tools.xjc.Plugin;
 
 import java.io.*;
 
@@ -9,6 +10,8 @@ import java.io.*;
  * Created by klemm0 on 13/03/14.
  */
 public final class PluginUtil {
+	public static final String BOOLEAN_OPTION_ERROR_MSG = " option must be either (\"true\",\"on\",\"y\",\"yes\") or (\"false\", \"off\", \"n\",\"no\").";
+
 	public static void writeSourceFile(final Class<?> thisClass, final File targetDir, final String resourceName) {
 		try {
 			final String resourcePath = "/" + resourceName.replace('.', '/') + ".java";
@@ -31,31 +34,50 @@ public final class PluginUtil {
 		}
 	}
 
+	public static boolean hasPlugin(final Options opt, final Class<? extends Plugin> pluginType) {
+		for(final Plugin plugin : opt.activePlugins) {
+			if(pluginType.isInstance(plugin)) {
+				return true;
+			}
+		}
+		return false;
+	}
+
+	@SuppressWarnings("unchecked")
+	static <P extends Plugin> P findPlugin(final Options opt, final Class<P> pluginClass) {
+		for(final Plugin p : opt.activePlugins) {
+			if(pluginClass.isAssignableFrom(p.getClass())) {
+				return (P)p;
+			}
+		}
+		return null;
+	}
+
 	public static final class Arg<T> {
 		private final T value;
 		private final int argsParsed;
 
-		Arg(T value, int argsParsed) {
+		Arg(final T value, final int argsParsed) {
 			this.value = value;
 			this.argsParsed = argsParsed;
 		}
 
 		public T getValue() {
-			return value;
+			return this.value;
 		}
 
 		public int getArgsParsed() {
-			return argsParsed;
+			return this.argsParsed;
 		}
 	}
 
 	public static Arg<Boolean> parseBooleanArgument(final String name, final boolean defaultValue, final Options opt, final String[] args, final int i) throws BadCommandLineException {
 		final String arg = args[i].toLowerCase();
 		if (arg.startsWith("-"+name.toLowerCase()+"=")) {
-			final boolean argTrue = isTrue(arg);
-			final boolean argFalse = isFalse(arg);
+			final boolean argTrue = PluginUtil.isTrue(arg);
+			final boolean argFalse = PluginUtil.isFalse(arg);
 			if (!argTrue && !argFalse) {
-				throw new BadCommandLineException("-"+name.toLowerCase()+" " + DeepClonePlugin.BOOLEAN_OPTION_ERROR_MSG);
+				throw new BadCommandLineException("-"+name.toLowerCase()+" " + PluginUtil.BOOLEAN_OPTION_ERROR_MSG);
 			} else {
 				return new Arg<Boolean>(argTrue, 1);
 			}

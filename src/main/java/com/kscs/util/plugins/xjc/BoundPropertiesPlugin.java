@@ -11,7 +11,6 @@ import org.xml.sax.ErrorHandler;
 import org.xml.sax.SAXException;
 
 import java.beans.*;
-import java.io.*;
 import java.util.ArrayList;
 
 /**
@@ -81,7 +80,6 @@ public class BoundPropertiesPlugin extends Plugin {
 	}
 
 
-
 	private boolean isTrue(final String arg) {
 		return arg.endsWith("y") || arg.endsWith("true") || arg.endsWith("on") || arg.endsWith("yes");
 	}
@@ -107,22 +105,24 @@ public class BoundPropertiesPlugin extends Plugin {
 
 		final JCodeModel m = outline.getCodeModel();
 
-		// generate bound collection helper classes
-		PluginUtil.writeSourceFile(getClass(), opt.targetDir, BoundPropertiesPlugin.BOUND_LIST_INTERFACE_NAME);
-		PluginUtil.writeSourceFile(getClass(),opt.targetDir, BoundPropertiesPlugin.EVENT_TYPE_ENUM_NAME);
-		PluginUtil.writeSourceFile(getClass(),opt.targetDir, BoundPropertiesPlugin.CHANGE_EVENT_CLASS_NAME);
-		PluginUtil.writeSourceFile(getClass(),opt.targetDir, BoundPropertiesPlugin.CHANGE_LISTENER_CLASS_NAME);
-		PluginUtil.writeSourceFile(getClass(),opt.targetDir, BoundPropertiesPlugin.VETOABLE_CHANGE_LISTENER_CLASS_NAME);
-		PluginUtil.writeSourceFile(getClass(),opt.targetDir, BoundPropertiesPlugin.PROXY_CLASS_NAME);
+		if(this.generateTools) {
+			// generate bound collection helper classes
+			PluginUtil.writeSourceFile(getClass(), opt.targetDir, BoundPropertiesPlugin.BOUND_LIST_INTERFACE_NAME);
+			PluginUtil.writeSourceFile(getClass(), opt.targetDir, BoundPropertiesPlugin.EVENT_TYPE_ENUM_NAME);
+			PluginUtil.writeSourceFile(getClass(), opt.targetDir, BoundPropertiesPlugin.CHANGE_EVENT_CLASS_NAME);
+			PluginUtil.writeSourceFile(getClass(), opt.targetDir, BoundPropertiesPlugin.CHANGE_LISTENER_CLASS_NAME);
+			PluginUtil.writeSourceFile(getClass(), opt.targetDir, BoundPropertiesPlugin.VETOABLE_CHANGE_LISTENER_CLASS_NAME);
+			PluginUtil.writeSourceFile(getClass(), opt.targetDir, BoundPropertiesPlugin.PROXY_CLASS_NAME);
+		}
+
+		final int setterAccess = PluginUtil.hasPlugin(opt, ImmutablePlugin.class) ? JMod.PROTECTED : JMod.PUBLIC;
 
 		for (final ClassOutline classOutline : outline.getClasses()) {
-			System.out.println("Generating bound properties for class "+classOutline.implClass.name());
-
 			final JDefinedClass definedClass = classOutline.implClass;
 
 			// Create bound collection proxies
-			for(final FieldOutline fieldOutline : classOutline.getDeclaredFields()) {
-				if(fieldOutline.getPropertyInfo().isCollection() && !definedClass.fields().get(fieldOutline.getPropertyInfo().getName(false)).type().isArray()) {
+			for (final FieldOutline fieldOutline : classOutline.getDeclaredFields()) {
+				if (fieldOutline.getPropertyInfo().isCollection() && !definedClass.fields().get(fieldOutline.getPropertyInfo().getName(false)).type().isArray()) {
 					generateProxyField(classOutline, fieldOutline);
 					generateLazyProxyInitGetter(classOutline, fieldOutline);
 				}
@@ -132,8 +132,8 @@ public class BoundPropertiesPlugin extends Plugin {
 			if (this.constrained && this.setterThrows) {
 				for (final JMethod method : definedClass.methods()) {
 					if (method.name().startsWith("with")
-							&& !method.name().equals("withVetoableChangeListener")
-							&& !method.name().equals("withPropertyChangeListener")
+							&& !"withVetoableChangeListener".equals(method.name())
+							&& !"withPropertyChangeListener".equals(method.name())
 							) {
 						method._throws(PropertyVetoException.class);
 					}
@@ -148,11 +148,10 @@ public class BoundPropertiesPlugin extends Plugin {
 
 			for (final JFieldVar field : definedClass.fields().values()) {
 				//final JFieldVar field = definedClass.fields().get(fieldOutline.getPropertyInfo().getName(false));
-				System.out.println("---> Generating bound property for field "+field.name());
 				final JMethod oldSetter = definedClass.getMethod("set" + outline.getModel().getNameConverter().toPropertyName(field.name()), new JType[]{field.type()});
 				if (oldSetter != null && !field.type().isArray()) {
 					definedClass.methods().remove(oldSetter);
-					final JMethod setter = definedClass.method(JMod.PUBLIC, m.VOID, "set" + outline.getModel().getNameConverter().toPropertyName(field.name()));
+					final JMethod setter = definedClass.method(setterAccess, m.VOID, "set" + outline.getModel().getNameConverter().toPropertyName(field.name()));
 					final JVar setterArg = setter.param(JMod.FINAL, field.type(), "value");
 					final JBlock body = setter.body();
 					final JVar oldValueVar = body.decl(JMod.FINAL, field.type(), "oldValue", JExpr._this().ref(field));
@@ -185,10 +184,10 @@ public class BoundPropertiesPlugin extends Plugin {
 	}
 
 	private void createSupportProperty(final Outline outline,
-									   final ClassOutline classOutline,
-									   final Class<?> supportClass,
-									   final Class<?> listenerClass,
-									   final String aspectName) {
+	                                   final ClassOutline classOutline,
+	                                   final Class<?> supportClass,
+	                                   final Class<?> listenerClass,
+	                                   final String aspectName) {
 		final JCodeModel m = outline.getCodeModel();
 		final JDefinedClass definedClass = classOutline.implClass;
 
@@ -223,20 +222,20 @@ public class BoundPropertiesPlugin extends Plugin {
 		final JCodeModel m = classOutline.parent().getCodeModel();
 		final JDefinedClass definedClass = classOutline.implClass;
 		final JFieldVar collectionField = definedClass.fields().get(fieldOutline.getPropertyInfo().getName(false));
-		final JClass elementType = ((JClass)collectionField.type()).getTypeParameters().get(0);
-		return definedClass.field(JMod.PRIVATE | JMod.TRANSIENT, m.ref(BoundPropertiesPlugin.BOUND_LIST_INTERFACE_NAME).narrow(elementType), collectionField.name()+"Proxy", JExpr._null() );
+		final JClass elementType = ((JClass) collectionField.type()).getTypeParameters().get(0);
+		return definedClass.field(JMod.PRIVATE | JMod.TRANSIENT, m.ref(BoundPropertiesPlugin.BOUND_LIST_INTERFACE_NAME).narrow(elementType), collectionField.name() + "Proxy", JExpr._null());
 	}
 
 	private JMethod generateLazyProxyInitGetter(final ClassOutline classOutline, final FieldOutline fieldOutline) {
 		final JCodeModel m = classOutline.parent().getCodeModel();
 		final JDefinedClass definedClass = classOutline.implClass;
 		final String fieldName = fieldOutline.getPropertyInfo().getName(false);
-		final String getterName = "get"+fieldOutline.getPropertyInfo().getName(true);
+		final String getterName = "get" + fieldOutline.getPropertyInfo().getName(true);
 		final JFieldVar collectionField = definedClass.fields().get(fieldName);
-		final JClass elementType = ((JClass)collectionField.type()).getTypeParameters().get(0);
+		final JClass elementType = ((JClass) collectionField.type()).getTypeParameters().get(0);
 		final JClass proxyFieldType = m.ref(BoundPropertiesPlugin.BOUND_LIST_INTERFACE_NAME).narrow(elementType);
 		final JFieldRef collectionFieldRef = JExpr._this().ref(collectionField);
-		final JFieldRef proxyField = JExpr._this().ref(collectionField.name()+"Proxy");
+		final JFieldRef proxyField = JExpr._this().ref(collectionField.name() + "Proxy");
 		final JMethod oldGetter = definedClass.getMethod(getterName, new JType[0]);
 		definedClass.methods().remove(oldGetter);
 		final JMethod newGetter = definedClass.method(JMod.PUBLIC, proxyFieldType, getterName);
@@ -247,37 +246,8 @@ public class BoundPropertiesPlugin extends Plugin {
 		return newGetter;
 	}
 
-	private String loadBody(final String resourceName) {
-		try {
-			final StringBuilder sb = new StringBuilder();
-			final BufferedReader reader = new BufferedReader(new InputStreamReader(getClass().getResourceAsStream("/" + resourceName.replace('.','/')+".java")));
-			try {
-				String line;
-				while((line = reader.readLine()) != null) {
-					sb.append(line);
-					sb.append("\n");
-				}
-				final String sourceCode = sb.toString();
-				final int beginIndex = sourceCode.indexOf('{') + 1;
-				final int endIndex = sourceCode.lastIndexOf("}");
-				return sourceCode.substring(beginIndex, endIndex);
-			} finally {
-				reader.close();
-			}
-		} catch(final IOException iox) {
-			throw new RuntimeException(iox);
-		}
-	}
-
-
-
-
 	public boolean isConstrained() {
 		return this.constrained;
-	}
-
-	public boolean isBound() {
-		return this.bound;
 	}
 
 	public boolean isSetterThrows() {

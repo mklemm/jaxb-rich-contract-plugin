@@ -21,10 +21,32 @@ import java.util.Set;
  * Created by klemm0 on 18/02/14.
  */
 public class DeepClonePlugin extends Plugin {
-	public static final String BOOLEAN_OPTION_ERROR_MSG = " option must be either (\"true\",\"on\",\"y\",\"yes\") or (\"false\", \"off\", \"n\",\"no\").";
+	private boolean cloneMethodThrows(final Set<String> generatedClasses, final JClass fieldType) {
+		try {
+			return fieldType.fullName().equals(Object.class.getName()) || (!generatedClasses.contains(fieldType.fullName())
+					&&
+					Class.forName(fieldType.fullName()).getMethod("clone").getExceptionTypes().length > 0);
+		} catch (final Exception e) {
+			System.err.println("WARNING: " + e);
+			e.printStackTrace();
+			return true;
+		}
+	}
+
+	private JExpression castOnDemand(final Set<String> generatedClasses, final JType fieldType, final JExpression expression) {
+		return generatedClasses.contains(fieldType.fullName()) ? expression : JExpr.cast(fieldType, expression);
+	}
+
+	private boolean isSuperGenerated(final Set<String> generatedClasses, final JClass definedClass) {
+		return generatedClasses.contains(definedClass._extends().fullName());
+	}
+
+	public boolean isThrowCloneNotSupported() {
+		return this.throwCloneNotSupported;
+	}
 
 	private boolean throwCloneNotSupported = false;
-	private boolean generatePathCloneMethod = true;
+	private boolean generatePartialCloneMethod = true;
 	private boolean generateTools = true;
 
 	@Override
@@ -37,8 +59,8 @@ public class DeepClonePlugin extends Plugin {
 		PluginUtil.Arg<Boolean> arg = PluginUtil.parseBooleanArgument("clone-throws", this.throwCloneNotSupported, opt, args, i);
 		this.throwCloneNotSupported = arg.getValue();
 		if (arg.getArgsParsed() == 0) {
-			arg = PluginUtil.parseBooleanArgument("path-clone", this.generatePathCloneMethod, opt, args, i);
-			this.generatePathCloneMethod = arg.getValue();
+			arg = PluginUtil.parseBooleanArgument("partial-clone", this.generatePartialCloneMethod, opt, args, i);
+			this.generatePartialCloneMethod = arg.getValue();
 		}
 		if (arg.getArgsParsed() == 0) {
 			arg = PluginUtil.parseBooleanArgument("generate-tools", this.generateTools, opt, args, i);
@@ -60,7 +82,7 @@ public class DeepClonePlugin extends Plugin {
 		final JClass pathCloneableInterface = m.ref(PathCloneable.class);
 		final JClass arrayListClass = m.ref(ArrayList.class);
 
-		if (this.generatePathCloneMethod && this.generateTools) {
+		if (this.generatePartialCloneMethod && this.generateTools) {
 			PluginUtil.writeSourceFile(getClass(), opt.targetDir, PathCloneable.class.getName());
 			PluginUtil.writeSourceFile(getClass(), opt.targetDir, PropertyPath.class.getName());
 		}
@@ -68,7 +90,7 @@ public class DeepClonePlugin extends Plugin {
 		final Set<String> generatedClasses = new HashSet<String>();
 		for (final ClassOutline classOutline : outline.getClasses()) {
 			classOutline.implClass._implements(Cloneable.class);
-			if (this.generatePathCloneMethod) {
+			if (this.generatePartialCloneMethod) {
 				classOutline.implClass._implements(PathCloneable.class);
 			}
 			generatedClasses.add(classOutline.implClass.fullName());
@@ -81,14 +103,14 @@ public class DeepClonePlugin extends Plugin {
 
 
 			generateCloneMethod(m, collectionClass, cloneableInterface, arrayListClass, generatedClasses, definedClass);
-			if (this.generatePathCloneMethod) {
-				generateClonePathMethod(m, collectionClass, pathCloneableInterface, arrayListClass, generatedClasses, definedClass);
+			if (this.generatePartialCloneMethod) {
+				generatePartialCloneMethod(m, collectionClass, pathCloneableInterface, arrayListClass, generatedClasses, definedClass);
 			}
 		}
 		return true;
 	}
 
-	private boolean mustCatch(JClass collectionClass, JClass cloneableInterface, Set<String> generatedClasses, JDefinedClass definedClass) {
+	private boolean mustCatch(final JClass collectionClass, final JClass cloneableInterface, final Set<String> generatedClasses, final JDefinedClass definedClass) {
 		boolean mustCatch = cloneMethodThrows(generatedClasses, definedClass._extends());
 		for (final JFieldVar field : definedClass.fields().values()) {
 			if (field.type().isReference()) {
@@ -141,7 +163,7 @@ public class DeepClonePlugin extends Plugin {
 					final JConditional ifNull = body._if(fieldRef.eq(JExpr._null()));
 					ifNull._then().assign(newField, JExpr._null());
 					ifNull._else().assign(newField, JExpr._new(arrayListClass.narrow(elementType)).arg(JExpr._this().ref(field).invoke("size")));
-					final JForEach forLoop = ((JBlock) ifNull._else()).forEach(elementType, "item", fieldRef);
+					final JForEach forLoop = ifNull._else().forEach(elementType, "item", fieldRef);
 					if (cloneableInterface.isAssignableFrom(elementType)) {
 						final JConditional ifStmt = forLoop.body()._if(forLoop.var().eq(JExpr._null()));
 						ifStmt._then().invoke(newField, "add").arg(JExpr._null());
@@ -168,7 +190,7 @@ public class DeepClonePlugin extends Plugin {
 		}
 	}
 
-	private void generateClonePathMethod(final JCodeModel m, final JClass collectionClass, final JClass cloneableInterface, final JClass arrayListClass, final Set<String> generatedClasses, final JDefinedClass definedClass) {
+	private void generatePartialCloneMethod(final JCodeModel m, final JClass collectionClass, final JClass cloneableInterface, final JClass arrayListClass, final Set<String> generatedClasses, final JDefinedClass definedClass) {
 		final boolean mustCatch = false; //mustCatch(collectionClass, cloneableInterface, generatedClasses, definedClass);
 
 		final JMethod cloneMethod = definedClass.method(JMod.PUBLIC, definedClass, "clone");
@@ -219,7 +241,7 @@ public class DeepClonePlugin extends Plugin {
 						final JConditional ifNull = currentBlock._if(fieldRef.ne(JExpr._null()));
 						ifNull._then().assign(newField, JExpr._new(arrayListClass.narrow(elementType)).arg(fieldRef.invoke("size")));
 						ifNull._else().assign(newField, JExpr._null());
-						final JForEach forLoop = ((JBlock) ifNull._then()).forEach(elementType, "item", fieldRef);
+						final JForEach forLoop = ifNull._then().forEach(elementType, "item", fieldRef);
 						if (cloneableInterface.isAssignableFrom(elementType)) {
 							final JConditional ifStmt = forLoop.body()._if(forLoop.var().eq(JExpr._null()));
 							ifStmt._then().invoke(newField, "add").arg(JExpr._null());
@@ -251,29 +273,5 @@ public class DeepClonePlugin extends Plugin {
 			catchBlock.body()._throw(JExpr._new(m.ref(RuntimeException.class)).arg(exceptionVar));
 		}
 
-	}
-
-	private boolean cloneMethodThrows(final Set<String> generatedClasses, final JClass fieldType) {
-		try {
-			return fieldType.fullName().equals(Object.class.getName()) || (!generatedClasses.contains(fieldType.fullName())
-					&&
-					Class.forName(fieldType.fullName()).getMethod("clone").getExceptionTypes().length > 0);
-		} catch (final Exception e) {
-			System.err.println("WARNING: " + e);
-			e.printStackTrace();
-			return true;
-		}
-	}
-
-	private JExpression castOnDemand(final Set<String> generatedClasses, final JType fieldType, final JExpression expression) {
-		return generatedClasses.contains(fieldType.fullName()) ? expression : JExpr.cast(fieldType, expression);
-	}
-
-	private boolean isSuperGenerated(final Set<String> generatedClasses, final JClass definedClass) {
-		return generatedClasses.contains(definedClass._extends().fullName());
-	}
-
-	public boolean isThrowCloneNotSupported() {
-		return this.throwCloneNotSupported;
 	}
 }
