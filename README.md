@@ -21,8 +21,11 @@ jaxb2-rich-contract-plugin is a plugin to the XJC "XML to Java compiler" shipped
 reference implementation of JAXB, included in all JDKs since 1.6.
 It is targeted on version 2.2 of the JAXB API.
 In order to make it work, you need to:
+
 * Add the jar file to the classpath of XJC
+
 * Add the JAXB 2.2 XJC API to the classpath of XJC, if your environment is running by default under JAXB 2.1 or lower.
+
 * Add the corresponding activating command-line option to XJC's invocation,
   see below for details of each of the plugins
 
@@ -154,6 +157,7 @@ For group-interface, there are currently no further command line options.
   the sake of simplicity, the plugin copies back the method definitions in the
   interfaces from the implementing classes, rather than generating the method
   definitions entirely on its own, taking into account possible other plugins etc.
+
 * There should be an option to limit the contract only to property getter methods, or
   to extend it to the fluent-interface "withXXX"-Methods, when the "fluent-interface"
   plugin is active.
@@ -205,7 +209,9 @@ the plugin artifact into the runtime classpath of your application.
 
 ### Limitations
 * The JavaBeans standard is only loosely implemented in the generated classes.
+
 * Indexed Properties as defined in JavaBeans are not supported.
+
 * The CollectionChange behavior implemented by the classes is not yet documented
   and non-standard.
 
@@ -222,10 +228,13 @@ tries to do it in a simple and reliable way.
 ### Function
 The `clone` plugin generates a deep clone method for each of the generated classes, based on the following assumptions:
 * Instances of any other class generated from the same XSD model are cloneable by the same semantics as "this".
+
 * Objects implementing `java.lang.Cloneable` and not throwing "CloneNotSupportedException" are also reliably cloneable
   by their "clone" Method.
+
 * Objects not implementing `java.lang.Cloneable` or primitive types are assumed to be immutable,
   their references are copied over, they are not cloned.
+
 * Optionally, generates a "partial clone" method that takes a `PropertyPath` instance which represents a
   specification of the nodes in the object tree to clone. The PropertyPath is built up by an intuitive builder
   pattern:
@@ -266,7 +275,7 @@ Contemporary programming styles include making objects immutable as much as poss
 side effects and allow for functional programming patterns.
 
 ### Function
-This plugin simply makes all "setXXX" methods "prottected", thus preventing API consumers to modify
+This plugin simply makes all "setXXX" methods "protected", thus preventing API consumers to modify
 state of instances of generated classes after they have been created. This only makes sense together with
 another plugin that allows for initialization of the instances, like e.g. the included `fluent-builder` plugin.
 
@@ -284,15 +293,18 @@ fluent-builder
 There already is the widely used "fluent-api" plugin for XJC.
 This, however isn't a real builder pattern since there is no strict programmatic distinction between initialization
 and state change in fluent-api.
+
 fluent-builder now creates a real "Builder" pattern, implemented as an inner class to the generated classes.
 
 ### Function
 fluent-builder creates a static inner class for every generated class representing the builder, and a static
 method on the generated class to create a builder.
+
 If the "immutable" plugin is also activated, publicly exposed collections will be immutable, too.
 
 ### Usage
 Plugin activation: `-Xfluent-builder`
+
 Usage in code (example):
 
 	MyElement newElement = MyElement.builder().withPropertyA(...).withPropertyB(...).addCollectionPropertyA(...).build();
