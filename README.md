@@ -27,6 +27,28 @@ In order to make it work, you need to:
   see below for details of each of the plugins
 
 #### From Maven
+There is a maven reporitory for this project under:
+
+http://maven.klemm-scs.com/release
+
+Add this repository to your pom.xml:
+
+	<pluginRepositories>
+		<pluginRepository>
+			<releases>
+		        <enabled>false</enabled>
+		        <updatePolicy>always</updatePolicy>
+		        <checksumPolicy>warn</checksumPolicy>
+		    </releases>
+			<id>jaxb2-plugins</id>
+			<name>JAXB2 XJC Plugin Repository</name>
+			<url>http://maven.klemm-scs.com/release</url>
+			<layout>default</layout>
+		</pluginRepository>
+	</pluginRepositories>
+	
+
+
 You should add "maven-jaxb21-plugin" or "maven-jaxb22-plugin" to your `<build>`
 configuration.
 Then add "jaxb2-group-contract":
@@ -36,7 +58,7 @@ Then add "jaxb2-group-contract":
             <plugin>
                 <groupId>org.jvnet.jaxb2.maven2</groupId>
                 <artifactId>maven-jaxb21-plugin</artifactId>
-                <version>0.8.2</version>
+                <version>0.8.3</version>
                 <executions>
                     <execution>
                         <id>xsd-generate-2.1</id>
@@ -66,7 +88,7 @@ Then add "jaxb2-group-contract":
                         <plugin>
                             <groupId>com.kscs.util</groupId>
                             <artifactId>jaxb2-rich-contract-plugin</artifactId>
-                            <version>1.0.0</version>
+                            <version>1.0.5</version>
                         </plugin>
                     </plugins>
                     <dependencies>
