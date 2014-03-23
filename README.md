@@ -177,15 +177,24 @@ and indexed properties as mandated by JavaBeans are generally considered "out of
 
 ### Usage
 Activate the plugin by giving command-line option `-Xconstrained-properties` to XJC.
+
 Other options supported:
-`-setter-throws=`y/n		Generate the setter method with "throws PropertyVetoException" if constrained properties are
-							used. If no, only a RuntimeException is thrown on a PropertyVeto event. Default: n
-`-constrained=`y/n			Generate constrained properties, where a listener can inhibit the property change. Default: y
-`-bound=`y/n				Generate bound properties. Default: y
-`-generate-tools=`y/n		To support Collection-specific change events and behavior, additional classes are required.
-							If you set this option to "yes", these auxiliary classes will be generated into the source
-							code along with the generated JAXB classes. If you set this to "no", you will have to include
-							the plugin artifact into the runtime classpath of your application.
+
+#### `-setter-throws=`y/n
+Generate the setter method with "throws PropertyVetoException" if constrained properties are
+used. If no, only a RuntimeException is thrown on a PropertyVeto event. Default: n
+							
+#### `-constrained=`y/n
+Generate constrained properties, where a listener can inhibit the property change. Default: y
+
+#### `-bound=`y/n
+Generate bound properties. Default: y
+
+#### `-generate-tools=`y/n
+To support Collection-specific change events and behavior, additional classes are required.
+If you set this option to "yes", these auxiliary classes will be generated into the source
+code along with the generated JAXB classes. If you set this to "no", you will have to include
+the plugin artifact into the runtime classpath of your application.
 
 ### Limitations
 * The JavaBeans standard is only loosely implemented in the generated classes.
@@ -214,23 +223,29 @@ The `clone` plugin generates a deep clone method for each of the generated class
   specification of the nodes in the object tree to clone. The PropertyPath is built up by an intuitive builder
   pattern:
 
-	final PropertyPath excludeEmployees = PropertyPath.includeAll().include("company").exclude("employees").build();
+`final PropertyPath excludeEmployees = PropertyPath.includeAll().include("company").exclude("employees").build();`
 
-  Then, you would partially clone an object tree like this:
+Then, you would partially clone an object tree like this:
 
-	final BusinessPartner businessPartnerClone = businessPartner.clone(excludeEmployees);
+    final BusinessPartner businessPartnerClone = businessPartner.clone(excludeEmployees);
 
 
 ### Usage
 Plugin activation: `-Xclone`.
 Options:
-`-clone-throws=`y/n			Declare "clone"-Method to throw "CloneNotSupportedException" if an object doesn't support
-							cloning. This is the way mandated by the "Cloneable" contract and convention of the JDK.
-							Setting this to "no" will throw a RuntimeException instead. Default: y
-`-partial-clone=`y/n        Create partial clone method (see above)
-`-generate-tools=`y/n       Generate prerequisite classes like e.g. `PropertyPath` as source files into the generated source
-							packages. If you say 'no' here, you will have to add the jaxb2-rich-contract-plugin jar to your
-							runtime classpath.
+
+#### `-clone-throws=`y/n
+Declare "clone"-Method to throw "CloneNotSupportedException" if an object doesn't support
+cloning. This is the way mandated by the "Cloneable" contract and convention of the JDK.
+Setting this to "no" will throw a RuntimeException instead. Default: y
+
+#### `-partial-clone=`y/n
+Create partial clone method (see above)
+
+#### `-generate-tools=`y/n
+Generate prerequisite classes like e.g. `PropertyPath` as source files into the generated source
+packages. If you say 'no' here, you will have to add the jaxb2-rich-contract-plugin jar to your
+runtime classpath.
 
 ### Limitations
 * There should be an option to create a copy constructor instead of a clone method.
