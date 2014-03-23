@@ -88,7 +88,7 @@ Then add "jaxb2-group-contract":
                         <plugin>
                             <groupId>com.kscs.util</groupId>
                             <artifactId>jaxb2-rich-contract-plugin</artifactId>
-                            <version>1.0.5</version>
+                            <version>1.0.4</version>
                         </plugin>
                     </plugins>
                     <dependencies>
