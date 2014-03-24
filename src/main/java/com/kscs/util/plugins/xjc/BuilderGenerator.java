@@ -15,22 +15,33 @@ public class BuilderGenerator {
 
 	private final JDefinedClass definedClass;
 	private final JDefinedClass builderClass;
+	private final JDefinedClass derivedBuilderClass;
 	private final ClassOutline classOutline;
 	private final boolean hasImmutablePlugin;
+	private final boolean fullyFluentApi;
 
-	BuilderGenerator(final ApiConstructs apiConstructs, final ClassOutline classOutline, final Options opt) throws JClassAlreadyExistsException {
+	BuilderGenerator(final ApiConstructs apiConstructs, final ClassOutline classOutline, final Options opt, final boolean fullyFluentApi) throws JClassAlreadyExistsException {
 		this.apiConstructs = apiConstructs;
 		this.classOutline = classOutline;
 		this.definedClass = this.classOutline.implClass;
+		this.fullyFluentApi = fullyFluentApi;
 		this.hasImmutablePlugin = PluginUtil.hasPlugin(opt, ImmutablePlugin.class);
 		final int mods = this.definedClass.isAbstract() ? JMod.PROTECTED | JMod.STATIC | JMod.ABSTRACT : JMod.PUBLIC | JMod.STATIC;
 		this.builderClass = this.definedClass._class(mods, ApiConstructs.BUILDER_CLASS_NAME, ClassType.CLASS);
-		/* TODO: Implement higher order builder functionality
-		final JDefinedClass derivedBuilderClass = this.definedClass._class(JMod.STATIC, ApiConstructs.DERIVED_BUILDER_CLASS_NAME, ClassType.CLASS);
-		derivedBuilderClass._extends(this.builderClass);
-		final JTypeVar typeParam = derivedBuilderClass.generify("B");
-		final JMethod endMethod = derivedBuilderClass.method(JMod.NONE, typeParam, "end");
-		*/
+
+		if(fullyFluentApi) {
+			this.derivedBuilderClass = this.definedClass._class(JMod.STATIC | JMod.PUBLIC, ApiConstructs.DERIVED_BUILDER_CLASS_NAME, ClassType.CLASS);
+			this.derivedBuilderClass._extends(this.builderClass);
+			final JTypeVar typeParam = this.derivedBuilderClass.generify("B");
+			final JVar parentBuilderField = this.derivedBuilderClass.field(JMod.FINAL | JMod.PRIVATE, typeParam, "parentBuilder");
+			final JMethod constructor = this.derivedBuilderClass.constructor(JMod.NONE);
+			final JVar parentBuilderParam = constructor.param(JMod.FINAL, typeParam, "parentBuilder");
+			constructor.body().assign(JExpr._this().ref(parentBuilderField), parentBuilderParam);
+			final JMethod endMethod = this.derivedBuilderClass.method(JMod.PUBLIC, typeParam, "end");
+			endMethod.body()._return(JExpr._this().ref(parentBuilderField));
+		} else {
+			this.derivedBuilderClass = null;
+		}
 	}
 
 	void buildProperties() {
@@ -42,12 +53,13 @@ public class BuilderGenerator {
 		final JVar productParam = initMethod.param(JMod.FINAL, typeVar, ApiConstructs.PRODUCT_INSTANCE_NAME);
 		final JBlock initBody = initMethod.body();
 
+
 		for (final FieldOutline fieldOutline : this.classOutline.getDeclaredFields()) {
 			generateBuilderMember(fieldOutline, initBody, productParam);
 		}
 
 		if (superClass != null) {
-			this.builderClass._extends(findBuilderClass(superClass));
+			this.builderClass._extends(findBuilderClass(superClass.implClass, ApiConstructs.BUILDER_CLASS_NAME));
 			initBody._return(JExpr._super().invoke(initMethod).arg(productParam));
 			buildWithMethodOverrides(superClass);
 		} else {
@@ -61,13 +73,35 @@ public class BuilderGenerator {
 			final JMethod builderMethod = this.definedClass.method(JMod.PUBLIC | JMod.STATIC, this.builderClass, ApiConstructs.BUILDER_METHOD_NAME);
 			builderMethod.body()._return(JExpr._new(this.builderClass));
 		}
+
+		if(this.fullyFluentApi) {
+			for (final JMethod builderMethod : this.builderClass.methods()) {
+				if((builderMethod.name().startsWith("add") || builderMethod.name().startsWith("with"))) {
+					final JClass parameterisedBuilderClass =  this.derivedBuilderClass.narrow(this.derivedBuilderClass.typeParams()[0]);
+					if(builderMethod.type().equals(this.builderClass) && builderMethod.params().size() == 1) {
+						final JMethod derivedBuilderMethod = this.derivedBuilderClass.method(builderMethod.mods().getValue(), parameterisedBuilderClass, builderMethod.name());
+						derivedBuilderMethod.annotate(Override.class);
+						final JVar param = derivedBuilderMethod.param(JMod.FINAL, builderMethod.params().get(0).type(), builderMethod.params().get(0).name());
+						derivedBuilderMethod.body().add(JExpr._super().invoke(builderMethod).arg(param));
+						derivedBuilderMethod.body()._return(JExpr._this());
+					} else {
+//						final JMethod derivedBuilderMethod = this.derivedBuilderClass.method(builderMethod.mods().getValue(), this.derivedBuilderClass.narrow(parameterisedBuilderClass), builderMethod.name());
+//						derivedBuilderMethod.annotate(Override.class);
+//						derivedBuilderMethod.body().add(JExpr._super().invoke(builderMethod));
+//						derivedBuilderMethod.body()._return(JExpr._this());
+					}
+				}
+			}
+		}
 	}
 
 	private void generateBuilderMember(final FieldOutline fieldOutline, final JBlock initBody, final JVar productParam) {
 		final JFieldVar declaredField = this.definedClass.fields().get(fieldOutline.getPropertyInfo().getName(false));
 		final String propertyName = fieldOutline.getPropertyInfo().getName(true);
 		if (fieldOutline.getPropertyInfo().isCollection()) {
-			final JFieldVar builderField = this.builderClass.field(JMod.PRIVATE, declaredField.type(), declaredField.name(), JExpr._new(this.apiConstructs.arrayListClass));
+			final JClass elementType = ((JClass) declaredField.type()).getTypeParameters().get(0);
+
+			final JFieldVar builderField = this.builderClass.field(JMod.PRIVATE, declaredField.type(), declaredField.name(), JExpr._new(this.apiConstructs.arrayListClass.narrow(elementType)));
 
 			final JMethod addListMethod = this.builderClass.method(JMod.PUBLIC, this.builderClass, ApiConstructs.ADD_METHOD_PREFIX + propertyName);
 			final JVar addListParam = addListMethod.param(JMod.FINAL, fieldOutline.getRawType(), declaredField.name());
@@ -75,7 +109,7 @@ public class BuilderGenerator {
 			addListMethod.body()._return(JExpr._this());
 
 			final JMethod addVarargsMethod = this.builderClass.method(JMod.PUBLIC, this.builderClass, ApiConstructs.ADD_METHOD_PREFIX + propertyName);
-			final JVar addVarargsParam = addVarargsMethod.varParam(((JClass) declaredField.type()).getTypeParameters().get(0), declaredField.name());
+			final JVar addVarargsParam = addVarargsMethod.varParam(elementType, declaredField.name());
 			addVarargsMethod.body().invoke(addListMethod).arg(this.apiConstructs.asList(addVarargsParam));
 			addVarargsMethod.body()._return(JExpr._this());
 
@@ -85,7 +119,7 @@ public class BuilderGenerator {
 			withListMethod.body()._return(JExpr._this());
 
 			final JMethod withVarargsMethod = this.builderClass.method(JMod.PUBLIC, this.builderClass, ApiConstructs.WITH_METHOD_PREFIX + propertyName);
-			final JVar withVarargsParam = withVarargsMethod.varParam(((JClass) declaredField.type()).getTypeParameters().get(0), declaredField.name());
+			final JVar withVarargsParam = withVarargsMethod.varParam(elementType, declaredField.name());
 			withVarargsMethod.body().invoke(withListMethod).arg(this.apiConstructs.asList(withVarargsParam));
 			withVarargsMethod.body()._return(JExpr._this());
 
@@ -101,6 +135,21 @@ public class BuilderGenerator {
 			final JBlock body = withMethod.body();
 			body.assign(JExpr._this().ref(builderField), param);
 			body._return(JExpr._this());
+
+			if(this.fullyFluentApi && declaredField.type().isReference()) {
+				final JDefinedClass fieldClass = PluginUtil.getClassDefinition(this.apiConstructs.codeModel, declaredField.type());
+				if(fieldClass != null) {
+					final JClass childBuilderClass = findBuilderClass(fieldClass, ApiConstructs.DERIVED_BUILDER_CLASS_NAME);
+					if(childBuilderClass != null) {
+						final JClass childBuilderType = childBuilderClass.narrow(this.builderClass);
+						final JFieldVar childBuilderField = this.builderClass.field(JMod.PRIVATE, childBuilderType, declaredField.name()+"_Builder");
+						final JMethod withChildMethod = this.builderClass.method(JMod.PUBLIC, childBuilderType, ApiConstructs.WITH_METHOD_PREFIX + propertyName);
+						withChildMethod.body()._return(JExpr.assign(JExpr._this().ref(childBuilderField), JExpr._new(childBuilderClass).arg(JExpr._this())));
+
+					}
+				}
+			}
+
 			initBody.assign(productParam.ref(declaredField), JExpr._this().ref(builderField));
 		}
 	}
@@ -148,11 +197,11 @@ public class BuilderGenerator {
 		}
 	}
 
-	private JDefinedClass findBuilderClass(final ClassOutline classOutline) {
-		final Iterator<JDefinedClass> classes = classOutline.implClass.classes();
+	private JDefinedClass findBuilderClass(final JDefinedClass jClass, final String builderClassName) {
+		final Iterator<JDefinedClass> classes = jClass.classes();
 		while (classes.hasNext()) {
 			final JDefinedClass innerClass = classes.next();
-			if (ApiConstructs.BUILDER_CLASS_NAME.equals(innerClass.name())) {
+			if (builderClassName.equals(innerClass.name())) {
 				return innerClass;
 			}
 		}

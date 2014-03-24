@@ -19,6 +19,7 @@ import java.util.List;
  * Plugin to generate fluent Builders for generated classes
  */
 public class FluentBuilderPlugin extends Plugin {
+	private boolean fullyFluentApi = true;
 
 	@Override
 	public String getOptionName() {
@@ -27,7 +28,9 @@ public class FluentBuilderPlugin extends Plugin {
 
 	@Override
 	public int parseArgument(final Options opt, final String[] args, final int i) throws BadCommandLineException, IOException {
-		return 0;
+		final PluginUtil.Arg<Boolean> arg = PluginUtil.parseBooleanArgument("fully-fluent", this.fullyFluentApi, opt, args, i);
+		this.fullyFluentApi = arg.getValue();
+		return arg.getArgsParsed();
 	}
 
 	@Override
@@ -41,11 +44,11 @@ public class FluentBuilderPlugin extends Plugin {
 
 		final List<BuilderGenerator> builderGenerators = new ArrayList<BuilderGenerator>(outline.getClasses().size());
 
-		for(final ClassOutline classOutline : outline.getClasses()) {
+		for (final ClassOutline classOutline : outline.getClasses()) {
 			final JDefinedClass definedClass = classOutline.implClass;
 			try {
-				builderGenerators.add(new BuilderGenerator(apiConstructs, classOutline, opt));
-			} catch(final JClassAlreadyExistsException caex) {
+				builderGenerators.add(new BuilderGenerator(apiConstructs, classOutline, opt, this.fullyFluentApi));
+			} catch (final JClassAlreadyExistsException caex) {
 				errorHandler.warning(new SAXParseException("Class \"" + definedClass.name() + "\" already contains inner class \"Builder\". Skipping generation of fluent builder.", classOutline.target.getLocator(), caex));
 			}
 		}

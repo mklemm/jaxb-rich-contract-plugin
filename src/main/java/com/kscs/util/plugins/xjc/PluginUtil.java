@@ -1,8 +1,13 @@
 package com.kscs.util.plugins.xjc;
 
+import com.sun.codemodel.JCodeModel;
+import com.sun.codemodel.JDefinedClass;
+import com.sun.codemodel.JType;
 import com.sun.tools.xjc.BadCommandLineException;
 import com.sun.tools.xjc.Options;
 import com.sun.tools.xjc.Plugin;
+import com.sun.tools.xjc.outline.ClassOutline;
+import com.sun.tools.xjc.outline.Outline;
 
 import java.io.*;
 
@@ -44,10 +49,10 @@ public final class PluginUtil {
 	}
 
 	@SuppressWarnings("unchecked")
-	static <P extends Plugin> P findPlugin(final Options opt, final Class<P> pluginClass) {
-		for(final Plugin p : opt.activePlugins) {
-			if(pluginClass.isAssignableFrom(p.getClass())) {
-				return (P)p;
+	public static <P extends Plugin> P findPlugin(final Options opt, final Class<P> pluginType) {
+		for(final Plugin plugin : opt.activePlugins) {
+			if(pluginType.isInstance(plugin)) {
+				return (P)plugin;
 			}
 		}
 		return null;
@@ -93,5 +98,17 @@ public final class PluginUtil {
 		return arg.endsWith("n") || arg.endsWith("false") || arg.endsWith("off") || arg.endsWith("no");
 	}
 
+	public static ClassOutline getClassOutline(final Outline outline, final JType typeRef) {
+		for(final ClassOutline classOutline : outline.getClasses()) {
+			if(typeRef.fullName().equals(classOutline.implClass.fullName())) {
+				return classOutline;
+			}
+		}
+		return null;
+	}
+
+	public static JDefinedClass getClassDefinition(final JCodeModel codeModel, final JType typeRef) {
+		return codeModel._getClass(typeRef.fullName());
+	}
 
 }
