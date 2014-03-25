@@ -19,7 +19,15 @@ import java.util.Map;
  * Plugin to generate fluent Builders for generated classes
  */
 public class FluentBuilderPlugin extends Plugin {
-	private boolean fullyFluentApi = true;
+	private boolean supportBuilderChain = true;
+
+    public FluentBuilderPlugin() {
+        // Needed by JAXB Framework
+    }
+
+    protected FluentBuilderPlugin(final boolean supportBuilderChain) {
+        this.supportBuilderChain = supportBuilderChain;
+    }
 
 	@Override
 	public String getOptionName() {
@@ -28,14 +36,14 @@ public class FluentBuilderPlugin extends Plugin {
 
 	@Override
 	public int parseArgument(final Options opt, final String[] args, final int i) throws BadCommandLineException, IOException {
-		final PluginUtil.Arg<Boolean> arg = PluginUtil.parseBooleanArgument("fully-fluent", this.fullyFluentApi, opt, args, i);
-		this.fullyFluentApi = arg.getValue();
+		final PluginUtil.Arg<Boolean> arg = PluginUtil.parseBooleanArgument("support-builder-chain", this.supportBuilderChain, opt, args, i);
+		this.supportBuilderChain = arg.getValue();
 		return arg.getArgsParsed();
 	}
 
 	@Override
 	public String getUsage() {
-		return " -Xfluent-builder: Generates an inner \"fluent builder\" for each of the generated classes.";
+		return " -Xfluent-builder: Generates an inner \"fluent builder\" for each of the generated classes.\n\tOptions:\n\t\t-support-builder-chain=<yes/no>:\tGenerate extended fluent builders that will allow child objects to be created in the fluent chain.";
 	}
 
 	@Override
@@ -56,7 +64,7 @@ public class FluentBuilderPlugin extends Plugin {
         final ApiConstructs apiConstructs = new ApiConstructs(outline.getCodeModel(), builderClasses, opt);
 
 		for (final BuilderOutline builderOutline : builderClasses.values()) {
-            final BuilderGenerator builderGenerator = this.fullyFluentApi ? new ChainedBuilderGenerator(apiConstructs, builderOutline) : new SimpleBuilderGenerator(apiConstructs, builderOutline);
+            final BuilderGenerator builderGenerator = this.supportBuilderChain ? new ChainedBuilderGenerator(apiConstructs, builderOutline) : new SimpleBuilderGenerator(apiConstructs, builderOutline);
 			builderGenerator.buildProperties();
 		}
 		return true;

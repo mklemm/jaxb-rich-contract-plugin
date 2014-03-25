@@ -9,35 +9,40 @@ import com.sun.tools.xjc.outline.FieldOutline;
 public class ChainedBuilderGenerator extends BuilderGenerator {
     private final JTypeVar parentBuilderTypeParam;
     private final JClass builderType;
-    private final JFieldVar parentBuilderField;
-    private final JFieldVar productField;
 
     ChainedBuilderGenerator(final ApiConstructs apiConstructs, final BuilderOutline builderOutline) {
         super(apiConstructs, builderOutline);
-        this.parentBuilderTypeParam = builderOutline.getDefinedBuilderClass().generify("TParentBuilder");
+        this.parentBuilderTypeParam = this.builderClass.generify("TParentBuilder");
         this.builderType = this.builderClass.narrow(this.parentBuilderTypeParam);
-        this.parentBuilderField = this.builderClass.field(JMod.PRIVATE | JMod.FINAL, this.parentBuilderTypeParam, "_parentBuilder");
-        this.productField = this.builderClass.field(JMod.PRIVATE | JMod.FINAL, this.definedClass, "_product");
 
-        final JMethod endMethod = this.builderClass.method(JMod.PUBLIC, this.parentBuilderTypeParam, "end");
-        endMethod.body()._return(parentBuilderField);
 
-        final JMethod defaultConstructor = this.builderClass.constructor(JMod.NONE);
+        final JMethod defaultConstructor = this.builderClass.constructor(JMod.PROTECTED);
         defaultConstructor.body().invoke("this").arg(JExpr._null()).arg(JExpr._null());
 
-        {
-            final JMethod childConstructor = this.builderClass.constructor(JMod.NONE);
-            final JVar parentBuilderParam = childConstructor.param(JMod.FINAL, this.parentBuilderTypeParam, "parentBuilder");
-            childConstructor.body().invoke("this").arg(parentBuilderParam).arg(JExpr._null());
+
+        final JMethod childConstructor = this.builderClass.constructor(JMod.PROTECTED);
+        JVar parentBuilderParam = childConstructor.param(JMod.FINAL, this.parentBuilderTypeParam, "parentBuilder");
+        childConstructor.body().invoke("this").arg(parentBuilderParam).arg(JExpr._null());
+
+
+        final JMethod childProductConstructor = this.builderClass.constructor(JMod.PROTECTED);
+        parentBuilderParam = childProductConstructor.param(JMod.FINAL, this.parentBuilderTypeParam, "parentBuilder");
+        final JVar productParam = childProductConstructor.param(JMod.FINAL, this.definedClass, "product");
+
+
+        if (builderOutline.getClassOutline().getSuperClass() == null) {
+            final JFieldVar parentBuilderField = this.builderClass.field(JMod.PROTECTED | JMod.FINAL, this.parentBuilderTypeParam, "_parentBuilder");
+            final JFieldVar productField = this.builderClass.field(JMod.PROTECTED | JMod.FINAL, this.definedClass, "_product");
+
+            final JMethod endMethod = this.builderClass.method(JMod.PUBLIC, this.parentBuilderTypeParam, "end");
+            endMethod.body()._return(JExpr._this().ref(parentBuilderField));
+
+            childProductConstructor.body().assign(JExpr._this().ref(parentBuilderField), parentBuilderParam);
+            childProductConstructor.body().assign(JExpr._this().ref(productField), productParam);
+        } else {
+            childProductConstructor.body().invoke("super").arg(parentBuilderParam).arg(productParam);
         }
 
-        {
-            final JMethod childProductConstructor = this.builderClass.constructor(JMod.NONE);
-            final JVar parentBuilderParam = childProductConstructor.param(JMod.FINAL, this.parentBuilderTypeParam, "parentBuilder");
-            final JVar productParam = childProductConstructor.param(JMod.FINAL, this.definedClass, "product");
-            childProductConstructor.body().assign(JExpr._this().ref(this.parentBuilderField), parentBuilderParam);
-            childProductConstructor.body().assign(JExpr._this().ref(this.productField), productParam);
-        }
 
     }
 
@@ -185,9 +190,9 @@ public class ChainedBuilderGenerator extends BuilderGenerator {
     @Override
     protected JMethod generateBuildMethod(final JMethod initMethod) {
         final JMethod buildMethod = this.builderClass.method(JMod.PUBLIC, this.definedClass, ApiConstructs.BUILD_METHOD_NAME);
-        final JConditional ifStatement = buildMethod.body()._if(JExpr._this().ref(this.productField).eq(JExpr._null()));
+        final JConditional ifStatement = buildMethod.body()._if(JExpr._this().ref("_product").eq(JExpr._null()));
         ifStatement._then()._return((JExpr._this().invoke(initMethod).arg(JExpr._new(this.definedClass))));
-        ifStatement._else()._return(JExpr._this().ref(this.productField));
+        ifStatement._else()._return(JExpr.cast(this.definedClass, JExpr._this().ref("_product")));
         return buildMethod;
 
     }
