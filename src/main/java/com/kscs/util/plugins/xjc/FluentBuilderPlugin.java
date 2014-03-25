@@ -12,8 +12,8 @@ import org.xml.sax.SAXException;
 import org.xml.sax.SAXParseException;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.LinkedHashMap;
+import java.util.Map;
 
 /**
  * Plugin to generate fluent Builders for generated classes
@@ -40,20 +40,23 @@ public class FluentBuilderPlugin extends Plugin {
 
 	@Override
 	public boolean run(final Outline outline, final Options opt, final ErrorHandler errorHandler) throws SAXException {
-		final ApiConstructs apiConstructs = new ApiConstructs(outline.getCodeModel());
 
-		final List<BuilderGenerator> builderGenerators = new ArrayList<BuilderGenerator>(outline.getClasses().size());
+		final Map<String,BuilderOutline> builderClasses = new LinkedHashMap<String, BuilderOutline>(outline.getClasses().size());
 
 		for (final ClassOutline classOutline : outline.getClasses()) {
 			final JDefinedClass definedClass = classOutline.implClass;
 			try {
-				builderGenerators.add(new BuilderGenerator(apiConstructs, classOutline, opt, this.fullyFluentApi));
+                final BuilderOutline builderOutline = new BuilderOutline(classOutline);
+				builderClasses.put(definedClass.fullName(), builderOutline);
 			} catch (final JClassAlreadyExistsException caex) {
 				errorHandler.warning(new SAXParseException("Class \"" + definedClass.name() + "\" already contains inner class \"Builder\". Skipping generation of fluent builder.", classOutline.target.getLocator(), caex));
 			}
 		}
 
-		for (final BuilderGenerator builderGenerator : builderGenerators) {
+        final ApiConstructs apiConstructs = new ApiConstructs(outline.getCodeModel(), builderClasses, opt);
+
+		for (final BuilderOutline builderOutline : builderClasses.values()) {
+            final BuilderGenerator builderGenerator = this.fullyFluentApi ? new ChainedBuilderGenerator(apiConstructs, builderOutline) : new SimpleBuilderGenerator(apiConstructs, builderOutline);
 			builderGenerator.buildProperties();
 		}
 		return true;
