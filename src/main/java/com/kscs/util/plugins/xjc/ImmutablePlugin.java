@@ -30,10 +30,10 @@ public class ImmutablePlugin extends Plugin {
 	public boolean run(final Outline outline, final Options opt, final ErrorHandler errorHandler) throws SAXException {
 		for (final ClassOutline classOutline : outline.getClasses()) {
 			final JDefinedClass definedClass = classOutline.implClass;
-			for(final FieldOutline fieldOutline : classOutline.getDeclaredFields()) {
+			for (final FieldOutline fieldOutline : classOutline.getDeclaredFields()) {
 				final String setterName = "set" + fieldOutline.getPropertyInfo().getName(true);
-				final JMethod setterMethod = definedClass.getMethod(setterName, new JType[] {fieldOutline.getRawType()});
-				if(setterMethod != null) {
+				final JMethod setterMethod = definedClass.getMethod(setterName, new JType[]{fieldOutline.getRawType()});
+				if (setterMethod != null) {
 					setterMethod.mods().setProtected();
 				}
 			}

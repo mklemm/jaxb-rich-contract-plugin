@@ -105,7 +105,7 @@ public class BoundPropertiesPlugin extends Plugin {
 
 		final JCodeModel m = outline.getCodeModel();
 
-		if(this.generateTools) {
+		if (this.generateTools) {
 			// generate bound collection helper classes
 			PluginUtil.writeSourceFile(getClass(), opt.targetDir, BoundPropertiesPlugin.BOUND_LIST_INTERFACE_NAME);
 			PluginUtil.writeSourceFile(getClass(), opt.targetDir, BoundPropertiesPlugin.EVENT_TYPE_ENUM_NAME);
@@ -184,10 +184,10 @@ public class BoundPropertiesPlugin extends Plugin {
 	}
 
 	private void createSupportProperty(final Outline outline,
-	                                   final ClassOutline classOutline,
-	                                   final Class<?> supportClass,
-	                                   final Class<?> listenerClass,
-	                                   final String aspectName) {
+										final ClassOutline classOutline,
+										final Class<?> supportClass,
+										final Class<?> listenerClass,
+										final String aspectName) {
 		final JCodeModel m = outline.getCodeModel();
 		final JDefinedClass definedClass = classOutline.implClass;
 

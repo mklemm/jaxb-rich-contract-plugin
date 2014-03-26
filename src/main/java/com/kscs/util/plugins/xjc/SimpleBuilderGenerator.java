@@ -57,58 +57,57 @@ public class SimpleBuilderGenerator extends BuilderGenerator {
 	}
 
 
+	protected void generateBuilderMemberOverride(final FieldOutline superFieldOutline, final JFieldVar declaredSuperField, final String superPropertyName) {
+		if (superFieldOutline.getPropertyInfo().isCollection()) {
+			final JMethod addListMethod = this.builderClass.method(JMod.PUBLIC, this.builderClass, ApiConstructs.ADD_METHOD_PREFIX + superPropertyName);
+			addListMethod.annotate(Override.class);
+			final JVar addListParam = addListMethod.param(JMod.FINAL, superFieldOutline.getRawType(), declaredSuperField.name());
+			addListMethod.body().invoke(JExpr._super(), ApiConstructs.ADD_METHOD_PREFIX + superPropertyName).arg(addListParam);
+			addListMethod.body()._return(JExpr._this());
 
-    protected void generateBuilderMemberOverride(final FieldOutline superFieldOutline, final JFieldVar declaredSuperField, final String superPropertyName) {
-        if (superFieldOutline.getPropertyInfo().isCollection()) {
-            final JMethod addListMethod = this.builderClass.method(JMod.PUBLIC, this.builderClass, ApiConstructs.ADD_METHOD_PREFIX + superPropertyName);
-            addListMethod.annotate(Override.class);
-            final JVar addListParam = addListMethod.param(JMod.FINAL, superFieldOutline.getRawType(), declaredSuperField.name());
-            addListMethod.body().invoke(JExpr._super(), ApiConstructs.ADD_METHOD_PREFIX + superPropertyName).arg(addListParam);
-            addListMethod.body()._return(JExpr._this());
+			final JMethod addVarargsMethod = this.builderClass.method(JMod.PUBLIC, this.builderClass, ApiConstructs.ADD_METHOD_PREFIX + superPropertyName);
+			addVarargsMethod.annotate(Override.class);
+			final JVar addVarargsParam = addVarargsMethod.varParam(((JClass) declaredSuperField.type()).getTypeParameters().get(0), declaredSuperField.name());
+			addVarargsMethod.body().invoke(JExpr._super(), ApiConstructs.ADD_METHOD_PREFIX + superPropertyName).arg(addVarargsParam);
+			addVarargsMethod.body()._return(JExpr._this());
 
-            final JMethod addVarargsMethod = this.builderClass.method(JMod.PUBLIC, this.builderClass, ApiConstructs.ADD_METHOD_PREFIX + superPropertyName);
-            addVarargsMethod.annotate(Override.class);
-            final JVar addVarargsParam = addVarargsMethod.varParam(((JClass) declaredSuperField.type()).getTypeParameters().get(0), declaredSuperField.name());
-            addVarargsMethod.body().invoke(JExpr._super(), ApiConstructs.ADD_METHOD_PREFIX + superPropertyName).arg(addVarargsParam);
-            addVarargsMethod.body()._return(JExpr._this());
+			final JMethod withListMethod = this.builderClass.method(JMod.PUBLIC, this.builderClass, ApiConstructs.WITH_METHOD_PREFIX + superPropertyName);
+			withListMethod.annotate(Override.class);
+			final JVar withListParam = withListMethod.param(JMod.FINAL, superFieldOutline.getRawType(), declaredSuperField.name());
+			withListMethod.body().invoke(JExpr._super(), ApiConstructs.WITH_METHOD_PREFIX + superPropertyName).arg(withListParam);
+			withListMethod.body()._return(JExpr._this());
 
-            final JMethod withListMethod = this.builderClass.method(JMod.PUBLIC, this.builderClass, ApiConstructs.WITH_METHOD_PREFIX + superPropertyName);
-            withListMethod.annotate(Override.class);
-            final JVar withListParam = withListMethod.param(JMod.FINAL, superFieldOutline.getRawType(), declaredSuperField.name());
-            withListMethod.body().invoke(JExpr._super(), ApiConstructs.WITH_METHOD_PREFIX + superPropertyName).arg(withListParam);
-            withListMethod.body()._return(JExpr._this());
-
-            final JMethod withVarargsMethod = this.builderClass.method(JMod.PUBLIC, this.builderClass, ApiConstructs.WITH_METHOD_PREFIX + superPropertyName);
-            withVarargsMethod.annotate(Override.class);
-            final JVar withVarargsParam = withVarargsMethod.varParam(((JClass) declaredSuperField.type()).getTypeParameters().get(0), declaredSuperField.name());
-            withVarargsMethod.body().invoke(JExpr._super(), ApiConstructs.WITH_METHOD_PREFIX + superPropertyName).arg(withVarargsParam);
-            withVarargsMethod.body()._return(JExpr._this());
-        } else {
-            final JMethod withMethod = this.builderClass.method(JMod.PUBLIC, this.builderClass, ApiConstructs.WITH_METHOD_PREFIX + superPropertyName);
-            final JVar param = withMethod.param(JMod.FINAL, superFieldOutline.getRawType(), declaredSuperField.name());
-            withMethod.body().invoke(JExpr._super(), ApiConstructs.WITH_METHOD_PREFIX + superPropertyName).arg(param);
-            withMethod.body()._return(JExpr._this());
-        }
-    }
+			final JMethod withVarargsMethod = this.builderClass.method(JMod.PUBLIC, this.builderClass, ApiConstructs.WITH_METHOD_PREFIX + superPropertyName);
+			withVarargsMethod.annotate(Override.class);
+			final JVar withVarargsParam = withVarargsMethod.varParam(((JClass) declaredSuperField.type()).getTypeParameters().get(0), declaredSuperField.name());
+			withVarargsMethod.body().invoke(JExpr._super(), ApiConstructs.WITH_METHOD_PREFIX + superPropertyName).arg(withVarargsParam);
+			withVarargsMethod.body()._return(JExpr._this());
+		} else {
+			final JMethod withMethod = this.builderClass.method(JMod.PUBLIC, this.builderClass, ApiConstructs.WITH_METHOD_PREFIX + superPropertyName);
+			final JVar param = withMethod.param(JMod.FINAL, superFieldOutline.getRawType(), declaredSuperField.name());
+			withMethod.body().invoke(JExpr._super(), ApiConstructs.WITH_METHOD_PREFIX + superPropertyName).arg(param);
+			withMethod.body()._return(JExpr._this());
+		}
+	}
 
 
-    @Override
-    protected JDefinedClass generateExtendsClause(final BuilderOutline superClassBuilder) {
-        return this.builderClass._extends(superClassBuilder.getDefinedBuilderClass());
-    }
+	@Override
+	protected JDefinedClass generateExtendsClause(final BuilderOutline superClassBuilder) {
+		return this.builderClass._extends(superClassBuilder.getDefinedBuilderClass());
+	}
 
-    @Override
-    protected JMethod generateBuildMethod(JMethod initMethod) {
-        final JMethod buildMethod = this.builderClass.method(JMod.PUBLIC, this.definedClass, ApiConstructs.BUILD_METHOD_NAME);
-        buildMethod.body()._return((JExpr._this().invoke(initMethod).arg(JExpr._new(this.definedClass))));
-        return buildMethod;
+	@Override
+	protected JMethod generateBuildMethod(final JMethod initMethod) {
+		final JMethod buildMethod = this.builderClass.method(JMod.PUBLIC, this.definedClass, ApiConstructs.BUILD_METHOD_NAME);
+		buildMethod.body()._return((JExpr._this().invoke(initMethod).arg(JExpr._new(this.definedClass))));
+		return buildMethod;
 
-    }
+	}
 
-    @Override
-    protected JMethod generateBuilderMethod() {
-        final JMethod builderMethod = this.definedClass.method(JMod.PUBLIC | JMod.STATIC, this.builderClass, ApiConstructs.BUILDER_METHOD_NAME);
-        builderMethod.body()._return(JExpr._new(this.builderClass));
-        return builderMethod;
-    }
+	@Override
+	protected JMethod generateBuilderMethod() {
+		final JMethod builderMethod = this.definedClass.method(JMod.PUBLIC | JMod.STATIC, this.builderClass, ApiConstructs.BUILDER_METHOD_NAME);
+		builderMethod.body()._return(JExpr._new(this.builderClass));
+		return builderMethod;
+	}
 }

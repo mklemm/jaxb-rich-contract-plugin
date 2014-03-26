@@ -12,66 +12,48 @@ import org.xml.sax.ErrorHandler;
 import org.xml.sax.SAXException;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.Set;
+import java.text.MessageFormat;
+import java.util.*;
+
+import static com.kscs.util.plugins.xjc.PluginUtil.castOnDemand;
 
 /**
- * XJC Plugin to generate clone and partial clone methods
+ * Created by mirko on 26.03.14.
  */
-public class DeepClonePlugin extends Plugin {
-	private boolean throwCloneNotSupported = false;
-	private boolean generatePartialCloneMethod = true;
-	private boolean generateTools = true;
+public class CopyConstructorPlugin extends Plugin {
+	private boolean generatePartialInit;
+	private boolean generateTools;
 
-	private boolean cloneMethodThrows(final Set<String> generatedClasses, final JClass fieldType) {
-		try {
-			return fieldType.fullName().equals(Object.class.getName()) || (!generatedClasses.contains(fieldType.fullName())
-					&&
-					Class.forName(fieldType.fullName()).getMethod("clone").getExceptionTypes().length > 0);
-		} catch (final Exception e) {
-			System.err.println("WARNING: " + e);
-			e.printStackTrace();
-			return true;
-		}
+	private final ResourceBundle resources;
+
+	public CopyConstructorPlugin() {
+		this.resources = ResourceBundle.getBundle(CopyConstructorPlugin.class.getSimpleName());
 	}
 
-	private JExpression castOnDemand(final Set<String> generatedClasses, final JType fieldType, final JExpression expression) {
-		return generatedClasses.contains(fieldType.fullName()) ? expression : JExpr.cast(fieldType, expression);
-	}
-
-	private boolean isSuperGenerated(final Set<String> generatedClasses, final JClass definedClass) {
-		return generatedClasses.contains(definedClass._extends().fullName());
-	}
-
-	public boolean isThrowCloneNotSupported() {
-		return this.throwCloneNotSupported;
+	private String getMessage(final String key, final Object... params) {
+		return MessageFormat.format(this.resources.getString(key), params);
 	}
 
 	@Override
 	public String getOptionName() {
-		return "Xclone";
+		return "Xcopy-constructor";
+	}
+
+	@Override
+	public String getUsage() {
+		return "-Xcopy-constructor: Generates a copy-constructor for each generated class, optionally with 'partial' initialization as with the clone plugin.";
 	}
 
 	@Override
 	public int parseArgument(final Options opt, final String[] args, final int i) throws BadCommandLineException, IOException {
-		PluginUtil.Arg<Boolean> arg = PluginUtil.parseBooleanArgument("clone-throws", this.throwCloneNotSupported, opt, args, i);
-		this.throwCloneNotSupported = arg.getValue();
-		if (arg.getArgsParsed() == 0) {
-			arg = PluginUtil.parseBooleanArgument("partial-clone", this.generatePartialCloneMethod, opt, args, i);
-			this.generatePartialCloneMethod = arg.getValue();
-		}
+		PluginUtil.Arg<Boolean> arg = PluginUtil.parseBooleanArgument("partial-init", this.generatePartialInit, opt, args, i);
+		this.generatePartialInit = arg.getValue();
+
 		if (arg.getArgsParsed() == 0) {
 			arg = PluginUtil.parseBooleanArgument("generate-tools", this.generateTools, opt, args, i);
 			this.generateTools = arg.getValue();
 		}
 		return arg.getArgsParsed();
-	}
-
-	@Override
-	public String getUsage() {
-		return " -Xclone: Generates Cloneable JAXB classes.\n\t-clone-throws={yes|no}:\t declare CloneNotSupportedException to be thrown by 'clone()' (yes), or suppress throws clause (no). Default: no";
 	}
 
 	@Override
@@ -82,17 +64,13 @@ public class DeepClonePlugin extends Plugin {
 		final JClass pathCloneableInterface = m.ref(PathCloneable.class);
 		final JClass arrayListClass = m.ref(ArrayList.class);
 
-		if (this.generatePartialCloneMethod && this.generateTools) {
+		if (this.generatePartialInit && this.generateTools) {
 			PluginUtil.writeSourceFile(getClass(), opt.targetDir, PathCloneable.class.getName());
 			PluginUtil.writeSourceFile(getClass(), opt.targetDir, PropertyPath.class.getName());
 		}
 
 		final Set<String> generatedClasses = new HashSet<String>();
 		for (final ClassOutline classOutline : outline.getClasses()) {
-			classOutline.implClass._implements(Cloneable.class);
-			if (this.generatePartialCloneMethod) {
-				classOutline.implClass._implements(PathCloneable.class);
-			}
 			generatedClasses.add(classOutline.implClass.fullName());
 		}
 
@@ -100,9 +78,9 @@ public class DeepClonePlugin extends Plugin {
 		for (final ClassOutline classOutline : outline.getClasses()) {
 			final JDefinedClass definedClass = classOutline.implClass;
 
-
-			generateCloneMethod(m, collectionClass, cloneableInterface, arrayListClass, generatedClasses, definedClass);
-			if (this.generatePartialCloneMethod) {
+			generateDefaultConstructor(definedClass);
+			generateCopyConstructor(m, collectionClass, cloneableInterface, arrayListClass, generatedClasses, definedClass);
+			if (this.generatePartialInit) {
 				generatePartialCloneMethod(m, collectionClass, pathCloneableInterface, arrayListClass, generatedClasses, definedClass);
 			}
 		}
@@ -129,29 +107,39 @@ public class DeepClonePlugin extends Plugin {
 		return mustCatch;
 	}
 
-	private void generateCloneMethod(final JCodeModel m, final JClass collectionClass, final JClass cloneableInterface, final JClass arrayListClass, final Set<String> generatedClasses, final JDefinedClass definedClass) {
+	private void generateDefaultConstructor(final JDefinedClass definedClass) {
+		final JMethod defaultConstructor = definedClass.constructor(definedClass.isAbstract() ? JMod.PROTECTED : JMod.PUBLIC);
+		defaultConstructor.body().directStatement("// " + getMessage("defaultConstructor.javadoc.desc"));
+		defaultConstructor.javadoc().append(getMessage("defaultConstructor.bodyComment"));
+	}
+
+	private void generateCopyConstructor(final JCodeModel m, final JClass collectionClass, final JClass cloneableInterface, final JClass arrayListClass, final Set<String> generatedClasses, final JDefinedClass definedClass) {
 		final boolean mustCatch = mustCatch(collectionClass, cloneableInterface, generatedClasses, definedClass);
 
-		final JMethod cloneMethod = definedClass.method(JMod.PUBLIC, definedClass, "clone");
-		cloneMethod.annotate(Override.class);
+		final JMethod constructor = definedClass.constructor(definedClass.isAbstract() ? JMod.PROTECTED : JMod.PUBLIC);
+		final JVar otherParam = constructor.param(JMod.FINAL, definedClass, "other");
+		final JDocComment docComment = constructor.javadoc();
+		docComment.append(getMessage("copyConstructor.javadoc.desc", definedClass.name()));
+		docComment.addParam(otherParam).append(getMessage("copyConstructor.javadoc.param.other", definedClass.name()));
+		docComment.addThrows(InstantiationException.class).append(getMessage("copyConstructor.javadoc.exception"));
+
+		constructor.body().invoke("super").arg(otherParam);
 
 		final JBlock outer;
 		final JBlock body;
 		final JTryBlock tryBlock;
-		if (this.throwCloneNotSupported) {
-			cloneMethod._throws(CloneNotSupportedException.class);
-		}
-		if (this.throwCloneNotSupported || !mustCatch) {
-			outer = cloneMethod.body();
+
+		if (!mustCatch) {
+			outer = constructor.body();
 			tryBlock = null;
 			body = outer;
 		} else {
-			outer = cloneMethod.body();
+			outer = constructor.body();
 			tryBlock = outer._try();
 			body = tryBlock.body();
 		}
 
-		final JVar newObjectVar = body.decl(JMod.FINAL, definedClass, "newObject", JExpr.cast(definedClass, JExpr._super().invoke("clone")));
+		final JExpression newObjectVar = JExpr._this();
 		for (final JFieldVar field : definedClass.fields().values()) {
 			if (field.type().isReference()) {
 				final JClass fieldType = (JClass) field.type();
@@ -199,10 +187,7 @@ public class DeepClonePlugin extends Plugin {
 		final JBlock outer;
 		final JBlock body;
 		final JTryBlock tryBlock;
-		if (this.throwCloneNotSupported) {
-			cloneMethod._throws(CloneNotSupportedException.class);
-		}
-		if (this.throwCloneNotSupported || !mustCatch) {
+		if (!mustCatch) {
 			outer = cloneMethod.body();
 			tryBlock = null;
 			body = outer;
@@ -273,4 +258,17 @@ public class DeepClonePlugin extends Plugin {
 		}
 
 	}
+
+	private boolean cloneMethodThrows(final Set<String> generatedClasses, final JClass fieldType) {
+		try {
+			return fieldType.fullName().equals(Object.class.getName()) || (!generatedClasses.contains(fieldType.fullName())
+					&&
+					Class.forName(fieldType.fullName()).getMethod("clone").getExceptionTypes().length > 0);
+		} catch (final Exception e) {
+			System.err.println("WARNING: " + e);
+			e.printStackTrace();
+			return true;
+		}
+	}
+
 }

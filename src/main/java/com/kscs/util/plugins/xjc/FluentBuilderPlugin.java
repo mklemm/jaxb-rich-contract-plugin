@@ -21,13 +21,13 @@ import java.util.Map;
 public class FluentBuilderPlugin extends Plugin {
 	private boolean supportBuilderChain = true;
 
-    public FluentBuilderPlugin() {
-        // Needed by JAXB Framework
-    }
+	public FluentBuilderPlugin() {
+		// Needed by JAXB Framework
+	}
 
-    protected FluentBuilderPlugin(final boolean supportBuilderChain) {
-        this.supportBuilderChain = supportBuilderChain;
-    }
+	protected FluentBuilderPlugin(final boolean supportBuilderChain) {
+		this.supportBuilderChain = supportBuilderChain;
+	}
 
 	@Override
 	public String getOptionName() {
@@ -49,22 +49,22 @@ public class FluentBuilderPlugin extends Plugin {
 	@Override
 	public boolean run(final Outline outline, final Options opt, final ErrorHandler errorHandler) throws SAXException {
 
-		final Map<String,BuilderOutline> builderClasses = new LinkedHashMap<String, BuilderOutline>(outline.getClasses().size());
+		final Map<String, BuilderOutline> builderClasses = new LinkedHashMap<String, BuilderOutline>(outline.getClasses().size());
 
 		for (final ClassOutline classOutline : outline.getClasses()) {
 			final JDefinedClass definedClass = classOutline.implClass;
 			try {
-                final BuilderOutline builderOutline = new BuilderOutline(classOutline);
+				final BuilderOutline builderOutline = new BuilderOutline(classOutline);
 				builderClasses.put(definedClass.fullName(), builderOutline);
 			} catch (final JClassAlreadyExistsException caex) {
 				errorHandler.warning(new SAXParseException("Class \"" + definedClass.name() + "\" already contains inner class \"Builder\". Skipping generation of fluent builder.", classOutline.target.getLocator(), caex));
 			}
 		}
 
-        final ApiConstructs apiConstructs = new ApiConstructs(outline.getCodeModel(), builderClasses, opt);
+		final ApiConstructs apiConstructs = new ApiConstructs(outline.getCodeModel(), builderClasses, opt);
 
 		for (final BuilderOutline builderOutline : builderClasses.values()) {
-            final BuilderGenerator builderGenerator = this.supportBuilderChain ? new ChainedBuilderGenerator(apiConstructs, builderOutline) : new SimpleBuilderGenerator(apiConstructs, builderOutline);
+			final BuilderGenerator builderGenerator = this.supportBuilderChain ? new ChainedBuilderGenerator(apiConstructs, builderOutline) : new SimpleBuilderGenerator(apiConstructs, builderOutline);
 			builderGenerator.buildProperties();
 		}
 		return true;
