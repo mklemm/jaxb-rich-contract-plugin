@@ -287,6 +287,10 @@ Plugin activation: `-Ximmutable`
 
 ### Limitations
 * Access level "protected" may not be strict enough to prevent state changes.
+* If you activate plugins like "fluent-api" or the like, these plugins may circumvent the protection provided by the `immutable` plugin.
+
+### Bugs
+* Instances decoded from XML by JAXB will expose mutable collections on collection-typed properties, thus it is possible to circumvent `immutable` for collection properties. Work is underway to fix this.
 
 
 fluent-builder
