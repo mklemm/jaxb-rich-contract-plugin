@@ -254,9 +254,17 @@ Plugin activation: `-Xclone`.
 Options:
 
 #### `-clone-throws=`y/n
-Declare "clone"-Method to throw "CloneNotSupportedException" if an object doesn't support
-cloning. This is the way mandated by the "Cloneable" contract and convention of the JDK.
-Setting this to "no" will throw a RuntimeException instead. Default: y
+Declare "clone"-Method to throw "CloneNotSupportedException" any of the cloneable child
+objects have a "clone" method that declares `CloneNotSupportedException` being thrown.
+The JDK spec says objects should declare their "clone" method with "throws CloneNotSuppoertedException"
+in order to enable subclasses to inhibit cloning even if their superclass declares "Cloneable".
+In pratice, however, this doesn't make much sense and is against object-oriented principles.
+All classes implementing `Cloneable` should really be cloneable and NOT throw
+a `CloneNotSupportedException`.
+Ordinary Exceptions during cloning are rethrown as `RuntimeExceptions`,
+if this is set to "no", this is also true for any exceptions thrown by descendant objects,
+no matter whether they are `CloneNotSupported`or anything else. If this is "yes", any possible
+`CloneNotSupportedException` will be declared in the throws clause. Default: no.
 
 #### `-partial-clone=`y/n
 Create partial clone method (see above)

@@ -27,7 +27,10 @@ package com.kscs.util.plugins.xjc;
 import com.sun.codemodel.*;
 import com.sun.tools.xjc.Options;
 import com.sun.tools.xjc.Plugin;
+import com.sun.tools.xjc.outline.ClassOutline;
+import com.sun.tools.xjc.outline.Outline;
 
+import java.lang.reflect.Method;
 import java.util.*;
 
 /**
@@ -51,18 +54,25 @@ public class ApiConstructs {
 	final JClass collectionClass;
 	final JClass collectionsClass;
 	final JClass arraysClass;
-	final Map<String, BuilderOutline> builderClassOutlines;
 	final Options opt;
+	final JClass cloneableInterface;
+	final Outline outline;
+	final Map<String, ClassOutline> classes;
 
-	ApiConstructs(final JCodeModel codeModel, final Map<String, BuilderOutline> builderClassOutlines, final Options opt) {
-		this.codeModel = codeModel;
-		this.builderClassOutlines = builderClassOutlines;
+	ApiConstructs(final Outline outline, final Options opt) {
+		this.outline = outline;
+		this.codeModel = outline.getCodeModel();
 		this.opt = opt;
-		this.arrayListClass = codeModel.ref(ArrayList.class);
-		this.listClass = codeModel.ref(List.class);
-		this.collectionClass = codeModel.ref(Collection.class);
-		this.collectionsClass = codeModel.ref(Collections.class);
-		this.arraysClass = codeModel.ref(Arrays.class);
+		this.arrayListClass = this.codeModel.ref(ArrayList.class);
+		this.listClass = this.codeModel.ref(List.class);
+		this.collectionClass = this.codeModel.ref(Collection.class);
+		this.collectionsClass = this.codeModel.ref(Collections.class);
+		this.arraysClass = this.codeModel.ref(Arrays.class);
+		this.cloneableInterface = this.codeModel.ref(Cloneable.class);
+		this.classes = new HashMap<String, ClassOutline>(outline.getClasses().size());
+		for(final ClassOutline classOutline : this.outline.getClasses()) {
+			this.classes.put(classOutline.implClass.fullName(), classOutline);
+		}
 	}
 
 	public JInvocation asList(final JExpression expression) {
@@ -81,12 +91,32 @@ public class ApiConstructs {
 		return PluginUtil.findPlugin(this.opt, pluginClass);
 	}
 
-	public BuilderOutline getDeclaration(final JType type) {
-		return this.builderClassOutlines.get(type.fullName());
+	public boolean canInstantiate(final JType type) {
+		return getClassOutline(type) != null && !((JClass) type).isAbstract();
 	}
 
-	public boolean isBuildableClass(final JType type) {
-		return getDeclaration(type) != null && !((JClass) type).isAbstract();
+	public JExpression castOnDemand(final JType fieldType, final JExpression expression) {
+		return this.classes.containsKey(fieldType.fullName()) ? expression : JExpr.cast(fieldType, expression);
+	}
+
+	public ClassOutline getClassOutline(final JType typeSpec) {
+		return this.classes.get(typeSpec.fullName());
+	}
+
+	public boolean cloneThrows(final JType cloneableType) {
+		try {
+			if (cloneableType.isReference() && this.cloneableInterface.isAssignableFrom((JClass) cloneableType)) {
+				final Class<?> runtimeClass = Class.forName(cloneableType.fullName());
+				final Method cloneMethod = runtimeClass.getMethod("clone");
+				return cloneMethod.getExceptionTypes() != null && cloneMethod.getExceptionTypes().length > 0 && cloneMethod.getExceptionTypes()[0].equals(CloneNotSupportedException.class);
+			} else {
+				return false;
+			}
+		} catch(final ClassNotFoundException cnfx) {
+			return false;
+		} catch (NoSuchMethodException e) {
+			return false;
+		}
 	}
 
 }

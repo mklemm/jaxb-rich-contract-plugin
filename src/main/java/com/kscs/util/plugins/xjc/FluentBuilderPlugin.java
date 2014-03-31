@@ -74,6 +74,7 @@ public class FluentBuilderPlugin extends Plugin {
 	public boolean run(final Outline outline, final Options opt, final ErrorHandler errorHandler) throws SAXException {
 
 		final Map<String, BuilderOutline> builderClasses = new LinkedHashMap<String, BuilderOutline>(outline.getClasses().size());
+		final ApiConstructs apiConstructs = new ApiConstructs(outline, opt);
 
 		for (final ClassOutline classOutline : outline.getClasses()) {
 			final JDefinedClass definedClass = classOutline.implClass;
@@ -85,10 +86,9 @@ public class FluentBuilderPlugin extends Plugin {
 			}
 		}
 
-		final ApiConstructs apiConstructs = new ApiConstructs(outline.getCodeModel(), builderClasses, opt);
 
 		for (final BuilderOutline builderOutline : builderClasses.values()) {
-			final BuilderGenerator builderGenerator = this.supportBuilderChain ? new ChainedBuilderGenerator(apiConstructs, builderOutline) : new SimpleBuilderGenerator(apiConstructs, builderOutline);
+			final BuilderGenerator builderGenerator = this.supportBuilderChain ? new ChainedBuilderGenerator(apiConstructs, builderClasses, builderOutline) : new SimpleBuilderGenerator(apiConstructs, builderClasses, builderOutline);
 			builderGenerator.buildProperties();
 		}
 		return true;

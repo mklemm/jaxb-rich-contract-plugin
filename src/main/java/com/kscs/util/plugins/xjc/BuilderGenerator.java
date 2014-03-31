@@ -4,6 +4,8 @@ import com.sun.codemodel.*;
 import com.sun.tools.xjc.outline.ClassOutline;
 import com.sun.tools.xjc.outline.FieldOutline;
 
+import java.util.Map;
+
 /*
  * MIT License
  *
@@ -39,9 +41,11 @@ public abstract class BuilderGenerator {
 	protected final JDefinedClass builderClass;
 	protected final ClassOutline classOutline;
 	protected final boolean hasImmutablePlugin;
+	protected final Map<String,BuilderOutline> builderOutlines;
 
-	protected BuilderGenerator(final ApiConstructs apiConstructs, final BuilderOutline builderOutline) {
+	protected BuilderGenerator(final ApiConstructs apiConstructs, final Map<String,BuilderOutline> builderOutlines, final BuilderOutline builderOutline) {
 		this.apiConstructs = apiConstructs;
+		this.builderOutlines = builderOutlines;
 		this.classOutline = builderOutline.getClassOutline();
 		this.definedClass = this.classOutline.implClass;
 		this.hasImmutablePlugin = apiConstructs.hasPlugin(ImmutablePlugin.class);
@@ -62,7 +66,7 @@ public abstract class BuilderGenerator {
 		}
 
 		if (superClass != null) {
-			generateExtendsClause(this.apiConstructs.getDeclaration(superClass.implClass));
+			generateExtendsClause(getBuilderDeclaration(superClass.implClass));
 			initBody._return(JExpr._super().invoke(initMethod).arg(productParam));
 			generateBuilderMemeberOverrides(superClass);
 		} else {
@@ -88,6 +92,10 @@ public abstract class BuilderGenerator {
 		if (superClass.getSuperClass() != null) {
 			generateBuilderMemeberOverrides(superClass.getSuperClass());
 		}
+	}
+
+	protected BuilderOutline getBuilderDeclaration(final JType type) {
+		return this.builderOutlines.get(type.fullName());
 	}
 
 	protected abstract void generateBuilderMember(final FieldOutline fieldOutline, final JBlock initBody, final JVar productParam);

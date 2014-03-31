@@ -27,13 +27,15 @@ package com.kscs.util.plugins.xjc;
 import com.sun.codemodel.*;
 import com.sun.tools.xjc.outline.FieldOutline;
 
+import java.util.Map;
+
 /**
  * Helper class to generate fluent builder classes in two steps
  */
 public class SimpleBuilderGenerator extends BuilderGenerator {
 
-	SimpleBuilderGenerator(final ApiConstructs apiConstructs, final BuilderOutline classOutline) {
-		super(apiConstructs, classOutline);
+	SimpleBuilderGenerator(final ApiConstructs apiConstructs, final Map<String,BuilderOutline> builderOutlines, final BuilderOutline classOutline) {
+		super(apiConstructs, builderOutlines, classOutline);
 	}
 
 	protected void generateBuilderMember(final FieldOutline fieldOutline, final JBlock initBody, final JVar productParam) {
