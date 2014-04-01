@@ -30,11 +30,14 @@ import java.util.Map;
  * THE SOFTWARE.
  */
 
+import java.util.logging.Logger;
+
 /**
  * Utility class for base functionality
  * of the fluent-builder plugin.
  */
 public abstract class BuilderGenerator {
+	private static final Logger LOGGER = Logger.getLogger(BuilderGenerator.class.getName());
 	protected final ApiConstructs apiConstructs;
 
 	protected final JDefinedClass definedClass;
@@ -61,14 +64,17 @@ public abstract class BuilderGenerator {
 		final JVar productParam = initMethod.param(JMod.FINAL, typeVar, ApiConstructs.PRODUCT_INSTANCE_NAME);
 		final JBlock initBody = initMethod.body();
 
-		for (final FieldOutline fieldOutline : this.classOutline.getDeclaredFields()) {
-			generateBuilderMember(fieldOutline, initBody, productParam);
-		}
+			for (final FieldOutline fieldOutline : this.classOutline.getDeclaredFields()) {
+				final JFieldVar declaredField = this.definedClass.fields().get(fieldOutline.getPropertyInfo().getName(false));
+				if (declaredField != null && (declaredField.mods().getValue() & JMod.STATIC) == 0) {
+					generateBuilderMember(fieldOutline, declaredField, initBody, productParam);
+				}
+			}
 
 		if (superClass != null) {
 			generateExtendsClause(getBuilderDeclaration(superClass.implClass));
 			initBody._return(JExpr._super().invoke(initMethod).arg(productParam));
-			generateBuilderMemeberOverrides(superClass);
+			generateBuilderMemberOverrides(superClass);
 		} else {
 			initBody._return(productParam);
 		}
@@ -80,17 +86,18 @@ public abstract class BuilderGenerator {
 
 	}
 
-	private void generateBuilderMemeberOverrides(final ClassOutline superClass) {
+	private void generateBuilderMemberOverrides(final ClassOutline superClass) {
 		final JDefinedClass definedSuperClass = superClass.implClass;
 		for (final FieldOutline superFieldOutline : superClass.getDeclaredFields()) {
 			final JFieldVar declaredSuperField = definedSuperClass.fields().get(superFieldOutline.getPropertyInfo().getName(false));
-			final String superPropertyName = superFieldOutline.getPropertyInfo().getName(true);
-			generateBuilderMemberOverride(superFieldOutline, declaredSuperField, superPropertyName);
-
+			if(declaredSuperField != null && (declaredSuperField.mods().getValue() & JMod.STATIC) == 0) {
+				final String superPropertyName = superFieldOutline.getPropertyInfo().getName(true);
+				generateBuilderMemberOverride(superFieldOutline, declaredSuperField, superPropertyName);
+			}
 		}
 
 		if (superClass.getSuperClass() != null) {
-			generateBuilderMemeberOverrides(superClass.getSuperClass());
+			generateBuilderMemberOverrides(superClass.getSuperClass());
 		}
 	}
 
@@ -98,7 +105,19 @@ public abstract class BuilderGenerator {
 		return this.builderOutlines.get(type.fullName());
 	}
 
-	protected abstract void generateBuilderMember(final FieldOutline fieldOutline, final JBlock initBody, final JVar productParam);
+	protected void generateArrayProperty(final JBlock initBody, final JVar productParam, final JFieldVar declaredField, final String propertyName, final JType elementType, final JType builderType) {
+
+		final JFieldVar builderField = this.builderClass.field(JMod.PRIVATE, declaredField.type(), declaredField.name(), JExpr._null());
+
+		final JMethod withVarargsMethod = this.builderClass.method(JMod.PUBLIC, builderType, ApiConstructs.WITH_METHOD_PREFIX + propertyName);
+		final JVar withVarargsParam = withVarargsMethod.varParam(elementType, declaredField.name());
+		withVarargsMethod.body().assign(JExpr._this().ref(builderField), withVarargsParam);
+		withVarargsMethod.body()._return(JExpr._this());
+
+		initBody.assign(productParam.ref(declaredField), builderField);
+	}
+
+	protected abstract void generateBuilderMember(final FieldOutline fieldOutline, final JFieldVar declaredField, final JBlock initBody, final JVar productParam);
 
 	protected abstract void generateBuilderMemberOverride(final FieldOutline superFieldOutline, final JFieldVar declaredSuperField, final String superPropertyName);
 
