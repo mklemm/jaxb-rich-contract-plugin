@@ -230,7 +230,7 @@ public class DeepClonePlugin extends Plugin {
 			final JTryBlock newObjectTry = currentBlock._try();
 			final JBlock tryBody = newObjectTry.body();
 			tryBody.assign(newObjectVar, JExpr.invoke("getClass").invoke("newInstance"));
-			final JCatchBlock newObjectCatch = newObjectTry._catch((JClass)apiConstructs.codeModel._ref(Exception.class));
+			final JCatchBlock newObjectCatch = newObjectTry._catch((JClass) apiConstructs.codeModel._ref(Exception.class));
 			final JVar exceptionVar = newObjectCatch.param("x");
 			newObjectCatch.body()._throw(JExpr._new(apiConstructs.codeModel._ref(RuntimeException.class)).arg(exceptionVar));
 		}
@@ -393,7 +393,7 @@ public class DeepClonePlugin extends Plugin {
 			tryBlock = outer._try();
 			body = tryBlock.body();
 		}
-		JBlock currentBlock = body;
+		JBlock currentBlock;
 		final JExpression newObjectVar = JExpr._this();
 		for (final JFieldVar field : definedClass.fields().values()) {
 			if ((field.mods().getValue() & (JMod.FINAL | JMod.STATIC)) == 0) {
@@ -438,7 +438,6 @@ public class DeepClonePlugin extends Plugin {
 				}
 			}
 		}
-		body._return(newObjectVar);
 
 		if (tryBlock != null) {
 			final JCatchBlock catchBlock = tryBlock._catch(apiConstructs.codeModel.ref(Exception.class));

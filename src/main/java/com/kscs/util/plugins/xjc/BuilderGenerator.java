@@ -1,11 +1,3 @@
-package com.kscs.util.plugins.xjc;
-
-import com.sun.codemodel.*;
-import com.sun.tools.xjc.outline.ClassOutline;
-import com.sun.tools.xjc.outline.FieldOutline;
-
-import java.util.Map;
-
 /*
  * MIT License
  *
@@ -29,8 +21,15 @@ import java.util.Map;
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
+package com.kscs.util.plugins.xjc;
 
+import com.sun.codemodel.*;
+import com.sun.tools.xjc.outline.ClassOutline;
+import com.sun.tools.xjc.outline.FieldOutline;
+
+import java.util.Map;
 import java.util.logging.Logger;
+
 
 /**
  * Utility class for base functionality

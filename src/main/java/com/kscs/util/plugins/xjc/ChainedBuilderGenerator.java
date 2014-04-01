@@ -92,7 +92,7 @@ public class ChainedBuilderGenerator extends BuilderGenerator {
 	}
 
 	private void generateSingularProperty(final JBlock initBody, final JVar productParam, final JFieldVar declaredField, final String propertyName) {
-		final BuilderOutline childBuilderOutline = this.apiConstructs.getDeclaration(declaredField.type());
+		final BuilderOutline childBuilderOutline = getBuilderDeclaration(declaredField.type());
 		if (childBuilderOutline == null || childBuilderOutline.getClassOutline().implClass.isAbstract()) {
 			final JFieldVar builderField = this.builderClass.field(JMod.PRIVATE, declaredField.type(), declaredField.name());
 			final JMethod withMethod = this.builderClass.method(JMod.PUBLIC, this.builderType, ApiConstructs.WITH_METHOD_PREFIX + propertyName);
@@ -137,7 +137,7 @@ public class ChainedBuilderGenerator extends BuilderGenerator {
 
 		final JVar collectionVar;
 
-		final BuilderOutline childBuilderOutline = this.apiConstructs.getDeclaration(elementType);
+		final BuilderOutline childBuilderOutline = getBuilderDeclaration(elementType);
 
 		if (childBuilderOutline == null || childBuilderOutline.getClassOutline().implClass.isAbstract()) {
 			final JFieldVar builderField = this.builderClass.field(JMod.PRIVATE, declaredField.type(), declaredField.name(), JExpr._new(this.apiConstructs.arrayListClass.narrow(elementType)));
@@ -204,7 +204,7 @@ public class ChainedBuilderGenerator extends BuilderGenerator {
 			final JVar withVarargsParam = withVarargsMethod.varParam(((JClass) declaredSuperField.type()).getTypeParameters().get(0), declaredSuperField.name());
 			withVarargsMethod.body().invoke(JExpr._super(), ApiConstructs.WITH_METHOD_PREFIX + superPropertyName).arg(withVarargsParam);
 			withVarargsMethod.body()._return(JExpr._this());
-			final BuilderOutline childBuilderOutline = this.apiConstructs.getDeclaration(declaredSuperField.type());
+			final BuilderOutline childBuilderOutline = getBuilderDeclaration(declaredSuperField.type());
 			if (childBuilderOutline != null && !childBuilderOutline.getClassOutline().implClass.isAbstract()) {
 				final JClass builderFieldElementType = childBuilderOutline.getDefinedBuilderClass().narrow(this.builderType.wildcard());
 				final JMethod addMethod = this.builderClass.method(JMod.PUBLIC, builderFieldElementType, ApiConstructs.ADD_METHOD_PREFIX + superPropertyName);
@@ -217,7 +217,7 @@ public class ChainedBuilderGenerator extends BuilderGenerator {
 			withMethod.body().invoke(JExpr._super(), ApiConstructs.WITH_METHOD_PREFIX + superPropertyName).arg(param);
 			withMethod.body()._return(JExpr._this());
 
-			final BuilderOutline childBuilderOutline = this.apiConstructs.getDeclaration(declaredSuperField.type());
+			final BuilderOutline childBuilderOutline = getBuilderDeclaration(declaredSuperField.type());
 			if (childBuilderOutline != null && !childBuilderOutline.getClassOutline().implClass.isAbstract()) {
 				final JClass builderFieldElementType = childBuilderOutline.getDefinedBuilderClass().narrow(this.builderType.wildcard());
 				final JMethod addMethod = this.builderClass.method(JMod.PUBLIC, builderFieldElementType, ApiConstructs.WITH_METHOD_PREFIX + superPropertyName);
