@@ -178,14 +178,11 @@ public class DeepClonePlugin extends Plugin {
 					final JFieldRef fieldRef = JExpr._this().ref(field);
 					if (apiConstructs.collectionClass.isAssignableFrom(fieldType)) {
 						final JClass elementType = fieldType.getTypeParameters().get(0);
-						final JConditional ifNull = body._if(fieldRef.eq(JExpr._null()));
-						ifNull._then().assign(newField, JExpr._null());
-						ifNull._else().assign(newField, JExpr._new(apiConstructs.arrayListClass.narrow(elementType)).arg(JExpr._this().ref(field).invoke("size")));
-						final JForEach forLoop = ifNull._else().forEach(elementType, "item", fieldRef);
 						if (apiConstructs.cloneableInterface.isAssignableFrom(elementType)) {
+							final JForEach forLoop = apiConstructs.loop(body, fieldRef, elementType, newField, elementType);
 							forLoop.body().invoke(newField, "add").arg(nullSafe(forLoop.var(), apiConstructs.castOnDemand(elementType, forLoop.var().invoke("clone"))));
 						} else {
-							forLoop.body().invoke(newField, "add").arg(forLoop.var());
+							body.assign(newField, nullSafe(fieldRef, apiConstructs.newArrayList(elementType).arg(fieldRef)));
 						}
 
 						final ImmutablePlugin immutablePlugin = apiConstructs.findPlugin(ImmutablePlugin.class);
@@ -262,16 +259,14 @@ public class DeepClonePlugin extends Plugin {
 						final JClass fieldType = (JClass) field.type();
 						if (apiConstructs.collectionClass.isAssignableFrom(fieldType)) {
 							final JClass elementType = fieldType.getTypeParameters().get(0);
-							final JConditional ifNull = currentBlock._if(fieldRef.ne(JExpr._null()));
-							ifNull._then().assign(newField, JExpr._new(apiConstructs.arrayListClass.narrow(elementType)).arg(fieldRef.invoke("size")));
-							ifNull._else().assign(newField, JExpr._null());
-							final JForEach forLoop = ifNull._then().forEach(elementType, "item", fieldRef);
 							if (apiConstructs.pathCloneableInterface.isAssignableFrom(elementType)) {
+								final JForEach forLoop = apiConstructs.loop(currentBlock, fieldRef, elementType, newField, elementType);
 								forLoop.body().invoke(newField, "add").arg(nullSafe(forLoop.var(), apiConstructs.castOnDemand(elementType, forLoop.var().invoke("clone").arg(fieldPathVar))));
 							} else if (apiConstructs.cloneableInterface.isAssignableFrom(elementType)) {
+								final JForEach forLoop = apiConstructs.loop(currentBlock, fieldRef, elementType, newField, elementType);
 								forLoop.body().invoke(newField, "add").arg(nullSafe(forLoop.var(), apiConstructs.castOnDemand(elementType, forLoop.var().invoke("clone"))));
 							} else {
-								forLoop.body().invoke(newField, "add").arg(forLoop.var());
+								currentBlock.assign(newField, nullSafe(fieldRef, apiConstructs.newArrayList(elementType).arg(fieldRef)));
 							}
 
 							final ImmutablePlugin immutablePlugin = apiConstructs.findPlugin(ImmutablePlugin.class);
@@ -360,16 +355,14 @@ public class DeepClonePlugin extends Plugin {
 					final JFieldRef fieldRef = otherParam.ref(field);
 					if (apiConstructs.collectionClass.isAssignableFrom(fieldType)) {
 						final JClass elementType = fieldType.getTypeParameters().get(0);
-						final JConditional ifNull = body._if(fieldRef.eq(JExpr._null()));
-						ifNull._then().assign(newField, JExpr._null());
-						ifNull._else().assign(newField, JExpr._new(apiConstructs.arrayListClass.narrow(elementType)).arg(fieldRef.invoke("size")));
-						final JForEach forLoop = ifNull._else().forEach(elementType, "item", fieldRef);
 						if (this.narrow && apiConstructs.canInstantiate(elementType)) {
+							final JForEach forLoop = apiConstructs.loop(body, fieldRef, elementType, newField, elementType);
 							forLoop.body().invoke(newField, "add").arg(nullSafe(forLoop.var(), JExpr._new(elementType).arg(forLoop.var())));
 						} else if (apiConstructs.cloneableInterface.isAssignableFrom(elementType)) {
+							final JForEach forLoop = apiConstructs.loop(body, fieldRef, elementType, newField, elementType);
 							forLoop.body().invoke(newField, "add").arg(nullSafe(forLoop.var(), apiConstructs.castOnDemand(elementType, forLoop.var().invoke("clone"))));
 						} else {
-							forLoop.body().invoke(newField, "add").arg(forLoop.var());
+							body.assign(newField, nullSafe(fieldRef, apiConstructs.newArrayList(elementType).arg(fieldRef)));
 						}
 
 						if (immutablePlugin != null) {
@@ -444,18 +437,17 @@ public class DeepClonePlugin extends Plugin {
 						final JClass fieldType = (JClass) field.type();
 						if (apiConstructs.collectionClass.isAssignableFrom(fieldType)) {
 							final JClass elementType = fieldType.getTypeParameters().get(0);
-							final JConditional ifNull = currentBlock._if(fieldRef.ne(JExpr._null()));
-							ifNull._then().assign(newField, JExpr._new(apiConstructs.arrayListClass.narrow(elementType)).arg(fieldRef.invoke("size")));
-							ifNull._else().assign(newField, JExpr._null());
-							final JForEach forLoop = ifNull._then().forEach(elementType, "item", fieldRef);
 							if (this.narrow && apiConstructs.canInstantiate(elementType)) {
+								final JForEach forLoop = apiConstructs.loop(currentBlock, fieldRef, elementType, newField, elementType);
 								forLoop.body().invoke(newField, "add").arg(nullSafe(forLoop.var(), JExpr._new(elementType).arg(forLoop.var()).arg(fieldPathVar)));
 							} else if (apiConstructs.pathCloneableInterface.isAssignableFrom(elementType)) {
+								final JForEach forLoop = apiConstructs.loop(currentBlock, fieldRef, elementType, newField, elementType);
 								forLoop.body().invoke(newField, "add").arg(nullSafe(forLoop.var(), apiConstructs.castOnDemand(elementType, forLoop.var().invoke("clone").arg(fieldPathVar))));
 							} else if (apiConstructs.cloneableInterface.isAssignableFrom(elementType)) {
+								final JForEach forLoop = apiConstructs.loop(currentBlock, fieldRef, elementType, newField, elementType);
 								forLoop.body().invoke(newField, "add").arg(nullSafe(forLoop.var(), apiConstructs.castOnDemand(elementType, forLoop.var().invoke("clone"))));
 							} else {
-								forLoop.body().invoke(newField, "add").arg(forLoop.var());
+								currentBlock.assign(newField, nullSafe(fieldRef, apiConstructs.newArrayList(elementType).arg(fieldRef)));
 							}
 							if (immutablePlugin != null) {
 								immutablePlugin.immutableInit(apiConstructs, body, JExpr._this(), field);

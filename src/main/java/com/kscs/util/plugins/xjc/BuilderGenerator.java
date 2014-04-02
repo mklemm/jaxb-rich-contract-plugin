@@ -78,8 +78,8 @@ public abstract class BuilderGenerator {
 			initBody._return(productParam);
 		}
 
+		generateBuildMethod(initMethod);
 		if (!this.definedClass.isAbstract()) {
-			generateBuildMethod(initMethod);
 			generateBuilderMethod();
 		}
 
@@ -113,7 +113,7 @@ public abstract class BuilderGenerator {
 		withVarargsMethod.body().assign(JExpr._this().ref(builderField), withVarargsParam);
 		withVarargsMethod.body()._return(JExpr._this());
 
-		initBody.assign(productParam.ref(declaredField), builderField);
+		initBody.assign(productParam.ref(declaredField), JExpr._this().ref(builderField));
 	}
 
 

@@ -133,4 +133,14 @@ public class ApiConstructs {
 		}
 	}
 
+	public JForEach loop(final JBlock block, final JFieldRef source, final JType sourceElementType, final JAssignmentTarget target, final JType targetElementType) {
+		final JConditional ifNull = block._if(source.eq(JExpr._null()));
+		ifNull._then().assign(target, JExpr._null());
+		ifNull._else().assign(target, JExpr._new(this.arrayListClass.narrow(targetElementType)));
+		return ifNull._else().forEach(sourceElementType, "item", source);
+	}
+
+	public JInvocation newArrayList(final JClass elementType) {
+		return JExpr._new(this.arrayListClass.narrow(elementType));
+	}
 }

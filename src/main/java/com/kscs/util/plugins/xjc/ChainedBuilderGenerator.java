@@ -99,7 +99,7 @@ public class ChainedBuilderGenerator extends BuilderGenerator {
 
 	private void generateSingularProperty(final JBlock initBody, final JVar productParam, final JFieldVar declaredField, final String propertyName) {
 		final BuilderOutline childBuilderOutline = getBuilderDeclaration(declaredField.type());
-		if (childBuilderOutline == null || childBuilderOutline.getClassOutline().implClass.isAbstract()) {
+		if (childBuilderOutline == null) {
 			final JFieldVar builderField = this.builderClass.field(JMod.PRIVATE, declaredField.type(), declaredField.name());
 			final JMethod withMethod = this.builderClass.method(JMod.PUBLIC, this.builderType, ApiConstructs.WITH_METHOD_PREFIX + propertyName);
 			final JVar param = withMethod.param(JMod.FINAL, declaredField.type(), declaredField.name());
@@ -146,7 +146,7 @@ public class ChainedBuilderGenerator extends BuilderGenerator {
 
 		final BuilderOutline childBuilderOutline = getBuilderDeclaration(elementType);
 
-		if (childBuilderOutline == null || childBuilderOutline.getClassOutline().implClass.isAbstract()) {
+		if (childBuilderOutline == null) {
 			final JFieldVar builderField = this.builderClass.field(JMod.PRIVATE, declaredField.type(), declaredField.name());
 			JConditional ifNull = addListMethod.body()._if(JExpr._this().ref(builderField).eq(JExpr._null()));
 			ifNull._then().assign(JExpr._this().ref(builderField), JExpr._new(this.apiConstructs.arrayListClass.narrow(elementType)));
@@ -270,9 +270,13 @@ public class ChainedBuilderGenerator extends BuilderGenerator {
 	@Override
 	protected JMethod generateBuildMethod(final JMethod initMethod) {
 		final JMethod buildMethod = this.builderClass.method(JMod.PUBLIC, this.definedClass, ApiConstructs.BUILD_METHOD_NAME);
-		final JConditional ifStatement = buildMethod.body()._if(JExpr._this().ref("_product").eq(JExpr._null()));
-		ifStatement._then()._return((JExpr._this().invoke(initMethod).arg(JExpr._new(this.definedClass))));
-		ifStatement._else()._return(JExpr.cast(this.definedClass, JExpr._this().ref("_product")));
+		if(this.definedClass.isAbstract()) {
+			buildMethod.body()._return(JExpr.cast(this.definedClass, JExpr._this().ref("_product")));
+		} else {
+			final JConditional ifStatement = buildMethod.body()._if(JExpr._this().ref("_product").eq(JExpr._null()));
+			ifStatement._then()._return((JExpr._this().invoke(initMethod).arg(JExpr._new(this.definedClass))));
+			ifStatement._else()._return(JExpr.cast(this.definedClass, JExpr._this().ref("_product")));
+		}
 		return buildMethod;
 	}
 
@@ -351,10 +355,10 @@ public class ChainedBuilderGenerator extends BuilderGenerator {
 							final JClass childBuilderType = childBuilderOutline.getDefinedBuilderClass().narrow(this.builderType);
 							final JForEach forLoop = loop(body, fieldRef, elementType, newField, childBuilderType);
 							forLoop.body().invoke(newField, "add").arg(nullSafe(forLoop.var(), JExpr._new(childBuilderType).arg(JExpr._this()).arg(forLoop.var()).arg(JExpr.TRUE)));
-						} else if (childBuilderOutline != null && !elementType.isAbstract()) {
+						} else if (childBuilderOutline != null) {
 							final JClass childBuilderType = childBuilderOutline.getDefinedBuilderClass().narrow(this.builderType);
 							final JForEach forLoop = loop(body, fieldRef, elementType, newField, childBuilderType);
-							body.invoke(newField, "add").arg(nullSafe(fieldRef, generateRuntimeTypeExpression(childBuilderType, forLoop.var(), null)));
+							forLoop.body().invoke(newField, "add").arg(nullSafe(fieldRef, generateRuntimeTypeExpression(childBuilderType, forLoop.var(), null)));
 						} else if (this.apiConstructs.cloneableInterface.isAssignableFrom(elementType)) {
 							final JForEach forLoop = loop(body, fieldRef, elementType, newField, elementType);
 							forLoop.body().invoke(newField, "add").arg(nullSafe(forLoop.var(), this.apiConstructs.castOnDemand(elementType, forLoop.var().invoke("clone"))));
@@ -451,7 +455,7 @@ public class ChainedBuilderGenerator extends BuilderGenerator {
 								final JClass childBuilderType = childBuilderOutline.getDefinedBuilderClass().narrow(this.builderType);
 								final JForEach forLoop = loop(currentBlock, fieldRef, elementType, newField, childBuilderType);
 								forLoop.body().invoke(newField, "add").arg(nullSafe(forLoop.var(), JExpr._new(childBuilderType).arg(JExpr._this()).arg(forLoop.var()).arg(JExpr.TRUE).arg(fieldPathVar)));
-							} else if (childBuilderOutline != null && !elementType.isAbstract()) {
+							} else if (childBuilderOutline != null) {
 								final JClass childBuilderType = childBuilderOutline.getDefinedBuilderClass().narrow(this.builderType);
 								final JForEach forLoop = loop(currentBlock, fieldRef, elementType, newField, childBuilderType);
 								forLoop.body().invoke(newField, "add").arg(nullSafe(forLoop.var(), generateRuntimeTypeExpression(childBuilderType, forLoop.var(), fieldPathVar)));
@@ -470,9 +474,11 @@ public class ChainedBuilderGenerator extends BuilderGenerator {
 							if (this.narrow && this.apiConstructs.canInstantiate(fieldType)) {
 								final JClass childBuilderType = childBuilderOutline.getDefinedBuilderClass().narrow(this.builderType);
 								body.assign(newField, nullSafe(fieldRef, JExpr._new(childBuilderType).arg(JExpr._this()).arg(fieldRef).arg(JExpr.TRUE).arg(fieldPathVar)));
-							} else if (this.apiConstructs.pathCloneableInterface.isAssignableFrom(fieldType)) {
+							} else if(childBuilderOutline != null) {
 								final JClass childBuilderType = childBuilderOutline.getDefinedBuilderClass().narrow(this.builderType);
 								body.assign(newField, nullSafe(fieldRef, generateRuntimeTypeExpression(childBuilderType, fieldRef, fieldPathVar)));
+							} else if (this.apiConstructs.pathCloneableInterface.isAssignableFrom(fieldType)) {
+								body.assign(newField, nullSafe(fieldRef, this.apiConstructs.castOnDemand(fieldType, fieldRef.invoke("clone").arg(fieldPathVar))));
 							} else if (this.apiConstructs.cloneableInterface.isAssignableFrom(fieldType)) {
 								body.assign(newField, nullSafe(fieldRef, this.apiConstructs.castOnDemand(fieldType, fieldRef.invoke("clone"))));
 							} else {

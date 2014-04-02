@@ -42,7 +42,7 @@ public class BuilderOutline {
 
 	protected BuilderOutline(final ClassOutline classOutline) throws JClassAlreadyExistsException {
 		this.classOutline = classOutline;
-		final int mods = this.classOutline.implClass.isAbstract() ? JMod.PROTECTED | JMod.STATIC | JMod.ABSTRACT : JMod.PUBLIC | JMod.STATIC;
+		final int mods = JMod.PUBLIC | JMod.STATIC;
 		this.definedBuilderClass = this.classOutline.implClass._class(mods, ApiConstructs.BUILDER_CLASS_NAME, ClassType.CLASS);
 	}
 
