@@ -112,7 +112,7 @@ public class ApiConstructs {
 	public boolean cloneThrows(final JType cloneableType, final boolean cloneThrows) {
 		try {
 			if(cloneableType.fullName().equals("java.lang.Object")) {
-				return true;
+				return false;
 			} else if (getClassOutline(cloneableType) != null) {
 				return cloneThrows;
 			} else if(cloneableType.isReference()) {

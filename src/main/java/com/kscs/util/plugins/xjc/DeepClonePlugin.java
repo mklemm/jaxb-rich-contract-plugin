@@ -140,7 +140,7 @@ public class DeepClonePlugin extends Plugin {
 	private void generateCloneMethod(final ApiConstructs apiConstructs, final ClassOutline classOutline) {
 		final JDefinedClass definedClass = classOutline.implClass;
 
-		final boolean mustCatch = definedClass._extends() != null && apiConstructs.cloneThrows(definedClass._extends(), this.throwCloneNotSupported) || mustCatch(apiConstructs, classOutline, new Predicate<JClass>() {
+		final boolean mustCatch = "java.lang.Object".equals(definedClass._extends().fullName()) || apiConstructs.cloneThrows(definedClass._extends(), this.throwCloneNotSupported) || mustCatch(apiConstructs, classOutline, new Predicate<JClass>() {
 			@Override
 			public boolean matches(final JClass arg) {
 				return apiConstructs.cloneThrows(arg, DeepClonePlugin.this.throwCloneNotSupported);
@@ -189,8 +189,6 @@ public class DeepClonePlugin extends Plugin {
 						}
 
 						immutableInit(apiConstructs, body, newObjectVar, field);
-
-
 					}
 					if (apiConstructs.cloneableInterface.isAssignableFrom(fieldType)) {
 						final JConditional ifStmt = body._if(fieldRef.eq(JExpr._null()));
