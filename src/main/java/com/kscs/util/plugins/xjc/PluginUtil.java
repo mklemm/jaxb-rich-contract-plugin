@@ -147,5 +147,15 @@ public final class PluginUtil {
 		}
 	}
 
+	public static JExpression nullSafe(final JExpression test, final JExpression source) {
+		return JOp.cond(test.eq(JExpr._null()), JExpr._null(), source);
+	}
+
+	public static JBlock ifNull(final JBlock block, final JExpression test, final JAssignmentTarget target) {
+		final JConditional ifNull = block._if(test.eq(JExpr._null()));
+		ifNull._then().assign(target, JExpr._null());
+		return ifNull._else();
+	}
+
 
 }

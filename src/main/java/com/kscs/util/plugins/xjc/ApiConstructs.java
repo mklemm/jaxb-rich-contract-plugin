@@ -24,6 +24,7 @@
 
 package com.kscs.util.plugins.xjc;
 
+import com.kscs.util.jaxb.BuilderUtilities;
 import com.kscs.util.jaxb.PathCloneable;
 import com.sun.codemodel.*;
 import com.sun.tools.xjc.Options;
@@ -49,6 +50,7 @@ public class ApiConstructs {
 	public static final String AS_LIST = "asList";
 	public static final String UNMODIFIABLE_LIST = "unmodifiableList";
 	public static final String ADD_ALL = "addAll";
+	public static final String GET_BUILDER = "getBuilder";
 
 	final JCodeModel codeModel;
 	final JClass arrayListClass;
@@ -61,7 +63,8 @@ public class ApiConstructs {
 	final Outline outline;
 	final ErrorHandler errorHandler;
 	final Map<String, ClassOutline> classes;
-	public JClass pathCloneableInterface;
+	final JClass pathCloneableInterface;
+	final JClass builderUtilitiesClass;
 
 	ApiConstructs(final Outline outline, final Options opt, final ErrorHandler errorHandler) {
 		this.outline = outline;
@@ -76,6 +79,7 @@ public class ApiConstructs {
 		this.cloneableInterface = this.codeModel.ref(Cloneable.class);
 		this.pathCloneableInterface = this.codeModel.ref(PathCloneable.class);
 		this.classes = new HashMap<String, ClassOutline>(outline.getClasses().size());
+		this.builderUtilitiesClass = this.codeModel.ref(BuilderUtilities.class);
 		for(final ClassOutline classOutline : this.outline.getClasses()) {
 			this.classes.put(classOutline.implClass.fullName(), classOutline);
 		}

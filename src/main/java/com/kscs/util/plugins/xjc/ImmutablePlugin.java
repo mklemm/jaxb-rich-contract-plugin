@@ -85,6 +85,6 @@ public class ImmutablePlugin extends Plugin {
 	}
 
 	public void immutableInit(final ApiConstructs apiConstructs, final JBlock body, final JExpression instanceRef, final JFieldVar collectionField) {
-		body.assign(instanceRef.ref(getImmutableFieldName(collectionField)), apiConstructs.unmodifiableList(instanceRef.ref(collectionField)));
+		body.assign(instanceRef.ref(getImmutableFieldName(collectionField)), PluginUtil.nullSafe(collectionField, apiConstructs.unmodifiableList(instanceRef.ref(collectionField))));
 	}
 }

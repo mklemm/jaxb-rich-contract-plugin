@@ -24,6 +24,7 @@
 
 package com.kscs.util.plugins.xjc;
 
+import com.kscs.util.jaxb.BuilderUtilities;
 import com.sun.codemodel.JClassAlreadyExistsException;
 import com.sun.codemodel.JDefinedClass;
 import com.sun.tools.xjc.BadCommandLineException;
@@ -44,6 +45,7 @@ import java.util.Map;
  */
 public class FluentBuilderPlugin extends Plugin {
 	private boolean supportBuilderChain = true;
+	private boolean generateTools = true;
 
 	public FluentBuilderPlugin() {
 		// Needed by JAXB Framework
@@ -60,8 +62,12 @@ public class FluentBuilderPlugin extends Plugin {
 
 	@Override
 	public int parseArgument(final Options opt, final String[] args, final int i) throws BadCommandLineException, IOException {
-		final PluginUtil.Arg<Boolean> arg = PluginUtil.parseBooleanArgument("support-builder-chain", this.supportBuilderChain, opt, args, i);
+		PluginUtil.Arg<Boolean> arg = PluginUtil.parseBooleanArgument("support-builder-chain", this.supportBuilderChain, opt, args, i);
 		this.supportBuilderChain = arg.getValue();
+		if (arg.getArgsParsed() == 0) {
+			arg = PluginUtil.parseBooleanArgument("generate-tools", this.generateTools, opt, args, i);
+			this.generateTools = arg.getValue();
+		}
 		return arg.getArgsParsed();
 	}
 
@@ -73,8 +79,13 @@ public class FluentBuilderPlugin extends Plugin {
 	@Override
 	public boolean run(final Outline outline, final Options opt, final ErrorHandler errorHandler) throws SAXException {
 
+
 		final Map<String, BuilderOutline> builderClasses = new LinkedHashMap<String, BuilderOutline>(outline.getClasses().size());
 		final ApiConstructs apiConstructs = new ApiConstructs(outline, opt, errorHandler);
+
+		if(this.generateTools) {
+			PluginUtil.writeSourceFile(getClass(), opt.targetDir, BuilderUtilities.class.getName());
+		}
 
 		for (final ClassOutline classOutline : outline.getClasses()) {
 			final JDefinedClass definedClass = classOutline.implClass;

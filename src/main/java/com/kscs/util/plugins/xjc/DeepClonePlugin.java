@@ -40,12 +40,14 @@ import java.io.IOException;
 import java.text.MessageFormat;
 import java.util.ResourceBundle;
 
+import static com.kscs.util.plugins.xjc.PluginUtil.nullSafe;
+
 /**
  * XJC Plugin to generate clone and partial clone methods
  */
 public class DeepClonePlugin extends Plugin {
 	private boolean throwCloneNotSupported = false;
-	private boolean generatePartialCloneMethod = true;
+	boolean generatePartialCloneMethod = true;
 	private boolean generateTools = true;
 	private boolean generateConstructor = true;
 	private boolean narrow = true;
@@ -181,19 +183,18 @@ public class DeepClonePlugin extends Plugin {
 						ifNull._else().assign(newField, JExpr._new(apiConstructs.arrayListClass.narrow(elementType)).arg(JExpr._this().ref(field).invoke("size")));
 						final JForEach forLoop = ifNull._else().forEach(elementType, "item", fieldRef);
 						if (apiConstructs.cloneableInterface.isAssignableFrom(elementType)) {
-							final JConditional ifStmt = forLoop.body()._if(forLoop.var().eq(JExpr._null()));
-							ifStmt._then().invoke(newField, "add").arg(JExpr._null());
-							ifStmt._else().invoke(newField, "add").arg(apiConstructs.castOnDemand(elementType, forLoop.var().invoke("clone")));
+							forLoop.body().invoke(newField, "add").arg(nullSafe(forLoop.var(), apiConstructs.castOnDemand(elementType, forLoop.var().invoke("clone"))));
 						} else {
 							forLoop.body().invoke(newField, "add").arg(forLoop.var());
 						}
 
-						immutableInit(apiConstructs, body, newObjectVar, field);
+						final ImmutablePlugin immutablePlugin = apiConstructs.findPlugin(ImmutablePlugin.class);
+						if (immutablePlugin != null) {
+							immutablePlugin.immutableInit(apiConstructs, body, newObjectVar, field);
+						}
 					}
 					if (apiConstructs.cloneableInterface.isAssignableFrom(fieldType)) {
-						final JConditional ifStmt = body._if(fieldRef.eq(JExpr._null()));
-						ifStmt._then().assign(newField, JExpr._null());
-						ifStmt._else().assign(newField, apiConstructs.castOnDemand(fieldType, JExpr._this().ref(field).invoke("clone")));
+						body.assign(newField, nullSafe(fieldRef, apiConstructs.castOnDemand(fieldType, JExpr._this().ref(field).invoke("clone"))));
 					} else {
 						// body.assign(newField, JExpr._this().ref(field));
 					}
@@ -266,27 +267,22 @@ public class DeepClonePlugin extends Plugin {
 							ifNull._else().assign(newField, JExpr._null());
 							final JForEach forLoop = ifNull._then().forEach(elementType, "item", fieldRef);
 							if (apiConstructs.pathCloneableInterface.isAssignableFrom(elementType)) {
-								final JConditional ifStmt = forLoop.body()._if(forLoop.var().eq(JExpr._null()));
-								ifStmt._then().invoke(newField, "add").arg(JExpr._null());
-								ifStmt._else().invoke(newField, "add").arg(apiConstructs.castOnDemand(elementType, forLoop.var().invoke("clone").arg(fieldPathVar)));
+								forLoop.body().invoke(newField, "add").arg(nullSafe(forLoop.var(), apiConstructs.castOnDemand(elementType, forLoop.var().invoke("clone").arg(fieldPathVar))));
 							} else if (apiConstructs.cloneableInterface.isAssignableFrom(elementType)) {
-								final JConditional ifStmt = forLoop.body()._if(forLoop.var().eq(JExpr._null()));
-								ifStmt._then().invoke(newField, "add").arg(JExpr._null());
-								ifStmt._else().invoke(newField, "add").arg(apiConstructs.castOnDemand(elementType, forLoop.var().invoke("clone")));
+								forLoop.body().invoke(newField, "add").arg(nullSafe(forLoop.var(), apiConstructs.castOnDemand(elementType, forLoop.var().invoke("clone"))));
 							} else {
 								forLoop.body().invoke(newField, "add").arg(forLoop.var());
 							}
 
-							immutableInit(apiConstructs, body, newObjectVar, field);
+							final ImmutablePlugin immutablePlugin = apiConstructs.findPlugin(ImmutablePlugin.class);
+							if (immutablePlugin != null) {
+								immutablePlugin.immutableInit(apiConstructs, body, newObjectVar, field);
+							}
 
 						} else if (apiConstructs.pathCloneableInterface.isAssignableFrom(fieldType)) {
-							final JConditional ifStmt = currentBlock._if(fieldRef.ne(JExpr._null()));
-							ifStmt._then().assign(newField, apiConstructs.castOnDemand(fieldType, fieldRef.invoke("clone").arg(fieldPathVar)));
-							ifStmt._else().assign(newField, JExpr._null());
+							currentBlock.assign(newField, nullSafe(fieldRef, apiConstructs.castOnDemand(fieldType, fieldRef.invoke("clone").arg(fieldPathVar))));
 						} else if (apiConstructs.cloneableInterface.isAssignableFrom(fieldType)) {
-							final JConditional ifStmt = currentBlock._if(fieldRef.ne(JExpr._null()));
-							ifStmt._then().assign(newField, apiConstructs.castOnDemand(fieldType, fieldRef.invoke("clone")));
-							ifStmt._else().assign(newField, JExpr._null());
+							currentBlock.assign(newField, nullSafe(fieldRef, apiConstructs.castOnDemand(fieldType, fieldRef.invoke("clone"))));
 						} else {
 							currentBlock.assign(newField, fieldRef);
 						}
@@ -314,9 +310,20 @@ public class DeepClonePlugin extends Plugin {
 	}
 
 	private void generateCopyConstructor(final ApiConstructs apiConstructs, final ClassOutline classOutline) {
+		final ImmutablePlugin immutablePlugin = apiConstructs.findPlugin(ImmutablePlugin.class);
 		final JDefinedClass definedClass = classOutline.implClass;
+		generateCopyConstructor(apiConstructs, classOutline, definedClass, immutablePlugin);
+	}
+
+	private void generatePartialCopyConstructor(final ApiConstructs apiConstructs, final ClassOutline classOutline) {
+		final ImmutablePlugin immutablePlugin = apiConstructs.findPlugin(ImmutablePlugin.class);
+		final JDefinedClass definedClass = classOutline.implClass;
+		generatePartialCopyConstructor(apiConstructs, classOutline, definedClass, immutablePlugin);
+	}
+
+	void generateCopyConstructor(final ApiConstructs apiConstructs, final ClassOutline classOutline, final JDefinedClass definedClass, final ImmutablePlugin immutablePlugin) {
 		final JMethod constructor = definedClass.constructor(definedClass.isAbstract() ? JMod.PROTECTED : JMod.PUBLIC);
-		final JVar otherParam = constructor.param(JMod.FINAL, definedClass, "other");
+		final JVar otherParam = constructor.param(JMod.FINAL, classOutline.implClass, "other");
 		final JDocComment docComment = constructor.javadoc();
 		docComment.append(getMessage("copyConstructor.javadoc.desc", definedClass.name()));
 		docComment.addParam(otherParam).append(getMessage("copyConstructor.javadoc.param.other", definedClass.name()));
@@ -324,6 +331,9 @@ public class DeepClonePlugin extends Plugin {
 		if (classOutline.getSuperClass() != null) {
 			constructor.body().invoke("super").arg(otherParam);
 		}
+		final JBlock outer = constructor.body();
+		final JTryBlock tryBlock;
+		final JBlock body;
 
 		final boolean mustCatch = mustCatch(apiConstructs, classOutline, new Predicate<JClass>() {
 			@Override
@@ -332,9 +342,6 @@ public class DeepClonePlugin extends Plugin {
 			}
 		});
 
-		final JBlock outer = constructor.body();
-		final JTryBlock tryBlock;
-		final JBlock body;
 		if (mustCatch) {
 			tryBlock = outer._try();
 			body = tryBlock.body();
@@ -358,28 +365,21 @@ public class DeepClonePlugin extends Plugin {
 						ifNull._else().assign(newField, JExpr._new(apiConstructs.arrayListClass.narrow(elementType)).arg(fieldRef.invoke("size")));
 						final JForEach forLoop = ifNull._else().forEach(elementType, "item", fieldRef);
 						if (this.narrow && apiConstructs.canInstantiate(elementType)) {
-							final JConditional ifStmt = forLoop.body()._if(forLoop.var().eq(JExpr._null()));
-							ifStmt._then().invoke(newField, "add").arg(JExpr._null());
-							ifStmt._else().invoke(newField, "add").arg(JExpr._new(elementType).arg(forLoop.var()));
+							forLoop.body().invoke(newField, "add").arg(nullSafe(forLoop.var(), JExpr._new(elementType).arg(forLoop.var())));
 						} else if (apiConstructs.cloneableInterface.isAssignableFrom(elementType)) {
-							final JConditional ifStmt = forLoop.body()._if(forLoop.var().eq(JExpr._null()));
-							ifStmt._then().invoke(newField, "add").arg(JExpr._null());
-							final JInvocation cloneInvocation = forLoop.var().invoke("clone");
-							ifStmt._else().invoke(newField, "add").arg(apiConstructs.castOnDemand(elementType, cloneInvocation));
+							forLoop.body().invoke(newField, "add").arg(nullSafe(forLoop.var(), apiConstructs.castOnDemand(elementType, forLoop.var().invoke("clone"))));
 						} else {
 							forLoop.body().invoke(newField, "add").arg(forLoop.var());
 						}
 
-						immutableInit(apiConstructs, body, JExpr._this(), field);
+						if (immutablePlugin != null) {
+							immutablePlugin.immutableInit(apiConstructs, body, JExpr._this(), field);
+						}
 
 					} else if (this.narrow && apiConstructs.canInstantiate(fieldType)) {
-						final JConditional ifStmt = body._if(fieldRef.eq(JExpr._null()));
-						ifStmt._then().assign(newField, JExpr._null());
-						ifStmt._else().assign(newField, JExpr._new(fieldType).arg(fieldRef));
+						body.assign(newField, nullSafe(fieldRef, JExpr._new(fieldType).arg(fieldRef)));
 					} else if (apiConstructs.cloneableInterface.isAssignableFrom(fieldType)) {
-						final JConditional ifStmt = body._if(fieldRef.eq(JExpr._null()));
-						ifStmt._then().assign(newField, JExpr._null());
-						ifStmt._else().assign(newField, apiConstructs.castOnDemand(fieldType, fieldRef.invoke("clone")));
+						body.assign(newField, nullSafe(fieldRef, apiConstructs.castOnDemand(fieldType, fieldRef.invoke("clone"))));
 					} else {
 						body.assign(newField, fieldRef);
 					}
@@ -394,16 +394,9 @@ public class DeepClonePlugin extends Plugin {
 		}
 	}
 
-	private void generatePartialCopyConstructor(final ApiConstructs apiConstructs, final ClassOutline classOutline) {
-		final JDefinedClass definedClass = classOutline.implClass;
-		final boolean mustCatch = mustCatch(apiConstructs, classOutline, new Predicate<JClass>() {
-			@Override
-			public boolean matches(final JClass fieldType) {
-				return (!apiConstructs.canInstantiate(fieldType)) && (!apiConstructs.pathCloneableInterface.isAssignableFrom(fieldType)) && apiConstructs.cloneThrows(fieldType, DeepClonePlugin.this.throwCloneNotSupported);
-			}
-		});
+	void generatePartialCopyConstructor(final ApiConstructs apiConstructs, final ClassOutline classOutline, final JDefinedClass definedClass, final ImmutablePlugin immutablePlugin) {
 		final JMethod constructor = definedClass.constructor(definedClass.isAbstract() ? JMod.PROTECTED : JMod.PUBLIC);
-		final JVar otherParam = constructor.param(JMod.FINAL, definedClass, "other");
+		final JVar otherParam = constructor.param(JMod.FINAL, classOutline.implClass, "other");
 		final JVar pathParam = constructor.param(JMod.FINAL, PropertyPath.class, "propertyPath");
 
 		final JDocComment docComment = constructor.javadoc();
@@ -418,6 +411,14 @@ public class DeepClonePlugin extends Plugin {
 		final JBlock outer;
 		final JBlock body;
 		final JTryBlock tryBlock;
+
+		final boolean mustCatch = mustCatch(apiConstructs, classOutline, new Predicate<JClass>() {
+			@Override
+			public boolean matches(final JClass fieldType) {
+				return (!apiConstructs.canInstantiate(fieldType)) && (!apiConstructs.pathCloneableInterface.isAssignableFrom(fieldType)) && apiConstructs.cloneThrows(fieldType, DeepClonePlugin.this.throwCloneNotSupported);
+			}
+		});
+
 		if (!mustCatch) {
 			outer = constructor.body();
 			tryBlock = null;
@@ -448,34 +449,24 @@ public class DeepClonePlugin extends Plugin {
 							ifNull._else().assign(newField, JExpr._null());
 							final JForEach forLoop = ifNull._then().forEach(elementType, "item", fieldRef);
 							if (this.narrow && apiConstructs.canInstantiate(elementType)) {
-								final JConditional ifStmt = forLoop.body()._if(forLoop.var().eq(JExpr._null()));
-								ifStmt._then().invoke(newField, "add").arg(JExpr._null());
-								ifStmt._else().invoke(newField, "add").arg(JExpr._new(elementType).arg(forLoop.var()).arg(fieldPathVar));
+								forLoop.body().invoke(newField, "add").arg(nullSafe(forLoop.var(), JExpr._new(elementType).arg(forLoop.var()).arg(fieldPathVar)));
 							} else if (apiConstructs.pathCloneableInterface.isAssignableFrom(elementType)) {
-								final JConditional ifStmt = forLoop.body()._if(forLoop.var().eq(JExpr._null()));
-								ifStmt._then().invoke(newField, "add").arg(JExpr._null());
-								ifStmt._else().invoke(newField, "add").arg(apiConstructs.castOnDemand(elementType, forLoop.var().invoke("clone").arg(fieldPathVar)));
+								forLoop.body().invoke(newField, "add").arg(nullSafe(forLoop.var(), apiConstructs.castOnDemand(elementType, forLoop.var().invoke("clone").arg(fieldPathVar))));
 							} else if (apiConstructs.cloneableInterface.isAssignableFrom(elementType)) {
-								final JConditional ifStmt = forLoop.body()._if(forLoop.var().eq(JExpr._null()));
-								ifStmt._then().invoke(newField, "add").arg(JExpr._null());
-								ifStmt._else().invoke(newField, "add").arg(apiConstructs.castOnDemand(elementType, forLoop.var().invoke("clone")));
+								forLoop.body().invoke(newField, "add").arg(nullSafe(forLoop.var(), apiConstructs.castOnDemand(elementType, forLoop.var().invoke("clone"))));
 							} else {
 								forLoop.body().invoke(newField, "add").arg(forLoop.var());
 							}
-							immutableInit(apiConstructs, body, JExpr._this(), field);
+							if (immutablePlugin != null) {
+								immutablePlugin.immutableInit(apiConstructs, body, JExpr._this(), field);
+							}
 
 						} else if (this.narrow && apiConstructs.canInstantiate(fieldType)) {
-							final JConditional ifStmt = currentBlock._if(fieldRef.ne(JExpr._null()));
-							ifStmt._then().assign(newField, JExpr._new(fieldType).arg(fieldRef).arg(fieldPathVar));
-							ifStmt._else().assign(newField, JExpr._null());
+							currentBlock.assign(newField, nullSafe(fieldRef, JExpr._new(fieldType).arg(fieldRef).arg(fieldPathVar)));
 						} else if (apiConstructs.pathCloneableInterface.isAssignableFrom(fieldType)) {
-							final JConditional ifStmt = currentBlock._if(fieldRef.ne(JExpr._null()));
-							ifStmt._then().assign(newField, apiConstructs.castOnDemand(fieldType, fieldRef.invoke("clone").arg(fieldPathVar)));
-							ifStmt._else().assign(newField, JExpr._null());
+							currentBlock.assign(newField, nullSafe(fieldRef, apiConstructs.castOnDemand(fieldType, fieldRef.invoke("clone").arg(fieldPathVar))));
 						} else if (apiConstructs.cloneableInterface.isAssignableFrom(fieldType)) {
-							final JConditional ifStmt = currentBlock._if(fieldRef.ne(JExpr._null()));
-							ifStmt._then().assign(newField, apiConstructs.castOnDemand(fieldType, fieldRef.invoke("clone")));
-							ifStmt._else().assign(newField, JExpr._null());
+							currentBlock.assign(newField, nullSafe(fieldRef, apiConstructs.castOnDemand(fieldType, fieldRef.invoke("clone"))));
 						} else {
 							currentBlock.assign(newField, fieldRef);
 						}
@@ -494,6 +485,7 @@ public class DeepClonePlugin extends Plugin {
 
 	}
 
+
 	private boolean mustCatch(final ApiConstructs apiConstructs, final ClassOutline classOutline, final Predicate<JClass> fieldTypePredicate) {
 		final JDefinedClass definedClass = classOutline.implClass;
 		for (final JFieldVar field : definedClass.fields().values()) {
@@ -509,13 +501,6 @@ public class DeepClonePlugin extends Plugin {
 			}
 		}
 		return false;
-	}
-
-	private void immutableInit(final ApiConstructs apiConstructs, final JBlock body, final JExpression instanceRef, final JFieldVar collectionField) {
-		ImmutablePlugin immutablePlugin = apiConstructs.findPlugin(ImmutablePlugin.class);
-		if (immutablePlugin != null) {
-			immutablePlugin.immutableInit(apiConstructs, body, instanceRef, collectionField);
-		}
 	}
 
 	private static interface Predicate<T> {

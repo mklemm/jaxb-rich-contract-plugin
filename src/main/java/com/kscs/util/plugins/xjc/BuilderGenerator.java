@@ -116,6 +116,14 @@ public abstract class BuilderGenerator {
 		initBody.assign(productParam.ref(declaredField), builderField);
 	}
 
+
+	public JForEach loop(final JBlock block, final JFieldRef source, final JType sourceElementType, final JAssignmentTarget target, final JType targetElementType) {
+		final JConditional ifNull = block._if(source.eq(JExpr._null()));
+		ifNull._then().assign(target, JExpr._null());
+		ifNull._else().assign(target, JExpr._new(this.apiConstructs.arrayListClass.narrow(targetElementType)));
+		return ifNull._else().forEach(sourceElementType, "item", source);
+	}
+
 	protected abstract void generateBuilderMember(final FieldOutline fieldOutline, final JFieldVar declaredField, final JBlock initBody, final JVar productParam);
 
 	protected abstract void generateBuilderMemberOverride(final FieldOutline superFieldOutline, final JFieldVar declaredSuperField, final String superPropertyName);
