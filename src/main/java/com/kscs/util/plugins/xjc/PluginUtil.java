@@ -29,6 +29,7 @@ import com.sun.tools.xjc.BadCommandLineException;
 import com.sun.tools.xjc.Options;
 import com.sun.tools.xjc.Plugin;
 import com.sun.tools.xjc.outline.ClassOutline;
+import com.sun.tools.xjc.outline.FieldOutline;
 import com.sun.tools.xjc.outline.Outline;
 
 import java.io.*;
@@ -101,6 +102,10 @@ public final class PluginUtil {
 
 	private static boolean isFalse(final String arg) {
 		return arg.endsWith("n") || arg.endsWith("false") || arg.endsWith("off") || arg.endsWith("no");
+	}
+
+	public static JFieldVar getDeclaredField(final FieldOutline fieldOutline) {
+		return fieldOutline.parent().implClass.fields().get(fieldOutline.getPropertyInfo().getName(false));
 	}
 
 	public static ClassOutline getClassOutline(final Outline outline, final JType typeRef) {

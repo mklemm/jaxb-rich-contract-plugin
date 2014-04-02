@@ -42,7 +42,7 @@ public abstract class BuilderGenerator {
 	protected final JDefinedClass definedClass;
 	protected final JDefinedClass builderClass;
 	protected final ClassOutline classOutline;
-	protected final boolean hasImmutablePlugin;
+	protected final ImmutablePlugin immutablePlugin;
 	protected final Map<String,BuilderOutline> builderOutlines;
 
 	protected BuilderGenerator(final ApiConstructs apiConstructs, final Map<String,BuilderOutline> builderOutlines, final BuilderOutline builderOutline) {
@@ -50,7 +50,7 @@ public abstract class BuilderGenerator {
 		this.builderOutlines = builderOutlines;
 		this.classOutline = builderOutline.getClassOutline();
 		this.definedClass = this.classOutline.implClass;
-		this.hasImmutablePlugin = apiConstructs.hasPlugin(ImmutablePlugin.class);
+		this.immutablePlugin = apiConstructs.findPlugin(ImmutablePlugin.class);
 		this.builderClass = builderOutline.getDefinedBuilderClass();
 	}
 

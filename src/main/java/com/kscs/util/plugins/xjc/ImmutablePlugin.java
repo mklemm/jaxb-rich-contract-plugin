@@ -24,9 +24,7 @@
 
 package com.kscs.util.plugins.xjc;
 
-import com.sun.codemodel.JDefinedClass;
-import com.sun.codemodel.JMethod;
-import com.sun.codemodel.JType;
+import com.sun.codemodel.*;
 import com.sun.tools.xjc.Options;
 import com.sun.tools.xjc.Plugin;
 import com.sun.tools.xjc.outline.ClassOutline;
@@ -52,16 +50,41 @@ public class ImmutablePlugin extends Plugin {
 
 	@Override
 	public boolean run(final Outline outline, final Options opt, final ErrorHandler errorHandler) throws SAXException {
+		final ApiConstructs apiConstructs = new ApiConstructs(outline, opt, errorHandler);
 		for (final ClassOutline classOutline : outline.getClasses()) {
 			final JDefinedClass definedClass = classOutline.implClass;
 			for (final FieldOutline fieldOutline : classOutline.getDeclaredFields()) {
-				final String setterName = "set" + fieldOutline.getPropertyInfo().getName(true);
-				final JMethod setterMethod = definedClass.getMethod(setterName, new JType[]{fieldOutline.getRawType()});
-				if (setterMethod != null) {
-					setterMethod.mods().setProtected();
+				final JFieldVar declaredField;
+				if(fieldOutline.getPropertyInfo().isCollection() && !((declaredField = PluginUtil.getDeclaredField(fieldOutline)).type().isArray())) {
+					final JClass elementType = ((JClass)declaredField.type()).getTypeParameters().get(0);
+					final JMethod oldGetter = definedClass.getMethod("get"+fieldOutline.getPropertyInfo().getName(true), new JType[0]);
+					final JFieldVar immutableField = definedClass.field(JMod.PRIVATE | JMod.TRANSIENT, declaredField.type(), getImmutableFieldName(declaredField), JExpr._null());
+					definedClass.methods().remove(oldGetter);
+					final JMethod newGetter = definedClass.method(JMod.PUBLIC, oldGetter.type(), oldGetter.name());
+					final JConditional ifFieldNull = newGetter.body()._if(JExpr._this().ref(declaredField).eq(JExpr._null()));
+					ifFieldNull._then().assign(JExpr._this().ref(declaredField), JExpr._new(apiConstructs.arrayListClass.narrow(elementType)));
+
+					final JConditional ifImmutableFieldNull = newGetter.body()._if(JExpr._this().ref(immutableField).eq(JExpr._null()));
+					immutableInit(apiConstructs, ifImmutableFieldNull._then(), JExpr._this(), declaredField);
+
+					newGetter.body()._return(JExpr._this().ref(immutableField));
+				} else {
+					final String setterName = "set" + fieldOutline.getPropertyInfo().getName(true);
+					final JMethod setterMethod = definedClass.getMethod(setterName, new JType[]{fieldOutline.getRawType()});
+					if (setterMethod != null) {
+						setterMethod.mods().setProtected();
+					}
 				}
 			}
 		}
 		return true;
+	}
+
+	public String getImmutableFieldName(final JFieldVar fieldVar) {
+		return fieldVar.name() + "_RO";
+	}
+
+	public void immutableInit(final ApiConstructs apiConstructs, final JBlock body, final JExpression instanceRef, final JFieldVar collectionField) {
+		body.assign(instanceRef.ref(getImmutableFieldName(collectionField)), apiConstructs.unmodifiableList(instanceRef.ref(collectionField)));
 	}
 }

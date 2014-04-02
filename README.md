@@ -11,6 +11,7 @@ Currently, there are 5 plugin classes:
 2. **constrained-properties**: Will generate a complexTypes element members as bound and/or constrained properties as per the JavaBeans spec.
 3. **clone**: Will generate a simple deep "clone" method for the generated classes based on the heuristic that it only makes sense to traverse further down in the cloned object tree for members of types that are actually cloenable themselves.
 	Also can generate a "partial clone" method, that takes a `PropertyPath` object which represents an include/exclude rule for nodes in the object tree to clone. Excluded nodes will not be cloned and left alone.
+	Optionally, corresponding copy constructors can also be generated.
 4. **immutable**: Will make generated classes immutable. Only makes sense together with "fluent-builder" plugin (see below), or any other builder or initialisation facility, like the well-known "value-constructor" plugin.
 5. **fluent-builder**: Generates a builder class for every class generated. Builders are implemented as inner classes,
 	static methods are provided for a fluent builder pattern in the form `MyClass.builder().withPropertyA(...).withPropertyB(...).build()`.
@@ -328,7 +329,7 @@ Plugin activation: `-Xfluent-builder`
 
 Options:
 
-#### `-support-chained-builder=`y/n
+#### `-support-builder-chain=`y/n
 Generate "chained" builders. To create a child object, you will not need to create a new builder, but
 take full advantage of the fluent API.
 

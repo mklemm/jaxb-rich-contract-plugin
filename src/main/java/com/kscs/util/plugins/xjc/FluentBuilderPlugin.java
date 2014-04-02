@@ -74,7 +74,7 @@ public class FluentBuilderPlugin extends Plugin {
 	public boolean run(final Outline outline, final Options opt, final ErrorHandler errorHandler) throws SAXException {
 
 		final Map<String, BuilderOutline> builderClasses = new LinkedHashMap<String, BuilderOutline>(outline.getClasses().size());
-		final ApiConstructs apiConstructs = new ApiConstructs(outline, opt);
+		final ApiConstructs apiConstructs = new ApiConstructs(outline, opt, errorHandler);
 
 		for (final ClassOutline classOutline : outline.getClasses()) {
 			final JDefinedClass definedClass = classOutline.implClass;

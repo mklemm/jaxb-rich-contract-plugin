@@ -24,11 +24,13 @@
 
 package com.kscs.util.plugins.xjc;
 
+import com.kscs.util.jaxb.PathCloneable;
 import com.sun.codemodel.*;
 import com.sun.tools.xjc.Options;
 import com.sun.tools.xjc.Plugin;
 import com.sun.tools.xjc.outline.ClassOutline;
 import com.sun.tools.xjc.outline.Outline;
+import org.xml.sax.ErrorHandler;
 
 import java.lang.reflect.Method;
 import java.util.*;
@@ -57,10 +59,13 @@ public class ApiConstructs {
 	final Options opt;
 	final JClass cloneableInterface;
 	final Outline outline;
+	final ErrorHandler errorHandler;
 	final Map<String, ClassOutline> classes;
+	public JClass pathCloneableInterface;
 
-	ApiConstructs(final Outline outline, final Options opt) {
+	ApiConstructs(final Outline outline, final Options opt, final ErrorHandler errorHandler) {
 		this.outline = outline;
+		this.errorHandler = errorHandler;
 		this.codeModel = outline.getCodeModel();
 		this.opt = opt;
 		this.arrayListClass = this.codeModel.ref(ArrayList.class);
@@ -69,6 +74,7 @@ public class ApiConstructs {
 		this.collectionsClass = this.codeModel.ref(Collections.class);
 		this.arraysClass = this.codeModel.ref(Arrays.class);
 		this.cloneableInterface = this.codeModel.ref(Cloneable.class);
+		this.pathCloneableInterface = this.codeModel.ref(PathCloneable.class);
 		this.classes = new HashMap<String, ClassOutline>(outline.getClasses().size());
 		for(final ClassOutline classOutline : this.outline.getClasses()) {
 			this.classes.put(classOutline.implClass.fullName(), classOutline);
@@ -103,9 +109,13 @@ public class ApiConstructs {
 		return this.classes.get(typeSpec.fullName());
 	}
 
-	public boolean cloneThrows(final JType cloneableType) {
+	public boolean cloneThrows(final JType cloneableType, final boolean cloneThrows) {
 		try {
-			if (cloneableType.isReference() && this.cloneableInterface.isAssignableFrom((JClass) cloneableType)) {
+			if(cloneableType.fullName().equals("java.lang.Object")) {
+				return true;
+			} else if (getClassOutline(cloneableType) != null) {
+				return cloneThrows;
+			} else if(cloneableType.isReference()) {
 				final Class<?> runtimeClass = Class.forName(cloneableType.fullName());
 				final Method cloneMethod = runtimeClass.getMethod("clone");
 				return cloneMethod.getExceptionTypes() != null && cloneMethod.getExceptionTypes().length > 0 && cloneMethod.getExceptionTypes()[0].equals(CloneNotSupportedException.class);

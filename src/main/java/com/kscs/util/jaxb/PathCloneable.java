@@ -25,9 +25,16 @@
 package com.kscs.util.jaxb;
 
 /**
- * @author klemm0 2014-03-27
- *
+ * Defines the contract for a partially cloneable
+ * object.
  */
 public interface PathCloneable<T extends PathCloneable<T>> {
-	T clone(final PropertyPath path) throws CloneNotSupportedException;
+
+	/**
+	 * Clones this instances partially, the parts
+	 * will be defined by {@param path}
+	 * @param path Defines which parts of the object tree will be cloned
+	 * @return A copy of the original object.
+	 */
+	T clone(final PropertyPath path);
 }
