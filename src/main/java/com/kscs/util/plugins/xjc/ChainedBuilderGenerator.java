@@ -304,10 +304,6 @@ public class ChainedBuilderGenerator extends BuilderGenerator {
 		final JVar otherParam = constructor.param(JMod.FINAL, this.classOutline.implClass, "other");
 		final JVar copyParam = constructor.param(JMod.FINAL, this.apiConstructs.codeModel.BOOLEAN, "copy");
 
-		final JDocComment docComment = constructor.javadoc();
-		docComment.append(getMessage("copyConstructor.javadoc.desc", this.builderClass.name()));
-		docComment.addParam(otherParam).append(getMessage("copyConstructor.javadoc.param.other", this.builderClass.name()));
-
 		if (this.classOutline.getSuperClass() != null) {
 			constructor.body().invoke("super").arg(parentBuilderParam).arg(otherParam).arg(copyParam);
 		} else {
@@ -397,11 +393,6 @@ public class ChainedBuilderGenerator extends BuilderGenerator {
 		final JVar otherParam = constructor.param(JMod.FINAL, this.classOutline.implClass, "other");
 		final JVar copyParam = constructor.param(JMod.FINAL, this.apiConstructs.codeModel.BOOLEAN, "copy");
 		final JVar pathParam = constructor.param(JMod.FINAL, PropertyPath.class, "propertyPath");
-
-		final JDocComment docComment = constructor.javadoc();
-		docComment.append(getMessage("copyConstructor.javadoc.desc", this.builderClass.name()));
-		docComment.addParam(otherParam).append(getMessage("copyConstructor.javadoc.param.other", this.builderClass.name()));
-		docComment.addParam(pathParam).append(getMessage("copyConstructor.javadoc.param.propertyPath", this.builderClass.name()));
 
 		if (this.classOutline.getSuperClass() != null) {
 			constructor.body().invoke("super").arg(parentBuilderParam).arg(otherParam).arg(copyParam);
