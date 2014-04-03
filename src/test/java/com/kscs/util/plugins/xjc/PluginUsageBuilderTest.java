@@ -21,35 +21,43 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package com.kscs.util.jaxb;
+package com.kscs.util.plugins.xjc;
 
-import java.lang.reflect.Constructor;
-import java.lang.reflect.InvocationTargetException;
+import org.junit.Test;
 
 /**
- * @author mirko 2014-04-02
+ * @author mirko 2014-04-03
  */
-@SuppressWarnings("unchecked")
-public final class BuilderUtilities {
-	public static <T> T getBuilder(final Class<T> declaredBuilderType, final Object instance, final Object... args) {
-		for(final Class<?> innerClass : instance.getClass().getDeclaredClasses()) {
-			if("Builder".equals(innerClass.getSimpleName())) {
-				for(final Constructor<?> constructor : innerClass.getConstructors()) {
-					if(constructor.getParameterTypes().length == args.length) {
-						try {
-							return (T) constructor.newInstance(args);
-						} catch (final InstantiationException e) {
-							throw new RuntimeException(e);
-						} catch (final IllegalAccessException e) {
-							throw new RuntimeException(e);
-						} catch (final InvocationTargetException e) {
-							throw new RuntimeException(e);
-						}
-					}
-				}
-			}
-		}
-		return null;
+public class PluginUsageBuilderTest {
+	@Test
+	public void testPluginUsageFluentBuilder() {
+		final FluentBuilderPlugin plugin = new FluentBuilderPlugin();
+		System.out.println(plugin.getUsage());
 	}
+
+	@Test
+	public void testPluginUsageImmutable() {
+		final ImmutablePlugin plugin = new ImmutablePlugin();
+		System.out.println(plugin.getUsage());
+	}
+
+	@Test
+	public void testPluginUsageGroupContract() {
+		final GroupInterfacePlugin plugin = new GroupInterfacePlugin();
+		System.out.println(plugin.getUsage());
+	}
+
+	@Test
+	public void testPluginUsageDeepClone() {
+		final DeepClonePlugin plugin = new DeepClonePlugin();
+		System.out.println(plugin.getUsage());
+	}
+
+	@Test
+	public void testPluginUsageBoundProperties() {
+		final BoundPropertiesPlugin plugin = new BoundPropertiesPlugin();
+		System.out.println(plugin.getUsage());
+	}
+
 
 }

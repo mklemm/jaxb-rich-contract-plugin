@@ -35,6 +35,7 @@ import org.xml.sax.SAXException;
 
 import java.beans.*;
 import java.util.ArrayList;
+import java.util.ResourceBundle;
 
 /**
  * XJC Plugin generated conatrained and bound JavaBeans properties
@@ -113,11 +114,12 @@ public class BoundPropertiesPlugin extends Plugin {
 
 	@Override
 	public String getUsage() {
-		return "-Xconstrained-properties: Generate bound properties for JAXB serializable classes.\n" +
-				"\t-constrained={yes|no}: \tswitch \"constrained\" property contract generation on/off. Default: yes\n" +
-				"\t-bound={yes|no}: \tswitch \"bound\" property contract generation on/off. Default: yes\n" +
-				"\t-setter-throws={yes|no}: \tDeclare setXXX methods to throw PropertyVetoException (yes), or rethrow as RuntimeException (no). Default: no\n" +
-				"\t-generate-tools={yes|no}: \tGenerate helper classes needed for collection change event detection. Turn off in modules that import other generated modules. Default: yes\n";
+		return new PluginUsageBuilder(ResourceBundle.getBundle(BoundPropertiesPlugin.class.getName()), "usage").addMain("constrained-properties")
+				.addOption("constrained", this.constrained)
+				.addOption("bound", this.bound)
+				.addOption("setter-throws", this.setterThrows)
+				.addOption("generate-tools", this.generateTools)
+				.build();
 	}
 
 	@Override

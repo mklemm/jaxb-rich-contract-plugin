@@ -179,7 +179,7 @@ public class GroupInterfacePlugin extends Plugin {
 
 	@Override
 	public String getUsage() {
-		return " -Xgroup-contract : xjc plugin to generate java interface definitions from group and attributeGroup elements.";
+		return new PluginUsageBuilder(ResourceBundle.getBundle(GroupInterfacePlugin.class.getName()), "usage").addMain("group-contract").build();
 	}
 
 	@Override

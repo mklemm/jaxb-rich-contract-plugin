@@ -33,6 +33,8 @@ import com.sun.tools.xjc.outline.Outline;
 import org.xml.sax.ErrorHandler;
 import org.xml.sax.SAXException;
 
+import java.util.ResourceBundle;
+
 /**
  * XJC Plugin to make generated classes immutable
  */
@@ -45,7 +47,7 @@ public class ImmutablePlugin extends Plugin {
 
 	@Override
 	public String getUsage() {
-		return "-Ximmutable: Make generated classes immutable. All property setters will be generated as \"protected\".";
+		return new PluginUsageBuilder(ResourceBundle.getBundle(ImmutablePlugin.class.getName()), "usage").addMain("immutable").build();
 	}
 
 	@Override

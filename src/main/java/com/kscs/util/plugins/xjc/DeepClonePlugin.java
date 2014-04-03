@@ -50,7 +50,7 @@ public class DeepClonePlugin extends Plugin {
 	boolean generatePartialCloneMethod = true;
 	private boolean generateTools = true;
 	private boolean generateConstructor = true;
-	private boolean narrow = true;
+	private boolean narrow = false;
 
 	private final ResourceBundle resources;
 
@@ -97,13 +97,14 @@ public class DeepClonePlugin extends Plugin {
 
 	@Override
 	public String getUsage() {
-		return " -Xclone: " + getMessage("clonePlugin.usage")
-				+ "\n" + getMessage("clonePlugin.usage.options")
-				+ "\n\t-clone-throws={y|n}:\n\t\t" + getMessage("clonePlugin.usage.cloneThrows")
-				+ "\n\n\t-partial-clone={y|n}:\n\t\t" + getMessage("clonePlugin.usage.partialClone")
-				+ "\n\n\t-copy-constructor={y|n}:\n\t\t" + getMessage("clonePlugin.usage.copyConstructor")
-				+ "\n\n\t-generate-tools={y|n}:\n\t\t" + getMessage("clonePlugin.usage.generateTools")
-				+ "\n\n\t-narrow:\n\t\t" + getMessage("clonePlugin.usage.narrow");
+		return new PluginUsageBuilder(this.resources, "usage")
+				.addMain("clone")
+				.addOption("clone-throws", this.throwCloneNotSupported)
+				.addOption("partial-clone", this.generatePartialCloneMethod)
+				.addOption("copy-constructor", this.generateConstructor)
+				.addOption("generate-tools", this.generateTools)
+				.addOption("narrow", this.narrow)
+				.build();
 	}
 
 	@Override
@@ -489,7 +490,6 @@ public class DeepClonePlugin extends Plugin {
 				if (fieldTypePredicate.matches(fieldType)) {
 					return true;
 				}
-				;
 			}
 		}
 		return false;

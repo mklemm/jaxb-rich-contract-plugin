@@ -115,7 +115,7 @@ public class ApiConstructs {
 
 	public boolean cloneThrows(final JType cloneableType, final boolean cloneThrows) {
 		try {
-			if(cloneableType.fullName().equals("java.lang.Object")) {
+			if("java.lang.Object".equals(cloneableType.fullName())) {
 				return false;
 			} else if (getClassOutline(cloneableType) != null) {
 				return cloneThrows;
@@ -128,7 +128,7 @@ public class ApiConstructs {
 			}
 		} catch(final ClassNotFoundException cnfx) {
 			return false;
-		} catch (NoSuchMethodException e) {
+		} catch (final NoSuchMethodException e) {
 			return false;
 		}
 	}

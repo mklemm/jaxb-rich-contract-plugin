@@ -24,11 +24,9 @@
 package com.kscs.util.plugins.xjc;
 
 import com.sun.codemodel.ClassType;
-import com.sun.codemodel.JClass;
 import com.sun.codemodel.JClassAlreadyExistsException;
 import com.sun.codemodel.JDefinedClass;
 import com.sun.codemodel.JMod;
-import com.sun.codemodel.JType;
 import com.sun.tools.xjc.outline.ClassOutline;
 
 /**

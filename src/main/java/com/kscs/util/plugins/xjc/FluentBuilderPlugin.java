@@ -37,22 +37,27 @@ import org.xml.sax.SAXException;
 import org.xml.sax.SAXParseException;
 
 import java.io.IOException;
+import java.text.MessageFormat;
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.ResourceBundle;
 
 /**
  * Plugin to generate fluent Builders for generated classes
  */
 public class FluentBuilderPlugin extends Plugin {
-	private boolean supportBuilderChain = true;
 	private boolean generateTools = true;
+	private boolean narrow = true;
+	private boolean partialClone = true;
+	private final ResourceBundle resources;
+
 
 	public FluentBuilderPlugin() {
-		// Needed by JAXB Framework
+		this.resources = ResourceBundle.getBundle(FluentBuilderPlugin.class.getName());
 	}
 
-	protected FluentBuilderPlugin(final boolean supportBuilderChain) {
-		this.supportBuilderChain = supportBuilderChain;
+	private String getMessage(final String key, final Object... params) {
+		return MessageFormat.format(this.resources.getString(key), params);
 	}
 
 	@Override
@@ -62,18 +67,24 @@ public class FluentBuilderPlugin extends Plugin {
 
 	@Override
 	public int parseArgument(final Options opt, final String[] args, final int i) throws BadCommandLineException, IOException {
-		PluginUtil.Arg<Boolean> arg = PluginUtil.parseBooleanArgument("support-builder-chain", this.supportBuilderChain, opt, args, i);
-		this.supportBuilderChain = arg.getValue();
+		PluginUtil.Arg<Boolean> arg = PluginUtil.parseBooleanArgument("generate-tools", this.generateTools, opt, args, i);
+		this.generateTools = arg.getValue();
 		if (arg.getArgsParsed() == 0) {
-			arg = PluginUtil.parseBooleanArgument("generate-tools", this.generateTools, opt, args, i);
-			this.generateTools = arg.getValue();
+			arg = PluginUtil.parseBooleanArgument("partial-clone", this.partialClone, opt, args, i);
+			this.partialClone = arg.getValue();
+		}
+		if (arg.getArgsParsed() == 0) {
+			arg = PluginUtil.parseBooleanArgument("narrow", this.narrow, opt, args, i);
+			this.narrow = arg.getValue();
 		}
 		return arg.getArgsParsed();
 	}
 
 	@Override
 	public String getUsage() {
-		return " -Xfluent-builder: Generates an inner \"fluent builder\" for each of the generated classes.\n\tOptions:\n\t\t-support-builder-chain=<yes/no>:\tGenerate extended fluent builders that will allow child objects to be created in the fluent chain.";
+		final PluginUsageBuilder pluginUsageBuilder = new PluginUsageBuilder(this.resources, "usage").addMain("fluent-builder").addOption("generate-tools", this.generateTools).addOption("partial-clone", this.partialClone).addOption("narrow", this.narrow);
+
+		return pluginUsageBuilder.build();
 	}
 
 	@Override
@@ -83,7 +94,7 @@ public class FluentBuilderPlugin extends Plugin {
 		final Map<String, BuilderOutline> builderClasses = new LinkedHashMap<String, BuilderOutline>(outline.getClasses().size());
 		final ApiConstructs apiConstructs = new ApiConstructs(outline, opt, errorHandler);
 
-		if(this.generateTools) {
+		if (this.generateTools) {
 			PluginUtil.writeSourceFile(getClass(), opt.targetDir, BuilderUtilities.class.getName());
 		}
 
@@ -99,7 +110,7 @@ public class FluentBuilderPlugin extends Plugin {
 
 
 		for (final BuilderOutline builderOutline : builderClasses.values()) {
-			final BuilderGenerator builderGenerator = this.supportBuilderChain ? new ChainedBuilderGenerator(apiConstructs, builderClasses, builderOutline) : new SimpleBuilderGenerator(apiConstructs, builderClasses, builderOutline);
+			final BuilderGenerator builderGenerator = new BuilderGenerator(apiConstructs, builderClasses, builderOutline, this.partialClone, this.narrow);
 			builderGenerator.buildProperties();
 		}
 		return true;
