@@ -157,5 +157,18 @@ public final class PluginUtil {
 		return ifNull._else();
 	}
 
+	public static JType getElementType(final FieldOutline fieldOutline) {
+		final JFieldVar definedField = PluginUtil.getDeclaredField(fieldOutline);
+		if (definedField != null) {
+			if (fieldOutline.getPropertyInfo().isCollection()) {
+				return definedField.type().isArray() ? definedField.type().elementType() : ((JClass) definedField.type()).getTypeParameters().get(0);
+			} else {
+				return definedField.type();
+			}
+		} else {
+			return null;
+		}
+	}
+
 
 }

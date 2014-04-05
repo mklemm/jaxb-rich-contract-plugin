@@ -24,6 +24,7 @@
 
 package com.kscs.util.plugins.xjc;
 
+import com.kscs.util.jaxb.Selector;
 import com.kscs.util.jaxb.PathCloneable;
 import com.kscs.util.jaxb.PropertyPath;
 import com.sun.codemodel.*;
@@ -114,6 +115,12 @@ public class DeepClonePlugin extends Plugin {
 		if (this.generatePartialCloneMethod && this.generateTools) {
 			PluginUtil.writeSourceFile(getClass(), opt.targetDir, PathCloneable.class.getName());
 			PluginUtil.writeSourceFile(getClass(), opt.targetDir, PropertyPath.class.getName());
+			PluginUtil.writeSourceFile(getClass(), opt.targetDir, Selector.class.getName());
+		}
+
+		if(this.generatePartialCloneMethod) {
+			final SelectorGenerator selectorGenerator = new SelectorGenerator(apiConstructs);
+			selectorGenerator.generateMetaFields();
 		}
 
 		for (final ClassOutline classOutline : outline.getClasses()) {
@@ -124,6 +131,7 @@ public class DeepClonePlugin extends Plugin {
 		}
 
 		for (final ClassOutline classOutline : outline.getClasses()) {
+
 			generateCloneMethod(apiConstructs, classOutline);
 			if (this.generatePartialCloneMethod) {
 				generatePartialCloneMethod(apiConstructs, classOutline);

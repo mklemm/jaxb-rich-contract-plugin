@@ -26,6 +26,7 @@ package com.kscs.util.plugins.xjc;
 
 import com.kscs.util.jaxb.BuilderUtilities;
 import com.kscs.util.jaxb.PathCloneable;
+import com.kscs.util.jaxb.PropertyPath;
 import com.sun.codemodel.*;
 import com.sun.tools.xjc.Options;
 import com.sun.tools.xjc.Plugin;
@@ -65,6 +66,8 @@ public class ApiConstructs {
 	final Map<String, ClassOutline> classes;
 	final JClass pathCloneableInterface;
 	final JClass builderUtilitiesClass;
+	final JClass propertyPathClass;
+	final JClass stringClass;
 
 	ApiConstructs(final Outline outline, final Options opt, final ErrorHandler errorHandler) {
 		this.outline = outline;
@@ -80,6 +83,8 @@ public class ApiConstructs {
 		this.pathCloneableInterface = this.codeModel.ref(PathCloneable.class);
 		this.classes = new HashMap<String, ClassOutline>(outline.getClasses().size());
 		this.builderUtilitiesClass = this.codeModel.ref(BuilderUtilities.class);
+		this.propertyPathClass = this.codeModel.ref(PropertyPath.class);
+		this.stringClass = this.codeModel.ref(String.class);
 		for(final ClassOutline classOutline : this.outline.getClasses()) {
 			this.classes.put(classOutline.implClass.fullName(), classOutline);
 		}

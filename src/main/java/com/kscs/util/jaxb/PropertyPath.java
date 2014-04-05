@@ -24,17 +24,18 @@
 
 package com.kscs.util.jaxb;
 
-import java.util.*;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.Map;
 
 /**
  * Represents a property path for use in the clone() method
  */
 public class PropertyPath {
-	private Map<String, PropertyPath> children;
-	private final PropertyPath parent;
+	private final Map<String, PropertyPath> children;
 	private final String propertyName;
 	private final boolean including;
-	private PropertyPath root;
 
 	public static final class Builder {
 		private final Map<String, Builder> children = new LinkedHashMap<String, Builder>();
@@ -43,7 +44,7 @@ public class PropertyPath {
 		private final boolean including;
 
 		public Builder(final boolean including) {
-			this(null,null,including);
+			this(null, null, including);
 		}
 
 		private Builder(final Builder parent, final String propertyName, final boolean including) {
@@ -71,23 +72,17 @@ public class PropertyPath {
 		}
 
 		public PropertyPath build() {
-			if(this.parent != null) {
+			if (this.parent != null) {
 				return this.parent.build();
 			} else {
-				final PropertyPath product = new PropertyPath(this.propertyName, this.including);
-				product.root = product;
-				product.children = buildChildren(product);
-				return product;
+				return new PropertyPath(this.propertyName, this.including, buildChildren());
 			}
 		}
 
-		private Map<String,PropertyPath> buildChildren(final PropertyPath parent) {
-			final Map<String,PropertyPath> childProducts = new LinkedHashMap<String, PropertyPath>(this.children.size());
-			for(final String propertyName : this.children.keySet()) {
-				final Builder childBuilder = this.children.get(propertyName);
-				final PropertyPath child = new PropertyPath(parent, childBuilder.propertyName, childBuilder.including);
-				child.root = parent.root;
-				child.children = childBuilder.buildChildren(child);
+		private Map<String, PropertyPath> buildChildren() {
+			final Map<String, PropertyPath> childProducts = new LinkedHashMap<String, PropertyPath>(this.children.size());
+			for (final Builder childBuilder : this.children.values()) {
+				final PropertyPath child = new PropertyPath(childBuilder.propertyName, childBuilder.including,childBuilder.buildChildren());
 				childProducts.put(child.propertyName, child);
 			}
 			return Collections.unmodifiableMap(childProducts);
@@ -99,7 +94,7 @@ public class PropertyPath {
 		}
 
 		public Builder root() {
-			if(this.parent != null) {
+			if (this.parent != null) {
 				return this.parent.root();
 			} else {
 				return this;
@@ -115,14 +110,14 @@ public class PropertyPath {
 		return new Builder(false);
 	}
 
-	private PropertyPath(final String propertyName, final boolean including) {
-		this(null, propertyName, including);
-	}
-
-	private PropertyPath(final PropertyPath parent, final String propertyName, final boolean including) {
-		this.parent = parent;
+	public PropertyPath(final String propertyName, final boolean including, final Map<String, PropertyPath> children) {
 		this.propertyName = propertyName;
 		this.including = including;
+		this.children = Collections.unmodifiableMap(children);
+	}
+
+	private PropertyPath( final String propertyName, final boolean including) {
+		this(propertyName, including, new HashMap<String, PropertyPath>());
 	}
 
 	public PropertyPath get(final String propertyName) {
@@ -130,7 +125,7 @@ public class PropertyPath {
 			return this;
 		} else {
 			final PropertyPath path = this.children.get(propertyName);
-			return path == null ? new PropertyPath(this, "*", this.including) : path;
+			return path == null ? new PropertyPath( "*", this.including) : path;
 		}
 	}
 
@@ -146,11 +141,4 @@ public class PropertyPath {
 		return this.propertyName;
 	}
 
-	public PropertyPath parent() {
-		return this.parent;
-	}
-
-	public PropertyPath root() {
-		return this.root;
-	}
 }
