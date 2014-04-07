@@ -130,7 +130,16 @@ public class PropertyPath {
 	}
 
 	public boolean includes() {
-		return this.including;
+		return this.including || isAnyChildIncluding();
+	}
+
+	private boolean isAnyChildIncluding() {
+		for(final PropertyPath child : this.children.values()) {
+			if(child.includes()) {
+				return true;
+			}
+		}
+		return false;
 	}
 
 	public boolean excludes() {
