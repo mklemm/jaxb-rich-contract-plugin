@@ -135,6 +135,7 @@ Note: jaxb2-rich-contract-plugin implements JAXB and XJC APIs version 2.2.7. You
 				general fixes.
 				Removed option to generate fluent builders without
 				chained builder support.
+* **1.1.1**:	New: Type-safe selector support for partial clone/copy logic.
 
 group-interface
 --------------------
@@ -249,6 +250,12 @@ The `clone` plugin generates a deep clone method for each of the generated class
   pattern:
 
 `final PropertyPath excludeEmployees = PropertyPath.includeAll().include("company").exclude("employees").build();`
+
+* As of release 1.1.1, there is also a type-safe way to build a PropertyPath instance by using a generated classes' `Selector` sub structure. The following will generate the same selection as above:
+
+`final PropertyPath excludeEmployees = Business.Select.root(true).company(true).employees(false).build()`
+
+
 
 Then, you would partially clone an object tree like this:
 
