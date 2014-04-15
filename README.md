@@ -351,7 +351,7 @@ The "partial" copy introduced in the "clone" plugin will work here as well:
 	PropertyPath selection = MyElement.Select.root(true).propertyA(true).propertyAB(false).build();
 	MyElement newElement = MyElement.copyOf(oldElement, selection).withPropertyA(...).withPropertyB(...).build();
 	
-Often, properties of generated classes represent containment or references to othe generated classes in the same model.
+Often, properties of generated classes represent containment or references to generated classes in the same model.
 The fluent-builder plugin lets you initialise properties of such a type - if it isn't an abstract type - by using sub-builders ("chained" builders) in the following way, given that both A and B are types defined in the XSD model, and A has a property of type B, and B has three properties of type String, x,y, and z:
 
 	A newA = A.builder().withB().withX("x").withY("y").withZ("z").end().build();
