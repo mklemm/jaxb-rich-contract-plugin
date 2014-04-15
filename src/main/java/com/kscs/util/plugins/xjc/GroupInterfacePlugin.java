@@ -25,6 +25,7 @@
 package com.kscs.util.plugins.xjc;
 
 import com.sun.codemodel.*;
+import com.sun.tools.xjc.BadCommandLineException;
 import com.sun.tools.xjc.Options;
 import com.sun.tools.xjc.Plugin;
 import com.sun.tools.xjc.outline.ClassOutline;
@@ -37,9 +38,12 @@ import org.xml.sax.SAXException;
 
 import javax.xml.namespace.QName;
 import java.beans.PropertyVetoException;
+import java.io.IOException;
 import java.util.*;
 
 public class GroupInterfacePlugin extends Plugin {
+	private boolean declareSetters = true;
+
 	private static PackageOutline findPackageForNamespace(final Outline model, final String namespaceUri) {
 		for (final PackageOutline packageOutline : model.getAllPackageContexts()) {
 			if (namespaceUri.equals(packageOutline.getMostUsedNamespaceURI())) {
@@ -173,6 +177,13 @@ public class GroupInterfacePlugin extends Plugin {
 	}
 
 	@Override
+	public int parseArgument(final Options opt, final String[] args, final int i) throws BadCommandLineException, IOException {
+		PluginUtil.Arg<Boolean> arg = PluginUtil.parseBooleanArgument("declare-setters", this.declareSetters, opt, args, i);
+		this.declareSetters = arg.getValue();
+		return arg.getArgsParsed();
+	}
+
+	@Override
 	public String getOptionName() {
 		return "Xgroup-contract";
 	}
@@ -247,7 +258,7 @@ public class GroupInterfacePlugin extends Plugin {
 		final DeepClonePlugin deepClonePlugin = PluginUtil.findPlugin(opt, DeepClonePlugin.class);
 		final boolean needsCloneMethod = deepClonePlugin != null;
 		final boolean cloneMethodThrows = needsCloneMethod && deepClonePlugin.isThrowCloneNotSupported();
-		final boolean immutable = PluginUtil.hasPlugin(opt, ImmutablePlugin.class);
+		final boolean immutable = !this.declareSetters || PluginUtil.hasPlugin(opt, ImmutablePlugin.class);
 
 		final NameConverter nameConverter = outline.getModel().getNameConverter();
 		final Map<QName, TypeDef<XSModelGroupDecl>> groupInterfaces = new HashMap<QName, TypeDef<XSModelGroupDecl>>();
@@ -309,7 +320,7 @@ public class GroupInterfacePlugin extends Plugin {
 		final DeepClonePlugin deepClonePlugin = PluginUtil.findPlugin(opt, DeepClonePlugin.class);
 		final boolean needsCloneMethod = deepClonePlugin != null;
 		final boolean cloneMethodThrows = needsCloneMethod && deepClonePlugin.isThrowCloneNotSupported();
-		final boolean immutable = PluginUtil.hasPlugin(opt, ImmutablePlugin.class);
+		final boolean immutable = !this.declareSetters || PluginUtil.hasPlugin(opt, ImmutablePlugin.class);
 
 		final NameConverter nameConverter = outline.getModel().getNameConverter();
 		final Map<QName, TypeDef<XSAttContainer>> groupInterfaces = new HashMap<QName, TypeDef<XSAttContainer>>();

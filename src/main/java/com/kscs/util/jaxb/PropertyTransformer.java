@@ -23,44 +23,9 @@
  */
 package com.kscs.util.jaxb;
 
-import java.util.Collections;
-import java.util.Map;
-
 /**
- * Helper class acting as base class for all selectors and
- * concrete implementation of leaf selectors.
- * @author mirko 2014-04-04
+ * @author mirko 2014-04-07
  */
-public class Selector<TRoot extends Selector<TRoot, ?>, TParent> {
-	public final TRoot _root;
-	public final TParent _parent;
-	protected final String _propertyName;
-	protected final boolean _include;
-
-	public Selector(final TRoot root, final TParent parent, final String propertyName, final boolean include) {
-		this._root = root == null ? (TRoot) this : root;
-		this._parent = parent;
-		this._propertyName = propertyName;
-		this._include = include;
-	}
-
-	/**
-	 * @deprecated This is only used by builders and other implementational details
-	 */
-	@Deprecated
-	public Map<String, PropertyPath> buildChildren() {
-		return Collections.emptyMap();
-	}
-
-	public PropertyPath build() {
-		return this._root.init();
-	}
-
-	/**
-	 * @deprecated This is only used by builders and other implementational details
-	 */
-	@Deprecated
-	public PropertyPath init() {
-		return new PropertyPath(this._propertyName, this._include, buildChildren());
-	}
+public interface PropertyTransformer<TInstance,TProperty> {
+	TProperty transform(final TInstance targetInstance, final TInstance sourceInstance, final TProperty sourcePropertyValue);
 }

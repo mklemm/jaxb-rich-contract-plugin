@@ -24,43 +24,36 @@
 package com.kscs.util.jaxb;
 
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.Map;
 
 /**
- * Helper class acting as base class for all selectors and
- * concrete implementation of leaf selectors.
- * @author mirko 2014-04-04
+ * @author mirko 2014-04-07
  */
-public class Selector<TRoot extends Selector<TRoot, ?>, TParent> {
-	public final TRoot _root;
-	public final TParent _parent;
-	protected final String _propertyName;
-	protected final boolean _include;
+public class TransformerPath {
+	private final Map<String, TransformerPath> children;
+	private final String propertyName;
+	private final PropertyTransformer<?,?> transfomer;
 
-	public Selector(final TRoot root, final TParent parent, final String propertyName, final boolean include) {
-		this._root = root == null ? (TRoot) this : root;
-		this._parent = parent;
-		this._propertyName = propertyName;
-		this._include = include;
+	public TransformerPath(final String propertyName, final PropertyTransformer<?,?> transformer, final Map<String, TransformerPath> children) {
+		this.propertyName = propertyName;
+		this.children = Collections.unmodifiableMap(children);
+		this.transfomer = transformer;
 	}
 
-	/**
-	 * @deprecated This is only used by builders and other implementational details
-	 */
-	@Deprecated
-	public Map<String, PropertyPath> buildChildren() {
-		return Collections.emptyMap();
+	private TransformerPath( final String propertyName, final PropertyTransformer<?,?> transformer) {
+		this(propertyName, transformer, new HashMap<String, TransformerPath>());
 	}
 
-	public PropertyPath build() {
-		return this._root.init();
+	public TransformerPath get(final String propertyName) {
+		return this.children.get(propertyName);
 	}
 
-	/**
-	 * @deprecated This is only used by builders and other implementational details
-	 */
-	@Deprecated
-	public PropertyPath init() {
-		return new PropertyPath(this._propertyName, this._include, buildChildren());
+	public PropertyTransformer<?,?> transformer() {
+		return this.transfomer;
+	}
+
+	public String propertyName() {
+		return this.propertyName;
 	}
 }

@@ -56,6 +56,7 @@ public class SelectorGenerator {
 			final JTypeVar rootTypeParam = selectorClass.generify("TRoot");
 			final JTypeVar parentTypeParam = selectorClass.generify("TParent");
 			rootTypeParam.bound(this.apiConstructs.codeModel.ref(Selector.class).narrow(rootTypeParam, this.apiConstructs.codeModel.wildcard()));
+			//parentTypeParam.bound(this.apiConstructs.codeModel.ref(Selector.class).narrow(parentTypeParam, this.apiConstructs.codeModel.wildcard()));
 
 			final JMethod constructor = selectorClass.constructor(JMod.PUBLIC);
 			final JVar rootParam = constructor.param(JMod.FINAL, rootTypeParam, "root");
