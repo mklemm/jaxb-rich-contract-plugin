@@ -290,7 +290,7 @@ packages. If you say 'no' here, you will have to add the jaxb2-rich-contract-plu
 runtime classpath.
 
 ### Limitations
-* There should be an option to create a copy constructor instead of a clone method.
+* The `-narrow` option is a somewhat special use case and should be used carefully.
 
 
 immutable
