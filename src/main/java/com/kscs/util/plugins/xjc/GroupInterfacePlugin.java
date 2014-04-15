@@ -190,7 +190,9 @@ public class GroupInterfacePlugin extends Plugin {
 
 	@Override
 	public String getUsage() {
-		return new PluginUsageBuilder(ResourceBundle.getBundle(GroupInterfacePlugin.class.getName()), "usage").addMain("group-contract").build();
+		return new PluginUsageBuilder(ResourceBundle.getBundle(GroupInterfacePlugin.class.getName()), "usage")
+				.addMain("group-contract")
+				.addOption("declare-setters", this.declareSetters).build();
 	}
 
 	@Override
