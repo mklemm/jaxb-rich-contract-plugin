@@ -127,7 +127,7 @@ public class BuilderGenerator {
 
 			final JMethod withValueMethod = this.builderClass.method(JMod.PUBLIC, this.builderType, ApiConstructs.WITH_METHOD_PREFIX + propertyName);
 			final JVar param = withValueMethod.param(JMod.FINAL, elementType, declaredField.name());
-			withValueMethod.body().assign(JExpr._this().ref(builderField), JExpr._new(builderFieldElementType).arg(JExpr._this()).arg(param).arg(JExpr.FALSE));
+			withValueMethod.body().assign(JExpr._this().ref(builderField), nullSafe(param, JExpr._new(builderFieldElementType).arg(JExpr._this()).arg(param).arg(JExpr.FALSE)));
 			withValueMethod.body()._return(JExpr._this());
 
 			final JMethod withBuilderMethod = this.builderClass.method(JMod.PUBLIC, builderWithMethodReturnType, ApiConstructs.WITH_METHOD_PREFIX + propertyName);
