@@ -24,9 +24,7 @@
 
 package com.kscs.util.plugins.xjc;
 
-import com.kscs.util.jaxb.Selector;
-import com.kscs.util.jaxb.PathCloneable;
-import com.kscs.util.jaxb.PropertyPath;
+import com.kscs.util.jaxb.*;
 import com.sun.codemodel.*;
 import com.sun.tools.xjc.BadCommandLineException;
 import com.sun.tools.xjc.Options;
@@ -49,6 +47,7 @@ import static com.kscs.util.plugins.xjc.PluginUtil.nullSafe;
 public class DeepClonePlugin extends Plugin {
 	private boolean throwCloneNotSupported = false;
 	boolean generatePartialCloneMethod = true;
+	boolean generateTransformer = true;
 	private boolean generateTools = true;
 	private boolean generateConstructor = true;
 	private boolean narrow = false;
@@ -112,14 +111,24 @@ public class DeepClonePlugin extends Plugin {
 	public boolean run(final Outline outline, final Options opt, final ErrorHandler errorHandler) throws SAXException {
 		final ApiConstructs apiConstructs = new ApiConstructs(outline, opt, errorHandler);
 
-		if (this.generatePartialCloneMethod && this.generateTools) {
-			PluginUtil.writeSourceFile(getClass(), opt.targetDir, PathCloneable.class.getName());
-			PluginUtil.writeSourceFile(getClass(), opt.targetDir, PropertyPath.class.getName());
-			PluginUtil.writeSourceFile(getClass(), opt.targetDir, Selector.class.getName());
+
+		if(this.generateTransformer) {
+			if (this.generateTools) {
+				PluginUtil.writeSourceFile(getClass(), opt.targetDir, PropertyTransformer.class.getName());
+				PluginUtil.writeSourceFile(getClass(), opt.targetDir, TransformerPath.class.getName());
+				PluginUtil.writeSourceFile(getClass(), opt.targetDir, Transformer.class.getName());
+			}
+			final SelectorGenerator selectorGenerator = new SelectorGenerator(apiConstructs, Transformer.class, "Transformer", "Transform", "propertyTransformer", apiConstructs.codeModel.ref(PropertyTransformer.class), apiConstructs.transformerPathClass);
+			selectorGenerator.generateMetaFields();
 		}
 
 		if(this.generatePartialCloneMethod) {
-			final SelectorGenerator selectorGenerator = new SelectorGenerator(apiConstructs);
+			if (this.generateTools) {
+				PluginUtil.writeSourceFile(getClass(), opt.targetDir, PathCloneable.class.getName());
+				PluginUtil.writeSourceFile(getClass(), opt.targetDir, PropertyPath.class.getName());
+				PluginUtil.writeSourceFile(getClass(), opt.targetDir, Selector.class.getName());
+			}
+			final SelectorGenerator selectorGenerator = new SelectorGenerator(apiConstructs, Selector.class, "Selector", "Select", "include", apiConstructs.codeModel.BOOLEAN, apiConstructs.propertyPathClass);
 			selectorGenerator.generateMetaFields();
 		}
 

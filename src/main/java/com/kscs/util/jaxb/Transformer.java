@@ -23,9 +23,43 @@
  */
 package com.kscs.util.jaxb;
 
+import java.util.Collections;
+import java.util.Map;
+
 /**
- * @author mirko 2014-04-07
+ * Base class for property transformer nodes.
+ * @author mirko 2014-04-15
  */
-public interface PropertyTransformer<TInstance,TProperty> {
-	TProperty transform(final TInstance sourceInstance, final TProperty sourcePropertyValue);
+public class Transformer<TRoot extends Transformer<TRoot, ?>, TParent> {
+	public final TRoot _root;
+	public final TParent _parent;
+	protected final String _propertyName;
+	protected final PropertyTransformer<?,?> _propertyTransformer;
+
+	public Transformer(final TRoot root, final TParent parent, final String propertyName, final PropertyTransformer<?,?> propertyTransformer) {
+		this._root = root == null ? (TRoot) this : root;
+		this._parent = parent;
+		this._propertyName = propertyName;
+		this._propertyTransformer = propertyTransformer;
+	}
+
+	/**
+	 * @deprecated This is only used by builders and other implementational details
+	 */
+	@Deprecated
+	public Map<String, TransformerPath> buildChildren() {
+		return Collections.emptyMap();
+	}
+
+	public TransformerPath build() {
+		return this._root.init();
+	}
+
+	/**
+	 * @deprecated This is only used by builders and other implementational details
+	 */
+	@Deprecated
+	public TransformerPath init() {
+		return new TransformerPath(this._propertyName, this._propertyTransformer, buildChildren());
+	}
 }

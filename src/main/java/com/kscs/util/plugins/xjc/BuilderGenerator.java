@@ -474,14 +474,14 @@ public class BuilderGenerator {
 							final BuilderOutline childBuilderOutline = this.builderOutlines.get(fieldType.fullName());
 							if (this.narrow && this.apiConstructs.canInstantiate(fieldType)) {
 								final JClass childBuilderType = childBuilderOutline.getDefinedBuilderClass().narrow(this.builderType);
-								body.assign(newField, nullSafe(fieldRef, JExpr._new(childBuilderType).arg(JExpr._this()).arg(fieldRef).arg(JExpr.TRUE).arg(fieldPathVar)));
+								currentBlock.assign(newField, nullSafe(fieldRef, JExpr._new(childBuilderType).arg(JExpr._this()).arg(fieldRef).arg(JExpr.TRUE).arg(fieldPathVar)));
 							} else if (childBuilderOutline != null) {
 								final JClass childBuilderType = childBuilderOutline.getDefinedBuilderClass().narrow(this.builderType);
-								body.assign(newField, nullSafe(fieldRef, generateRuntimeTypeExpression(childBuilderType, fieldRef, fieldPathVar)));
+								currentBlock.assign(newField, nullSafe(fieldRef, generateRuntimeTypeExpression(childBuilderType, fieldRef, fieldPathVar)));
 							} else if (this.apiConstructs.pathCloneableInterface.isAssignableFrom(fieldType)) {
-								body.assign(newField, nullSafe(fieldRef, this.apiConstructs.castOnDemand(fieldType, fieldRef.invoke("clone").arg(fieldPathVar))));
+								currentBlock.assign(newField, nullSafe(fieldRef, this.apiConstructs.castOnDemand(fieldType, fieldRef.invoke("clone").arg(fieldPathVar))));
 							} else if (this.apiConstructs.cloneableInterface.isAssignableFrom(fieldType)) {
-								body.assign(newField, nullSafe(fieldRef, this.apiConstructs.castOnDemand(fieldType, fieldRef.invoke("clone"))));
+								currentBlock.assign(newField, nullSafe(fieldRef, this.apiConstructs.castOnDemand(fieldType, fieldRef.invoke("clone"))));
 							} else {
 								currentBlock.assign(newField, fieldRef);
 							}
