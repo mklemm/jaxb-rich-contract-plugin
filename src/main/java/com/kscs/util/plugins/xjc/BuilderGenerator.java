@@ -222,7 +222,7 @@ public class BuilderGenerator {
 
 				final JMethod addVarargsMethod = this.builderClass.method(JMod.PUBLIC, this.builderType, ApiConstructs.ADD_METHOD_PREFIX + superPropertyName);
 				addVarargsMethod.annotate(Override.class);
-				final JVar addVarargsParam = addVarargsMethod.varParam(((JClass) declaredSuperField.type()).getTypeParameters().get(0), declaredSuperField.name());
+				final JVar addVarargsParam = addVarargsMethod.varParam(elementType, declaredSuperField.name());
 				addVarargsMethod.body().invoke(JExpr._super(), ApiConstructs.ADD_METHOD_PREFIX + superPropertyName).arg(addVarargsParam);
 				addVarargsMethod.body()._return(JExpr._this());
 
@@ -234,13 +234,15 @@ public class BuilderGenerator {
 
 				final JMethod withVarargsMethod = this.builderClass.method(JMod.PUBLIC, this.builderType, ApiConstructs.WITH_METHOD_PREFIX + superPropertyName);
 				withVarargsMethod.annotate(Override.class);
-				final JVar withVarargsParam = withVarargsMethod.varParam(((JClass) declaredSuperField.type()).getTypeParameters().get(0), declaredSuperField.name());
+				final JVar withVarargsParam = withVarargsMethod.varParam(elementType, declaredSuperField.name());
 				withVarargsMethod.body().invoke(JExpr._super(), ApiConstructs.WITH_METHOD_PREFIX + superPropertyName).arg(withVarargsParam);
 				withVarargsMethod.body()._return(JExpr._this());
-				final BuilderOutline childBuilderOutline = getBuilderDeclaration(declaredSuperField.type());
+
+				final BuilderOutline childBuilderOutline = getBuilderDeclaration(elementType);
 				if (childBuilderOutline != null && !childBuilderOutline.getClassOutline().implClass.isAbstract()) {
 					final JClass builderFieldElementType = childBuilderOutline.getDefinedBuilderClass().narrow(this.builderType.wildcard());
 					final JMethod addMethod = this.builderClass.method(JMod.PUBLIC, builderFieldElementType, ApiConstructs.ADD_METHOD_PREFIX + superPropertyName);
+					addMethod.annotate(Override.class);
 					addMethod.body()._return(JExpr.cast(builderFieldElementType, JExpr._super().invoke(addMethod)));
 				}
 			} else {
