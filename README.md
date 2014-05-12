@@ -136,6 +136,9 @@ Note: jaxb2-rich-contract-plugin implements JAXB and XJC APIs version 2.2.7. You
 				Removed option to generate fluent builders without
 				chained builder support.
 * **1.1.1**:	New: Type-safe selector support for partial clone/copy logic.
+* **1.1.2**:	Big fixes in selector logic
+* **1.1.3**:	Minor bug fixes in fluent-builder
+* **1.1.4**:	Fixed an error in fluent-builder where an initialization method wasn't properly overridden in derived builder classes, leading to the wrong builder type being returned when using chained sub-builders.
 
 group-interface
 --------------------
