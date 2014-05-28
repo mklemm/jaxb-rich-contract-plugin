@@ -6,7 +6,7 @@
 
 	<groupId>com.kscs.util</groupId>
 	<artifactId>jaxb2-rich-contract-plugin</artifactId>
-	<version>1.1.6-SNAPSHOT</version>
+	<version>1.1.6</version>
 
 	<name>JAXB 2.2 extended contract generation plugin</name>
 	<packaging>jar</packaging>
@@ -19,7 +19,7 @@
 		<connection>scm:git:https://github.com/mklemm/jaxb2-rich-contract-plugin.git</connection>
 		<developerConnection>scm:git:https://github.com/mklemm/jaxb2-rich-contract-plugin.git</developerConnection>
 		<url>https://github.com/mklemm/jaxb2-rich-contract-plugin.git</url>
-    <tag>HEAD</tag>
+    <tag>jaxb2-rich-contract-plugin-1.1.6</tag>
   </scm>
 
 	<dependencies>
