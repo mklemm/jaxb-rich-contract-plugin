@@ -31,6 +31,8 @@ import com.sun.tools.xjc.Plugin;
 import com.sun.tools.xjc.outline.ClassOutline;
 import com.sun.tools.xjc.outline.Outline;
 import com.sun.tools.xjc.outline.PackageOutline;
+import com.sun.tools.xjc.reader.xmlschema.bindinfo.BIProperty;
+import com.sun.tools.xjc.reader.xmlschema.bindinfo.BindInfo;
 import com.sun.xml.bind.api.impl.NameConverter;
 import com.sun.xml.xsom.*;
 import org.xml.sax.ErrorHandler;
@@ -40,8 +42,10 @@ import javax.xml.namespace.QName;
 import java.beans.PropertyVetoException;
 import java.io.IOException;
 import java.util.*;
+import java.util.logging.Logger;
 
 public class GroupInterfacePlugin extends Plugin {
+	private static final Logger LOGGER = Logger.getLogger(GroupInterfacePlugin.class.getName());
 	private boolean declareSetters = true;
 
 	private static PackageOutline findPackageForNamespace(final Outline model, final String namespaceUri) {
@@ -134,30 +138,37 @@ public class GroupInterfacePlugin extends Plugin {
 		return implementingClasses;
 	}
 
-	private static JMethod findGetter(final NameConverter conv, final ClassOutline classOutline, final XSElementDecl element) {
-		String getterName = "get" + conv.toPropertyName(element.getName());
-		for (final JMethod method : classOutline.implClass.methods()) {
+	private static String getPropertyName(final XSDeclaration declaration, final NameConverter conv) {
+		final XSAnnotation annotation = declaration.getAnnotation();
+		if(annotation != null && annotation.getAnnotation() != null && annotation.getAnnotation() instanceof BindInfo) {
+			GroupInterfacePlugin.LOGGER.fine("Found binding info for " + declaration.getName());
+			final BindInfo bindInfo = (BindInfo)annotation.getAnnotation();
+			final BIProperty propertyBindingInfo = bindInfo.get(BIProperty.class);
+			if(propertyBindingInfo != null) {
+				final String specifiedPropertyName = propertyBindingInfo.getPropertyName(false);
+				return specifiedPropertyName == null ? conv.toPropertyName(declaration.getName()) : specifiedPropertyName;
+			}
 		}
+		return conv.toPropertyName(declaration.getName());
+	}
+
+	private static JMethod findGetter(final NameConverter conv, final ClassOutline classOutline, final XSDeclaration element) {
+		final String propertyName = getPropertyName(element, conv);
+		String getterName = "get" + propertyName;
 		JMethod m = classOutline.implClass.getMethod(getterName, new JType[0]);
 		if (m == null) {
-			getterName = "is" + conv.toPropertyName(element.getName());
+			getterName = "is" + propertyName;
 			m = classOutline.implClass.getMethod(getterName, new JType[0]);
 		}
 		return m;
 	}
 
-	private static JMethod findGetter(final NameConverter conv, final ClassOutline classOutline, final XSAttributeUse attributeDecl) {
-		String getterName = "get" + conv.toPropertyName(attributeDecl.getDecl().getName());
-		JMethod m = classOutline.implClass.getMethod(getterName, new JType[0]);
-		if (m == null) {
-			getterName = "is" + conv.toPropertyName(attributeDecl.getDecl().getName());
-			m = classOutline.implClass.getMethod(getterName, new JType[0]);
-		}
-		return m;
-	}
 
-	private static JMethod findSetter(final NameConverter conv, final ClassOutline classOutline, final XSElementDecl element) {
-		final String setterName = "set" + conv.toPropertyName(element.getName());
+
+
+	private static JMethod findSetter(final NameConverter conv, final ClassOutline classOutline, final XSDeclaration element) {
+		final String propertyName = getPropertyName(element, conv);
+		final String setterName = "set" + propertyName;
 		for (final JMethod method : classOutline.implClass.methods()) {
 			if (method.name().equals(setterName) && method.listParams().length == 1) {
 				return method;
@@ -166,15 +177,7 @@ public class GroupInterfacePlugin extends Plugin {
 		return null;
 	}
 
-	private static JMethod findSetter(final NameConverter conv, final ClassOutline classOutline, final XSAttributeUse attributeDecl) {
-		final String setterName = "set" + conv.toPropertyName(attributeDecl.getDecl().getName());
-		for (final JMethod method : classOutline.implClass.methods()) {
-			if (method.name().equals(setterName) && method.listParams().length == 1) {
-				return method;
-			}
-		}
-		return null;
-	}
+
 
 	@Override
 	public int parseArgument(final Options opt, final String[] args, final int i) throws BadCommandLineException, IOException {
@@ -343,11 +346,11 @@ public class GroupInterfacePlugin extends Plugin {
 
 					for (final XSAttributeUse attributeUse : attributeGroup.getAttributeUses()) {
 						if (attributeUse.getFixedValue() == null) {
-							final JMethod implementedGetter = GroupInterfacePlugin.findGetter(nameConverter, implementingClass, attributeUse);
+							final JMethod implementedGetter = GroupInterfacePlugin.findGetter(nameConverter, implementingClass, attributeUse.getDecl());
 							final JMethod newGetter = groupInterface.method(JMod.NONE, implementedGetter.type(),
 									implementedGetter.name());
 							if (!immutable) {
-								final JMethod implementedSetter = GroupInterfacePlugin.findSetter(nameConverter, implementingClass, attributeUse);
+								final JMethod implementedSetter = GroupInterfacePlugin.findSetter(nameConverter, implementingClass, attributeUse.getDecl());
 								if (implementedSetter != null) {
 									final JMethod newSetter = groupInterface.method(JMod.NONE, implementedSetter.type(),
 											implementedSetter.name());
