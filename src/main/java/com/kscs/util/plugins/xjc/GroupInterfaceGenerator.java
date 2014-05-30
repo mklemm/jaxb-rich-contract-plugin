@@ -343,8 +343,8 @@ public class GroupInterfaceGenerator {
 						}
 					}
 				}
+				groupInterface.getDeclaredFields().add(implementedField);
 			}
-			groupInterface.getDeclaredFields().add(implementedField);
 		}
 		return implementedField;
 	}

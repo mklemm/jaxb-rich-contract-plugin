@@ -174,5 +174,7 @@ public final class PluginUtil {
 		}
 	}
 
-
+	public static boolean hasModifier(final int modifier, final int testModifier) {
+		return (modifier & testModifier) == testModifier;
+	}
 }

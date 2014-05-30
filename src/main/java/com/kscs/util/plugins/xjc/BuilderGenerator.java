@@ -601,16 +601,18 @@ public class BuilderGenerator {
 		}
 
 		for (final FieldOutline fieldOutline : this.classOutline.getDeclaredFields()) {
-			//final JFieldVar declaredField = this.definedClass.fields().get(fieldOutline.getPropertyInfo().getName(false));
-			generateBuilderMember(fieldOutline, initBody, productParam);
+			final JFieldVar declaredField = this.definedClass.fields().get(fieldOutline.getPropertyInfo().getName(false));
+			if(declaredField == null || !PluginUtil.hasModifier(declaredField.mods().getValue(), JMod.FINAL | JMod.STATIC)) {
+				generateBuilderMember(fieldOutline, initBody, productParam);
+			}
 		}
 
 		if (superClass != null) {
 			generateExtendsClause(getBuilderDeclaration(superClass.getImplClass()));
-			if(implement) initBody._return(JExpr._super().invoke(initMethod).arg(productParam));
+			if(this.implement) initBody._return(JExpr._super().invoke(initMethod).arg(productParam));
 			generateBuilderMemberOverrides(superClass);
 		} else if(this.implement) {
-			if(implement) initBody._return(productParam);
+			if(this.implement) initBody._return(productParam);
 		}
 
 		generateImplementsClause();
@@ -647,7 +649,7 @@ public class BuilderGenerator {
 
 		final JMethod withVarargsMethod = this.builderClass.method(JMod.PUBLIC, builderType, ApiConstructs.WITH_METHOD_PREFIX + propertyName);
 		final JVar withVarargsParam = withVarargsMethod.varParam(elementType, fieldName);
-		if(implement) {
+		if(this.implement) {
 			final JFieldVar builderField = this.builderClass.field(JMod.PRIVATE, fieldType, fieldName, JExpr._null());
 			withVarargsMethod.body().assign(JExpr._this().ref(builderField), withVarargsParam);
 			withVarargsMethod.body()._return(JExpr._this());
