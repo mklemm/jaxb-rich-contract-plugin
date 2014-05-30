@@ -24,158 +24,24 @@
 
 package com.kscs.util.plugins.xjc;
 
-import com.sun.codemodel.*;
 import com.sun.tools.xjc.BadCommandLineException;
 import com.sun.tools.xjc.Options;
 import com.sun.tools.xjc.Plugin;
 import com.sun.tools.xjc.outline.ClassOutline;
 import com.sun.tools.xjc.outline.Outline;
-import com.sun.tools.xjc.outline.PackageOutline;
-import com.sun.tools.xjc.reader.xmlschema.bindinfo.BIProperty;
-import com.sun.tools.xjc.reader.xmlschema.bindinfo.BindInfo;
-import com.sun.xml.bind.api.impl.NameConverter;
-import com.sun.xml.xsom.*;
 import org.xml.sax.ErrorHandler;
 import org.xml.sax.SAXException;
 
-import javax.xml.namespace.QName;
-import java.beans.PropertyVetoException;
 import java.io.IOException;
-import java.util.*;
+import java.util.List;
+import java.util.ResourceBundle;
 import java.util.logging.Logger;
 
 public class GroupInterfacePlugin extends Plugin {
 	private static final Logger LOGGER = Logger.getLogger(GroupInterfacePlugin.class.getName());
 	private boolean declareSetters = true;
-
-	private static PackageOutline findPackageForNamespace(final Outline model, final String namespaceUri) {
-		for (final PackageOutline packageOutline : model.getAllPackageContexts()) {
-			if (namespaceUri.equals(packageOutline.getMostUsedNamespaceURI())) {
-				return packageOutline;
-			}
-		}
-		return null;
-	}
-
-	private static List<XSParticle> findElementDecls(final Iterable<XSParticle> modelGroup) {
-		final List<XSParticle> elementDecls = new ArrayList<XSParticle>();
-		for (final XSParticle child : modelGroup) {
-			if (child.getTerm() instanceof XSElementDecl) {
-				elementDecls.add(child);
-			}
-		}
-		return elementDecls;
-	}
-
-	private static List<XSModelGroupDecl> findModelGroups(final Iterable<XSParticle> modelGroup) {
-		final List<XSModelGroupDecl> elementDecls = new ArrayList<XSModelGroupDecl>();
-		for (final XSParticle child : modelGroup) {
-			if (child.getTerm() instanceof XSModelGroupDecl) {
-				elementDecls.add((XSModelGroupDecl) child.getTerm());
-			}
-		}
-		return elementDecls;
-	}
-
-	private static List<XSModelGroupDecl> findModelGroups(final XSComplexType complexType) {
-		XSContentType contentType = complexType.getExplicitContent();
-		if (contentType == null) {
-			contentType = complexType.getContentType();
-		}
-		final XSParticle particle = contentType.asParticle();
-		if (particle != null) {
-			final XSTerm term = particle.getTerm();
-			final XSModelGroup modelGroup = term.asModelGroup();
-			return modelGroup != null ? GroupInterfacePlugin.findModelGroups(modelGroup) : Collections.<XSModelGroupDecl>emptyList();
-		} else {
-			return Collections.emptyList();
-		}
-	}
-
-	private static Collection<? extends XSAttGroupDecl> findAttributeGroups(final XSComplexType complexType) {
-		return complexType.getAttGroups();
-	}
-
-	private static XSComplexType getTypeDefinition(final XSComponent xsTypeComponent) {
-		if (xsTypeComponent instanceof XSAttContainer) {
-			return (XSComplexType) xsTypeComponent;
-		} else if (xsTypeComponent instanceof XSElementDecl) {
-			return ((XSElementDecl) xsTypeComponent).getType().asComplexType();
-		} else {
-			return null;
-		}
-	}
-
-	private static List<ClassOutline> findImplementingClasses(final Outline outline, final XSModelGroupDecl modelGroupDecl) {
-		final List<ClassOutline> implementingClasses = new ArrayList<ClassOutline>();
-		for (final ClassOutline classOutline : outline.getClasses()) {
-			final XSComplexType typeDefinition = GroupInterfacePlugin.getTypeDefinition(classOutline.target.getSchemaComponent());
-			if (typeDefinition != null) {
-				for (final XSModelGroupDecl mg : GroupInterfacePlugin.findModelGroups(typeDefinition)) {
-					if (new QName(mg.getTargetNamespace(), mg.getName()).equals(new QName(modelGroupDecl.getTargetNamespace(), modelGroupDecl
-							.getName()))) {
-						implementingClasses.add(classOutline);
-					}
-				}
-			}
-		}
-		return implementingClasses;
-	}
-
-	private static List<ClassOutline> findImplementingClasses(final Outline outline, final XSAttGroupDecl attGroupDecl) {
-		final List<ClassOutline> implementingClasses = new ArrayList<ClassOutline>();
-		for (final ClassOutline classOutline : outline.getClasses()) {
-			final XSComplexType typeDefinition = GroupInterfacePlugin.getTypeDefinition(classOutline.target.getSchemaComponent());
-			if (typeDefinition != null) {
-				for (final XSAttGroupDecl mg : GroupInterfacePlugin.findAttributeGroups(typeDefinition)) {
-					if (new QName(mg.getTargetNamespace(), mg.getName()).equals(new QName(attGroupDecl.getTargetNamespace(), attGroupDecl
-							.getName()))) {
-						implementingClasses.add(classOutline);
-					}
-				}
-			}
-		}
-		return implementingClasses;
-	}
-
-	private static String getPropertyName(final XSDeclaration declaration, final NameConverter conv) {
-		final XSAnnotation annotation = declaration.getAnnotation();
-		if(annotation != null && annotation.getAnnotation() != null && annotation.getAnnotation() instanceof BindInfo) {
-			GroupInterfacePlugin.LOGGER.fine("Found binding info for " + declaration.getName());
-			final BindInfo bindInfo = (BindInfo)annotation.getAnnotation();
-			final BIProperty propertyBindingInfo = bindInfo.get(BIProperty.class);
-			if(propertyBindingInfo != null) {
-				final String specifiedPropertyName = propertyBindingInfo.getPropertyName(false);
-				return specifiedPropertyName == null ? conv.toPropertyName(declaration.getName()) : specifiedPropertyName;
-			}
-		}
-		return conv.toPropertyName(declaration.getName());
-	}
-
-	private static JMethod findGetter(final NameConverter conv, final ClassOutline classOutline, final XSDeclaration element) {
-		final String propertyName = getPropertyName(element, conv);
-		String getterName = "get" + propertyName;
-		JMethod m = classOutline.implClass.getMethod(getterName, new JType[0]);
-		if (m == null) {
-			getterName = "is" + propertyName;
-			m = classOutline.implClass.getMethod(getterName, new JType[0]);
-		}
-		return m;
-	}
-
-
-
-
-	private static JMethod findSetter(final NameConverter conv, final ClassOutline classOutline, final XSDeclaration element) {
-		final String propertyName = getPropertyName(element, conv);
-		final String setterName = "set" + propertyName;
-		for (final JMethod method : classOutline.implClass.methods()) {
-			if (method.name().equals(setterName) && method.listParams().length == 1) {
-				return method;
-			}
-		}
-		return null;
-	}
+	private boolean declareBuilderInterface = true;
+	private GroupInterfaceGenerator generator = null;
 
 
 
@@ -183,6 +49,10 @@ public class GroupInterfacePlugin extends Plugin {
 	public int parseArgument(final Options opt, final String[] args, final int i) throws BadCommandLineException, IOException {
 		PluginUtil.Arg<Boolean> arg = PluginUtil.parseBooleanArgument("declare-setters", this.declareSetters, opt, args, i);
 		this.declareSetters = arg.getValue();
+		if(arg.getArgsParsed() == 0) {
+			arg = PluginUtil.parseBooleanArgument("declare-builder-interface", this.declareBuilderInterface, opt, args, i);
+			this.declareBuilderInterface = arg.getValue();
+		}
 		return arg.getArgsParsed();
 	}
 
@@ -201,193 +71,21 @@ public class GroupInterfacePlugin extends Plugin {
 	@Override
 	public boolean run(final Outline outline, final Options opt, final ErrorHandler errorHandler)
 			throws SAXException {
-		final Map<QName, TypeDef<XSAttContainer>> groupInterfaces = generateAttributeGroupInterfaces(outline, opt);
-		final Map<QName, TypeDef<XSModelGroupDecl>> modelGroupInterfaces = generateModelGroupInterfaces(outline, opt);
-		for (final TypeDef<XSAttContainer> typeDef : groupInterfaces.values()) {
-			final XSAttContainer classComponent = typeDef.schemaComponent;
-			for (final XSAttGroupDecl attributeGroupRef : classComponent.getAttGroups()) {
-				final TypeDef<XSAttContainer> definedGroupType = groupInterfaces.get(new QName(attributeGroupRef.getTargetNamespace(),
-						attributeGroupRef
-								.getName()
-				));
-				if (definedGroupType != null) {
-					typeDef.definedClass._implements(definedGroupType.definedClass);
-				}
 
-			}
+		if(this.generator == null) {
+			this.generator = new GroupInterfaceGenerator(new ApiConstructs(outline, opt, errorHandler), this.declareSetters, this.declareBuilderInterface);
+			this.generator.generateGroupInterfaceModel();
 		}
-		for (final TypeDef<XSModelGroupDecl> typeDef : modelGroupInterfaces.values()) {
-			final XSModelGroupDecl classComponent = typeDef.schemaComponent;
-			for (final XSModelGroupDecl attributeGroupRef : GroupInterfacePlugin.findModelGroups(classComponent.getModelGroup())) {
-				final TypeDef<XSModelGroupDecl> definedGroupType = modelGroupInterfaces.get(new
-						QName(attributeGroupRef.getTargetNamespace(),
-						attributeGroupRef.getName()));
-				if (definedGroupType != null) {
-					typeDef.definedClass._implements(definedGroupType.definedClass);
-				}
-			}
-		}
-		for (final ClassOutline classOutline : outline.getClasses()) {
-			final XSComponent xsTypeComponent = classOutline.target.getSchemaComponent();
-			final XSComplexType classComponent = GroupInterfacePlugin.getTypeDefinition(xsTypeComponent);
-			if (classComponent != null) {
-				for (final XSAttGroupDecl attributeGroupRef : classComponent.getAttGroups()) {
-					final TypeDef<XSAttContainer> definedGroupType = groupInterfaces.get(new QName(attributeGroupRef.getTargetNamespace(),
-							attributeGroupRef
-									.getName()
-					));
-					if (definedGroupType != null) {
-						classOutline.implClass._implements(definedGroupType.definedClass);
-					}
 
-				}
-
-				for (final XSModelGroupDecl attributeGroupRef : GroupInterfacePlugin.findModelGroups(classComponent)) {
-					final TypeDef<XSModelGroupDecl> definedGroupType = modelGroupInterfaces.get(new QName(attributeGroupRef.getTargetNamespace(),
-							attributeGroupRef
-									.getName()
-					));
-					if (definedGroupType != null) {
-						classOutline.implClass._implements(definedGroupType.definedClass);
-					}
-
-				}
-			}
-		}
 		return true;
 	}
 
-	private Map<QName, TypeDef<XSModelGroupDecl>> generateModelGroupInterfaces(final Outline outline, final Options opt) {
-		final BoundPropertiesPlugin boundPropertiesPlugin = PluginUtil.findPlugin(opt, BoundPropertiesPlugin.class);
-		final boolean throwsPropertyVetoException = boundPropertiesPlugin != null && boundPropertiesPlugin.isConstrained() && boundPropertiesPlugin.isSetterThrows();
-		final DeepClonePlugin deepClonePlugin = PluginUtil.findPlugin(opt, DeepClonePlugin.class);
-		final boolean needsCloneMethod = deepClonePlugin != null;
-		final boolean cloneMethodThrows = needsCloneMethod && deepClonePlugin.isThrowCloneNotSupported();
-		final boolean immutable = !this.declareSetters || PluginUtil.hasPlugin(opt, ImmutablePlugin.class);
-
-		final NameConverter nameConverter = outline.getModel().getNameConverter();
-		final Map<QName, TypeDef<XSModelGroupDecl>> groupInterfaces = new HashMap<QName, TypeDef<XSModelGroupDecl>>();
-		final Iterator<XSModelGroupDecl> modelGroupIterator =
-				outline.getModel().schemaComponent.iterateModelGroupDecls();
-		while (modelGroupIterator.hasNext()) {
-			final XSModelGroupDecl modelGroup = modelGroupIterator.next();
-			final PackageOutline packageOutline = GroupInterfacePlugin.findPackageForNamespace(outline, modelGroup.getTargetNamespace());
-			if (packageOutline != null) {
-				final JPackage container = packageOutline._package();
-
-				final List<ClassOutline> implementingClasses = GroupInterfacePlugin.findImplementingClasses(outline, modelGroup);
-				if (!implementingClasses.isEmpty()) {
-					final ClassOutline implementingClass = implementingClasses.get(0);
-
-					final JDefinedClass groupInterface = outline.getClassFactory().createInterface(container,
-							nameConverter.toClassName(modelGroup.getName()),
-							modelGroup.getLocator());
-
-					for (final XSParticle particle : GroupInterfacePlugin.findElementDecls(modelGroup.getModelGroup())) {
-						final XSElementDecl elementDecl = (XSElementDecl) particle.getTerm();
-						if (elementDecl.getFixedValue() == null) {
-							final JMethod implementedGetter = GroupInterfacePlugin.findGetter(nameConverter, implementingClass, elementDecl);
-							final JMethod newGetter = groupInterface.method(JMod.NONE, implementedGetter.type(),
-									implementedGetter.name());
-							if (!immutable) {
-								final JMethod implementedSetter = GroupInterfacePlugin.findSetter(nameConverter, implementingClass, elementDecl);
-								if (implementedSetter != null) {
-									final JMethod newSetter = groupInterface.method(JMod.NONE, implementedSetter.type(),
-											implementedSetter.name());
-									newSetter.param(implementedSetter.listParamTypes()[0], implementedSetter.listParams()[0].name());
-									if (throwsPropertyVetoException) {
-										newSetter._throws(PropertyVetoException.class);
-									}
-								}
-							}
-						}
-					}
-
-					if (needsCloneMethod) {
-						final JMethod cloneMethod = groupInterface.method(JMod.PUBLIC, groupInterface, "clone");
-						if (cloneMethodThrows) {
-							cloneMethod._throws(CloneNotSupportedException.class);
-						}
-					}
-
-					groupInterfaces.put(new QName(modelGroup.getTargetNamespace(), modelGroup.getName()), new
-							TypeDef<XSModelGroupDecl>(groupInterface,
-							modelGroup));
-				}
-			}
+	public List<InterfaceOutline<?>> getGroupInterfacesForClass(final ApiConstructs apiConstructs, final ClassOutline classOutline) {
+		if(this.generator == null) {
+			this.generator = new GroupInterfaceGenerator(apiConstructs, this.declareSetters, this.declareBuilderInterface);
+			this.generator.generateGroupInterfaceModel();
 		}
-		return groupInterfaces;
-	}
-
-	private Map<QName, TypeDef<XSAttContainer>> generateAttributeGroupInterfaces(final Outline outline, final Options opt) {
-		final BoundPropertiesPlugin boundPropertiesPlugin = PluginUtil.findPlugin(opt, BoundPropertiesPlugin.class);
-		final boolean throwsPropertyVetoException = boundPropertiesPlugin != null && boundPropertiesPlugin.isConstrained() && boundPropertiesPlugin.isSetterThrows();
-		final DeepClonePlugin deepClonePlugin = PluginUtil.findPlugin(opt, DeepClonePlugin.class);
-		final boolean needsCloneMethod = deepClonePlugin != null;
-		final boolean cloneMethodThrows = needsCloneMethod && deepClonePlugin.isThrowCloneNotSupported();
-		final boolean immutable = !this.declareSetters || PluginUtil.hasPlugin(opt, ImmutablePlugin.class);
-
-		final NameConverter nameConverter = outline.getModel().getNameConverter();
-		final Map<QName, TypeDef<XSAttContainer>> groupInterfaces = new HashMap<QName, TypeDef<XSAttContainer>>();
-		final Iterator<XSAttGroupDecl> attributeGroupIterator = outline.getModel().schemaComponent.iterateAttGroupDecls();
-		while (attributeGroupIterator.hasNext()) {
-			final XSAttGroupDecl attributeGroup = attributeGroupIterator.next();
-			final PackageOutline packageOutline = GroupInterfacePlugin.findPackageForNamespace(outline, attributeGroup.getTargetNamespace());
-			if (packageOutline != null) {
-				final JPackage container = packageOutline._package();
-
-				final List<ClassOutline> implementingClasses = GroupInterfacePlugin.findImplementingClasses(outline, attributeGroup);
-				if (!implementingClasses.isEmpty()) {
-					final ClassOutline implementingClass = implementingClasses.get(0);
-
-					final JDefinedClass groupInterface = outline.getClassFactory().createInterface(container,
-							nameConverter.toClassName(attributeGroup.getName()),
-							attributeGroup.getLocator());
-
-					for (final XSAttributeUse attributeUse : attributeGroup.getAttributeUses()) {
-						if (attributeUse.getFixedValue() == null) {
-							final JMethod implementedGetter = GroupInterfacePlugin.findGetter(nameConverter, implementingClass, attributeUse.getDecl());
-							final JMethod newGetter = groupInterface.method(JMod.NONE, implementedGetter.type(),
-									implementedGetter.name());
-							if (!immutable) {
-								final JMethod implementedSetter = GroupInterfacePlugin.findSetter(nameConverter, implementingClass, attributeUse.getDecl());
-								if (implementedSetter != null) {
-									final JMethod newSetter = groupInterface.method(JMod.NONE, implementedSetter.type(),
-											implementedSetter.name());
-									newSetter.param(implementedSetter.listParamTypes()[0], implementedSetter.listParams()[0].name());
-									if (throwsPropertyVetoException) {
-										newSetter._throws(PropertyVetoException.class);
-									}
-								}
-							}
-						}
-					}
-
-					if (needsCloneMethod) {
-						final JMethod cloneMethod = groupInterface.method(JMod.PUBLIC, groupInterface, "clone");
-						if (cloneMethodThrows) {
-							cloneMethod._throws(CloneNotSupportedException.class);
-						}
-					}
-
-					groupInterfaces.put(new QName(attributeGroup.getTargetNamespace(), attributeGroup.getName()), new TypeDef<XSAttContainer>(
-							groupInterface,
-							attributeGroup));
-				}
-
-			}
-		}
-		return groupInterfaces;
-	}
-
-	private static class TypeDef<T extends XSComponent> {
-		final JDefinedClass definedClass;
-		final T schemaComponent;
-
-		TypeDef(final JDefinedClass definedClass, final T schemaComponent) {
-			this.definedClass = definedClass;
-			this.schemaComponent = schemaComponent;
-		}
+		return this.generator.getGroupInterfacesForClass(classOutline);
 	}
 
 }

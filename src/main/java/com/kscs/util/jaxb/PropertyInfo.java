@@ -21,30 +21,51 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package com.kscs.util.plugins.xjc;
-
-import com.sun.codemodel.JDefinedClass;
+package com.kscs.util.jaxb;
 
 /**
- * @author mirko
- * 25.03.14
- *
+ * @author mirko 2014-05-28
  */
-public class BuilderOutline {
-	private final JDefinedClass definedBuilderClass;
-	private final TypeOutline classOutline;
+public class PropertyInfo<TInstance, TProperty> {
+	public static final int UNBOUNDED = Integer.MAX_VALUE;
+	private final String propertyName;
+	private final Class<TProperty> declaredType;
+	private final Class<TInstance> declaringClass;
+	private final int minOccurs;
+	private final int maxOccurs;
+	private final boolean writable;
 
-	protected BuilderOutline(final TypeOutline classOutline, final JDefinedClass definedBuilderClass)  {
-		this.classOutline = classOutline;
-		this.definedBuilderClass = definedBuilderClass;
+	public PropertyInfo(final String propertyName, final Class<TProperty> declaredType, final Class<TInstance> declaringClass, final int minOccurs, final int maxOccurs, final boolean writable) {
+		this.propertyName = propertyName;
+		this.declaredType = declaredType;
+		this.declaringClass = declaringClass;
+		this.minOccurs = minOccurs;
+		this.maxOccurs = maxOccurs;
+		this.writable = writable;
 	}
 
-	public JDefinedClass getDefinedBuilderClass() {
-		return this.definedBuilderClass;
+	public String getPropertyName() {
+		return this.propertyName;
 	}
 
-	public TypeOutline getClassOutline() {
-		return this.classOutline;
+	public Class<?> getDeclaredType() {
+		return this.declaredType;
+	}
+
+	public Class<?> getDeclaringClass() {
+		return this.declaringClass;
+	}
+
+	public int getMinOccurs() {
+		return this.minOccurs;
+	}
+
+	public int getMaxOccurs() {
+		return this.maxOccurs;
+	}
+
+	public boolean isWritable() {
+		return this.writable;
 	}
 
 }

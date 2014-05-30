@@ -43,6 +43,7 @@ import java.util.*;
  */
 public class ApiConstructs {
 	public static final String BUILDER_CLASS_NAME = "Builder";
+	public static final String BUILDER_INTERFACE_NAME = "BuildSupport";
 	public static final String BUILD_METHOD_NAME = "build";
 	public static final String BUILDER_METHOD_NAME = "builder";
 	public static final String INIT_METHOD_NAME = "init";

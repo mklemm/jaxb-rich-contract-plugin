@@ -27,5 +27,5 @@ package com.kscs.util.jaxb;
  * @author mirko 2014-04-07
  */
 public interface PropertyTransformer<TInstance,TProperty> {
-	TProperty transform(final TInstance sourceInstance, final TProperty sourcePropertyValue);
+	TProperty transform(final PropertyInfo<TInstance,TProperty> propertyInfo, final TInstance sourceInstance, final TProperty sourcePropertyValue);
 }

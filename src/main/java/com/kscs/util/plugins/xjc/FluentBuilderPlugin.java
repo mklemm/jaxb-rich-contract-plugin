@@ -25,8 +25,10 @@
 package com.kscs.util.plugins.xjc;
 
 import com.kscs.util.jaxb.BuilderUtilities;
+import com.sun.codemodel.ClassType;
 import com.sun.codemodel.JClassAlreadyExistsException;
 import com.sun.codemodel.JDefinedClass;
+import com.sun.codemodel.JMod;
 import com.sun.tools.xjc.BadCommandLineException;
 import com.sun.tools.xjc.Options;
 import com.sun.tools.xjc.Plugin;
@@ -101,7 +103,7 @@ public class FluentBuilderPlugin extends Plugin {
 		for (final ClassOutline classOutline : outline.getClasses()) {
 			final JDefinedClass definedClass = classOutline.implClass;
 			try {
-				final BuilderOutline builderOutline = new BuilderOutline(classOutline);
+				final BuilderOutline builderOutline = new BuilderOutline(new DefinedClassOutline(classOutline), classOutline.implClass._class(JMod.PUBLIC | JMod.STATIC, ApiConstructs.BUILDER_CLASS_NAME, ClassType.CLASS));
 				builderClasses.put(definedClass.fullName(), builderOutline);
 			} catch (final JClassAlreadyExistsException caex) {
 				errorHandler.warning(new SAXParseException("Class \"" + definedClass.name() + "\" already contains inner class \"Builder\". Skipping generation of fluent builder.", classOutline.target.getLocator(), caex));

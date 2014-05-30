@@ -24,27 +24,42 @@
 package com.kscs.util.plugins.xjc;
 
 import com.sun.codemodel.JDefinedClass;
+import com.sun.tools.xjc.outline.ClassOutline;
+import com.sun.tools.xjc.outline.FieldOutline;
+
+import java.util.Arrays;
+import java.util.List;
 
 /**
- * @author mirko
- * 25.03.14
- *
+ * @author mirko 2014-05-29
  */
-public class BuilderOutline {
-	private final JDefinedClass definedBuilderClass;
-	private final TypeOutline classOutline;
+public class DefinedClassOutline implements TypeOutline {
+	private final ClassOutline classOutline;
+	private DefinedClassOutline cachedSuperClass = null;
 
-	protected BuilderOutline(final TypeOutline classOutline, final JDefinedClass definedBuilderClass)  {
+	public DefinedClassOutline(final ClassOutline classOutline) {
 		this.classOutline = classOutline;
-		this.definedBuilderClass = definedBuilderClass;
 	}
 
-	public JDefinedClass getDefinedBuilderClass() {
-		return this.definedBuilderClass;
+	@Override
+	public List<FieldOutline> getDeclaredFields() {
+		return Arrays.asList(this.classOutline.getDeclaredFields());
 	}
 
-	public TypeOutline getClassOutline() {
+	@Override
+	public TypeOutline getSuperClass() {
+		if(this.cachedSuperClass == null && this.classOutline.getSuperClass() != null) {
+			this.cachedSuperClass = new DefinedClassOutline(this.classOutline.getSuperClass());
+		}
+		return this.cachedSuperClass;
+	}
+
+	@Override
+	public JDefinedClass getImplClass() {
+		return this.classOutline.implClass;
+	}
+
+	public ClassOutline getClassOutline() {
 		return this.classOutline;
 	}
-
 }

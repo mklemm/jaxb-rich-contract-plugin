@@ -24,27 +24,55 @@
 package com.kscs.util.plugins.xjc;
 
 import com.sun.codemodel.JDefinedClass;
+import com.sun.tools.xjc.outline.FieldOutline;
+import com.sun.xml.xsom.XSDeclaration;
+
+import javax.xml.namespace.QName;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
- * @author mirko
- * 25.03.14
- *
+ * @author mirko 2014-05-29
  */
-public class BuilderOutline {
-	private final JDefinedClass definedBuilderClass;
-	private final TypeOutline classOutline;
+public class InterfaceOutline<T extends XSDeclaration> implements TypeOutline {
+	private InterfaceOutline superInterface = null;
+	private final JDefinedClass implClass;
+	private final List<FieldOutline> declaredFields = new ArrayList<FieldOutline>();
+	private final T schemaComponent;
+	private final QName name;
 
-	protected BuilderOutline(final TypeOutline classOutline, final JDefinedClass definedBuilderClass)  {
-		this.classOutline = classOutline;
-		this.definedBuilderClass = definedBuilderClass;
+	public InterfaceOutline(final T schemaComponent, final JDefinedClass implClass) {
+		this.schemaComponent = schemaComponent;
+		this.implClass = implClass;
+		this.name = new QName(schemaComponent.getTargetNamespace(), schemaComponent.getName());
 	}
 
-	public JDefinedClass getDefinedBuilderClass() {
-		return this.definedBuilderClass;
+	@Override
+	public List<FieldOutline> getDeclaredFields() {
+		return this.declaredFields;
 	}
 
-	public TypeOutline getClassOutline() {
-		return this.classOutline;
+	@Override
+	public InterfaceOutline getSuperClass() {
+		return this.superInterface;
 	}
+
+	@Override
+	public JDefinedClass getImplClass() {
+		return this.implClass;
+	}
+
+	public T getSchemaComponent() {
+		return this.schemaComponent;
+	}
+
+	public QName getName() {
+		return this.name;
+	}
+
+	void setSuperInterface(final InterfaceOutline superInterface) {
+		this.superInterface = superInterface;
+	}
+
 
 }

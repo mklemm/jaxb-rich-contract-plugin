@@ -151,6 +151,10 @@ public final class PluginUtil {
 		return JOp.cond(test.eq(JExpr._null()), JExpr._null(), source);
 	}
 
+	public static JExpression nullSafe(final FieldOutline test, final JExpression source) {
+		return nullSafe(JExpr.ref(test.getPropertyInfo().getName(false)), source);
+	}
+
 	public static JBlock ifNull(final JBlock block, final JExpression test, final JAssignmentTarget target) {
 		final JConditional ifNull = block._if(test.eq(JExpr._null()));
 		ifNull._then().assign(target, JExpr._null());

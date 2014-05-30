@@ -82,11 +82,18 @@ public class ImmutablePlugin extends Plugin {
 		return true;
 	}
 
+	public String getImmutableFieldName(final FieldOutline fieldVar) {
+		return fieldVar.getPropertyInfo().getName(false) + "_RO";
+	}
 	public String getImmutableFieldName(final JFieldVar fieldVar) {
 		return fieldVar.name() + "_RO";
 	}
 
-	public void immutableInit(final ApiConstructs apiConstructs, final JBlock body, final JExpression instanceRef, final JFieldVar collectionField) {
-		body.assign(instanceRef.ref(getImmutableFieldName(collectionField)), PluginUtil.nullSafe(collectionField, apiConstructs.unmodifiableList(instanceRef.ref(collectionField))));
+	public void immutableInit(final ApiConstructs apiConstructs, final JBlock body, final JExpression instanceRef, final FieldOutline collectionField) {
+		body.assign(instanceRef.ref(getImmutableFieldName(collectionField)), PluginUtil.nullSafe(collectionField, apiConstructs.unmodifiableList(instanceRef.ref(collectionField.getPropertyInfo().getName(false)))));
+	}
+
+	public void immutableInit(final ApiConstructs apiConstructs, final JBlock body, final JExpression instanceRef, final JFieldVar declaredField) {
+		body.assign(instanceRef.ref(getImmutableFieldName(declaredField)), PluginUtil.nullSafe(declaredField, apiConstructs.unmodifiableList(instanceRef.ref(declaredField))));
 	}
 }
