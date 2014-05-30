@@ -233,20 +233,23 @@ public class BuilderGenerator {
 	}
 
 
-	protected void generateBuilderMemberOverride(final FieldOutline superFieldOutline, final JFieldVar declaredSuperField, final String superPropertyName) {
+	protected void generateBuilderMemberOverride(final FieldOutline superFieldOutline, final FieldOutline fieldOutline, final String superPropertyName) {
+		final JType fieldType = fieldOutline.getRawType();
+		final String fieldName = fieldOutline.getPropertyInfo().getName(false);
+
 		if (superFieldOutline.getPropertyInfo().isCollection()) {
-			if (!declaredSuperField.type().isArray()) {
-				final JClass elementType = ((JClass) declaredSuperField.type()).getTypeParameters().get(0);
+			if (!fieldType.isArray()) {
+				final JClass elementType = ((JClass) fieldType).getTypeParameters().get(0);
 				final JClass listType = this.apiConstructs.listClass.narrow(elementType.wildcard());
 
 				final JMethod addListMethod = this.builderClass.method(JMod.PUBLIC, this.builderType, ApiConstructs.ADD_METHOD_PREFIX + superPropertyName);
-				final JVar addListParam = addListMethod.param(JMod.FINAL, listType, declaredSuperField.name());
+				final JVar addListParam = addListMethod.param(JMod.FINAL, listType, fieldName);
 				final JMethod addVarargsMethod = this.builderClass.method(JMod.PUBLIC, this.builderType, ApiConstructs.ADD_METHOD_PREFIX + superPropertyName);
-				final JVar addVarargsParam = addVarargsMethod.varParam(elementType, declaredSuperField.name());
+				final JVar addVarargsParam = addVarargsMethod.varParam(elementType, fieldName);
 				final JMethod withListMethod = this.builderClass.method(JMod.PUBLIC, this.builderType, ApiConstructs.WITH_METHOD_PREFIX + superPropertyName);
-				final JVar withListParam = withListMethod.param(JMod.FINAL, listType, declaredSuperField.name());
+				final JVar withListParam = withListMethod.param(JMod.FINAL, listType, fieldName);
 				final JMethod withVarargsMethod = this.builderClass.method(JMod.PUBLIC, this.builderType, ApiConstructs.WITH_METHOD_PREFIX + superPropertyName);
-				final JVar withVarargsParam = withVarargsMethod.varParam(elementType, declaredSuperField.name());
+				final JVar withVarargsParam = withVarargsMethod.varParam(elementType, fieldName);
 
 				if (this.implement) {
 					addListMethod.annotate(Override.class);
@@ -276,14 +279,14 @@ public class BuilderGenerator {
 					}
 				}
 			} else {
-				final JType elementType = declaredSuperField.type().elementType();
+				final JType elementType = fieldType.elementType();
 				final JClass listType = this.apiConstructs.listClass.narrow(elementType);
 
 				final JMethod withListMethod = this.builderClass.method(JMod.PUBLIC, this.builderType, ApiConstructs.WITH_METHOD_PREFIX + superPropertyName);
-				final JVar withListParam = withListMethod.param(JMod.FINAL, listType, declaredSuperField.name());
+				final JVar withListParam = withListMethod.param(JMod.FINAL, listType, fieldName);
 
 				final JMethod withVarargsMethod = this.builderClass.method(JMod.PUBLIC, this.builderType, ApiConstructs.WITH_METHOD_PREFIX + superPropertyName);
-				final JVar withVarargsParam = withVarargsMethod.varParam(((JClass) declaredSuperField.type()).getTypeParameters().get(0), declaredSuperField.name());
+				final JVar withVarargsParam = withVarargsMethod.varParam(((JClass) fieldType).getTypeParameters().get(0), fieldName);
 
 				if (this.implement) {
 					withListMethod.annotate(Override.class);
@@ -297,7 +300,7 @@ public class BuilderGenerator {
 			}
 		} else {
 			final JMethod withMethod = this.builderClass.method(JMod.PUBLIC, this.builderType, ApiConstructs.WITH_METHOD_PREFIX + superPropertyName);
-			final JVar param = withMethod.param(JMod.FINAL, superFieldOutline.getRawType(), declaredSuperField.name());
+			final JVar param = withMethod.param(JMod.FINAL, superFieldOutline.getRawType(), fieldName);
 
 			if (this.implement) {
 				withMethod.annotate(Override.class);
@@ -305,7 +308,7 @@ public class BuilderGenerator {
 				withMethod.body()._return(JExpr._this());
 			}
 
-			final BuilderOutline childBuilderOutline = getBuilderDeclaration(declaredSuperField.type());
+			final BuilderOutline childBuilderOutline = getBuilderDeclaration(fieldType);
 			if (childBuilderOutline != null && !childBuilderOutline.getClassOutline().getImplClass().isAbstract()) {
 				final JClass builderFieldElementType = childBuilderOutline.getDefinedBuilderClass().narrow(this.builderType.wildcard());
 				final JMethod addMethod = this.builderClass.method(JMod.PUBLIC, builderFieldElementType, ApiConstructs.WITH_METHOD_PREFIX + superPropertyName);
@@ -601,8 +604,7 @@ public class BuilderGenerator {
 		}
 
 		for (final FieldOutline fieldOutline : this.classOutline.getDeclaredFields()) {
-			final JFieldVar declaredField = this.definedClass.fields().get(fieldOutline.getPropertyInfo().getName(false));
-			if(declaredField == null || !PluginUtil.hasModifier(declaredField.mods().getValue(), JMod.FINAL | JMod.STATIC)) {
+			if(hasGetter(fieldOutline)) {
 				generateBuilderMember(fieldOutline, initBody, productParam);
 			}
 		}
@@ -612,7 +614,7 @@ public class BuilderGenerator {
 			if(this.implement) initBody._return(JExpr._super().invoke(initMethod).arg(productParam));
 			generateBuilderMemberOverrides(superClass);
 		} else if(this.implement) {
-			if(this.implement) initBody._return(productParam);
+			initBody._return(productParam);
 		}
 
 		generateImplementsClause();
@@ -623,13 +625,23 @@ public class BuilderGenerator {
 
 	}
 
+	private boolean hasGetter(final FieldOutline fieldOutline) {
+		for(final JMethod method : this.definedClass.methods()) {
+			if((method.name().equals("get"+ fieldOutline.getPropertyInfo().getName(true))
+					|| method.name().equals("is"+ fieldOutline.getPropertyInfo().getName(true))) && method.params().isEmpty()) {
+				return true;
+			}
+		}
+		return false;
+	}
+
 	private void generateBuilderMemberOverrides(final TypeOutline superClass) {
 		final JDefinedClass definedSuperClass = superClass.getImplClass();
 		for (final FieldOutline superFieldOutline : superClass.getDeclaredFields()) {
 			final JFieldVar declaredSuperField = definedSuperClass.fields().get(superFieldOutline.getPropertyInfo().getName(false));
-			if (declaredSuperField != null && (declaredSuperField.mods().getValue() & JMod.STATIC) == 0) {
+			if (declaredSuperField == null || !PluginUtil.hasModifier(declaredSuperField.mods().getValue(), JMod.STATIC | JMod.FINAL)) {
 				final String superPropertyName = superFieldOutline.getPropertyInfo().getName(true);
-				generateBuilderMemberOverride(superFieldOutline, declaredSuperField, superPropertyName);
+				generateBuilderMemberOverride(superFieldOutline, superFieldOutline, superPropertyName);
 			}
 		}
 

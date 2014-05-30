@@ -50,7 +50,7 @@ public class GroupInterfaceGenerator {
 	private final boolean cloneMethodThrows;
 	private final boolean needsCloneMethod;
 	private final NameConverter nameConverter;
-	private final Map<String,List<InterfaceOutline<?>>> implementations = new HashMap<String, List<InterfaceOutline<?>>>();
+	private final Map<String, List<InterfaceOutline<?>>> implementations = new HashMap<String, List<InterfaceOutline<?>>>();
 
 	public GroupInterfaceGenerator(final ApiConstructs apiConstructs, final boolean declareSetters, final boolean declareBuilderInterface) {
 		this.apiConstructs = apiConstructs;
@@ -62,7 +62,7 @@ public class GroupInterfaceGenerator {
 		final FluentBuilderPlugin fluentBuilderPlugin = this.apiConstructs.findPlugin(FluentBuilderPlugin.class);
 		this.declareBuilderInterface = declareBuilderInterface && fluentBuilderPlugin != null;
 		this.needsCloneMethod = deepClonePlugin != null;
-		this.cloneMethodThrows = this.needsCloneMethod && deepClonePlugin != null && deepClonePlugin.isThrowCloneNotSupported();
+		this.cloneMethodThrows = this.needsCloneMethod && deepClonePlugin.isThrowCloneNotSupported();
 		this.nameConverter = this.apiConstructs.outline.getModel().getNameConverter();
 	}
 
@@ -255,14 +255,14 @@ public class GroupInterfaceGenerator {
 			for (final InterfaceOutline<XSModelGroupDecl> interfaceOutline : modelGroupInterfaces.values()) {
 				try {
 					builderOutlines.put(interfaceOutline.getImplClass().fullName(), new BuilderOutline(interfaceOutline, interfaceOutline.getImplClass()._class(JMod.NONE, ApiConstructs.BUILDER_INTERFACE_NAME, ClassType.INTERFACE)));
-				} catch (JClassAlreadyExistsException e) {
+				} catch (final JClassAlreadyExistsException e) {
 					GroupInterfaceGenerator.LOGGER.severe("Interface " + interfaceOutline.getImplClass().fullName() + "#" + ApiConstructs.BUILDER_INTERFACE_NAME + " already exists. Skipping builder interface generation.");
 				}
 			}
 			for (final InterfaceOutline<XSAttGroupDecl> interfaceOutline : attributeGroupInterfaces.values()) {
 				try {
 					builderOutlines.put(interfaceOutline.getImplClass().fullName(), new BuilderOutline(interfaceOutline, interfaceOutline.getImplClass()._class(JMod.NONE, ApiConstructs.BUILDER_INTERFACE_NAME, ClassType.INTERFACE)));
-				} catch (JClassAlreadyExistsException e) {
+				} catch (final JClassAlreadyExistsException e) {
 					GroupInterfaceGenerator.LOGGER.severe("Interface " + interfaceOutline.getImplClass().fullName() + "#" + ApiConstructs.BUILDER_INTERFACE_NAME + " already exists. Skipping builder interface generation.");
 				}
 			}
@@ -283,7 +283,7 @@ public class GroupInterfaceGenerator {
 				classOutline.implClass._implements(definedGroupType.getImplClass());
 
 				List<InterfaceOutline<?>> interfaceOutlines = this.implementations.get(classOutline.implClass.fullName());
-				if(interfaceOutlines == null) {
+				if (interfaceOutlines == null) {
 					interfaceOutlines = new ArrayList<InterfaceOutline<?>>();
 					this.implementations.put(classOutline.implClass.fullName(), interfaceOutlines);
 				}
@@ -327,9 +327,9 @@ public class GroupInterfaceGenerator {
 
 	private <G extends XSDeclaration> FieldOutline generateProperty(final ClassOutline implementingClass, final InterfaceOutline<G> groupInterface, final XSDeclaration declaration) {
 		final FieldOutline implementedField = getFieldOutline(this.nameConverter, implementingClass, declaration);
-		if (!isFixed(declaration)) {
-			if (implementedField != null) {
-				final JMethod implementedGetter = findGetter(this.nameConverter, implementingClass, declaration);
+		if (implementedField != null) {
+			final JMethod implementedGetter = findGetter(this.nameConverter, implementingClass, declaration);
+			if(implementedGetter != null) {
 				final JMethod newGetter = groupInterface.getImplClass().method(JMod.NONE, implementedGetter.type(),
 						implementedGetter.name());
 				if (!this.immutable) {
@@ -347,11 +347,6 @@ public class GroupInterfaceGenerator {
 			}
 		}
 		return implementedField;
-	}
-
-	private boolean isFixed(final XSDeclaration declaration) {
-		return ((declaration instanceof XSAttributeDecl) && ((XSAttributeDecl) declaration).getFixedValue() != null)
-				|| ((declaration instanceof XSElementDecl) && ((XSElementDecl) declaration).getFixedValue() != null);
 	}
 
 
