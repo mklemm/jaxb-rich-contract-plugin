@@ -33,6 +33,7 @@ import com.sun.tools.xjc.outline.FieldOutline;
 import com.sun.tools.xjc.outline.Outline;
 
 import java.io.*;
+import java.util.Iterator;
 import java.util.Set;
 
 /**
@@ -174,7 +175,28 @@ public final class PluginUtil {
 		}
 	}
 
+	public static boolean hasGetter(final JDefinedClass jClass, final FieldOutline fieldOutline) {
+		for(final JMethod method : jClass.methods()) {
+			if((method.name().equals("get"+ fieldOutline.getPropertyInfo().getName(true))
+					|| method.name().equals("is"+ fieldOutline.getPropertyInfo().getName(true))) && method.params().isEmpty()) {
+				return true;
+			}
+		}
+		return false;
+	}
+
 	public static boolean hasModifier(final int modifier, final int testModifier) {
 		return (modifier & testModifier) == testModifier;
+	}
+
+	public static JDefinedClass getInnerClass(final JDefinedClass parentClass, final String innerClassName) {
+		final Iterator<JDefinedClass> iterator = parentClass.classes();
+		while(iterator.hasNext()) {
+			final JDefinedClass innerClass = iterator.next();
+			if(innerClass.name().equals(innerClassName)) {
+				return innerClass;
+			}
+		}
+		return null;
 	}
 }

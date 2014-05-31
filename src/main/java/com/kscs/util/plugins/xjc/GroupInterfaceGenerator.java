@@ -85,12 +85,12 @@ public class GroupInterfaceGenerator {
 		return elementDecls;
 	}
 
-	private static List<XSAttributeDecl> findAttributeDecls(final XSAttGroupDecl modelGroup) {
-		final List<XSAttributeDecl> elementDecls = new ArrayList<XSAttributeDecl>();
-		for (final XSAttributeUse child : modelGroup.getAttributeUses()) {
-			elementDecls.add(child.getDecl());
+	private static List<XSAttributeDecl> findAttributeDecls(final XSAttGroupDecl attGroupDecl) {
+		final List<XSAttributeDecl> attributeDecls = new ArrayList<XSAttributeDecl>();
+		for (final XSAttributeUse child : attGroupDecl.getDeclaredAttributeUses()) {
+			attributeDecls.add(child.getDecl());
 		}
-		return elementDecls;
+		return attributeDecls;
 	}
 
 	private static List<XSModelGroupDecl> findModelGroups(final Iterable<XSParticle> modelGroup) {
@@ -289,7 +289,7 @@ public class GroupInterfaceGenerator {
 				}
 				interfaceOutlines.add(definedGroupType);
 
-				if (definedGroupType.getDeclaredFields().isEmpty()) {
+				if (definedGroupType.getDeclaredFields() == null) {
 					for (final E declaration : findGroupFunc.find(groupUse)) {
 						generateProperty(classOutline, definedGroupType, declaration);
 					}
@@ -343,7 +343,7 @@ public class GroupInterfaceGenerator {
 						}
 					}
 				}
-				groupInterface.getDeclaredFields().add(implementedField);
+				groupInterface.addField(implementedField);
 			}
 		}
 		return implementedField;

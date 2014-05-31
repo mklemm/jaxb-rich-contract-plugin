@@ -35,9 +35,9 @@ import java.util.List;
  * @author mirko 2014-05-29
  */
 public class InterfaceOutline<T extends XSDeclaration> implements TypeOutline {
-	private InterfaceOutline superInterface = null;
+	private InterfaceOutline<T> superInterface = null;
 	private final JDefinedClass implClass;
-	private final List<FieldOutline> declaredFields = new ArrayList<FieldOutline>();
+	private List<FieldOutline> declaredFields = null;
 	private final T schemaComponent;
 	private final QName name;
 
@@ -50,6 +50,13 @@ public class InterfaceOutline<T extends XSDeclaration> implements TypeOutline {
 	@Override
 	public List<FieldOutline> getDeclaredFields() {
 		return this.declaredFields;
+	}
+
+	public void addField(final FieldOutline field) {
+		if(this.declaredFields == null) {
+			this.declaredFields = new ArrayList<FieldOutline>();
+		}
+		this.declaredFields.add(field);
 	}
 
 	@Override

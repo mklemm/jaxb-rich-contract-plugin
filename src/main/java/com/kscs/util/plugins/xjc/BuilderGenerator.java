@@ -329,7 +329,7 @@ public class BuilderGenerator {
 			final GroupInterfacePlugin groupInterfacePlugin = this.apiConstructs.findPlugin(GroupInterfacePlugin.class);
 			if (groupInterfacePlugin != null) {
 				for (final InterfaceOutline<?> interfaceOutline : groupInterfacePlugin.getGroupInterfacesForClass(this.apiConstructs, definedClassOutline.getClassOutline())) {
-					this.builderClass._implements(this.apiConstructs.codeModel.ref(interfaceOutline.getImplClass().name() + "." + ApiConstructs.BUILDER_INTERFACE_NAME).narrow(this.parentBuilderTypeParam));
+					this.builderClass._implements(PluginUtil.getInnerClass(interfaceOutline.getImplClass(), ApiConstructs.BUILDER_INTERFACE_NAME).narrow(this.parentBuilderTypeParam));
 				}
 			}
 		}
@@ -603,10 +603,14 @@ public class BuilderGenerator {
 			productParam = null;
 		}
 
-		for (final FieldOutline fieldOutline : this.classOutline.getDeclaredFields()) {
-			if(hasGetter(fieldOutline)) {
-				generateBuilderMember(fieldOutline, initBody, productParam);
+		if(this.classOutline.getDeclaredFields() != null) {
+			for (final FieldOutline fieldOutline : this.classOutline.getDeclaredFields()) {
+				if (PluginUtil.hasGetter(this.definedClass, fieldOutline)) {
+					generateBuilderMember(fieldOutline, initBody, productParam);
+				}
 			}
+		} else {
+			BuilderGenerator.LOGGER.warning("Interface " + this.classOutline.getImplClass().name() + " has no implementation.");
 		}
 
 		if (superClass != null) {
@@ -625,21 +629,11 @@ public class BuilderGenerator {
 
 	}
 
-	private boolean hasGetter(final FieldOutline fieldOutline) {
-		for(final JMethod method : this.definedClass.methods()) {
-			if((method.name().equals("get"+ fieldOutline.getPropertyInfo().getName(true))
-					|| method.name().equals("is"+ fieldOutline.getPropertyInfo().getName(true))) && method.params().isEmpty()) {
-				return true;
-			}
-		}
-		return false;
-	}
 
 	private void generateBuilderMemberOverrides(final TypeOutline superClass) {
 		final JDefinedClass definedSuperClass = superClass.getImplClass();
 		for (final FieldOutline superFieldOutline : superClass.getDeclaredFields()) {
-			final JFieldVar declaredSuperField = definedSuperClass.fields().get(superFieldOutline.getPropertyInfo().getName(false));
-			if (declaredSuperField == null || !PluginUtil.hasModifier(declaredSuperField.mods().getValue(), JMod.STATIC | JMod.FINAL)) {
+			if (PluginUtil.hasGetter(definedSuperClass, superFieldOutline)) {
 				final String superPropertyName = superFieldOutline.getPropertyInfo().getName(true);
 				generateBuilderMemberOverride(superFieldOutline, superFieldOutline, superPropertyName);
 			}
