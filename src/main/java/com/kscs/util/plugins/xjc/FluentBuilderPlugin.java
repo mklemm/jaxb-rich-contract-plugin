@@ -69,14 +69,14 @@ public class FluentBuilderPlugin extends Plugin {
 
 	@Override
 	public int parseArgument(final Options opt, final String[] args, final int i) throws BadCommandLineException, IOException {
-		PluginUtil.Arg<Boolean> arg = PluginUtil.parseBooleanArgument("generate-tools", this.generateTools, opt, args, i);
+		PluginUtil.Arg<Boolean> arg = PluginUtil.parseBooleanArgument("fluent-builder-generate-tools", this.generateTools, opt, args, i);
 		this.generateTools = arg.getValue();
 		if (arg.getArgsParsed() == 0) {
-			arg = PluginUtil.parseBooleanArgument("partial-clone", this.partialClone, opt, args, i);
+			arg = PluginUtil.parseBooleanArgument("fluent-builder-partial-clone", this.partialClone, opt, args, i);
 			this.partialClone = arg.getValue();
 		}
 		if (arg.getArgsParsed() == 0) {
-			arg = PluginUtil.parseBooleanArgument("narrow", this.narrow, opt, args, i);
+			arg = PluginUtil.parseBooleanArgument("fluent-builder-narrow", this.narrow, opt, args, i);
 			this.narrow = arg.getValue();
 		}
 		return arg.getArgsParsed();
