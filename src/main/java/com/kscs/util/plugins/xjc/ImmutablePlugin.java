@@ -60,7 +60,7 @@ public class ImmutablePlugin extends Plugin {
 				if(fieldOutline.getPropertyInfo().isCollection() && !((declaredField = PluginUtil.getDeclaredField(fieldOutline)).type().isArray())) {
 					final JClass elementType = ((JClass)declaredField.type()).getTypeParameters().get(0);
 					final JMethod oldGetter = definedClass.getMethod("get"+fieldOutline.getPropertyInfo().getName(true), new JType[0]);
-					final JFieldVar immutableField = definedClass.field(JMod.PRIVATE | JMod.TRANSIENT, declaredField.type(), getImmutableFieldName(declaredField), JExpr._null());
+					final JFieldVar immutableField = definedClass.field(JMod.PROTECTED | JMod.TRANSIENT, declaredField.type(), getImmutableFieldName(declaredField), JExpr._null());
 					definedClass.methods().remove(oldGetter);
 					final JMethod newGetter = definedClass.method(JMod.PUBLIC, oldGetter.type(), oldGetter.name());
 					final JConditional ifFieldNull = newGetter.body()._if(JExpr._this().ref(declaredField).eq(JExpr._null()));
