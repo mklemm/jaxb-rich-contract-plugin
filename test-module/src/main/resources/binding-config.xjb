@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jxb:bindings version="2.1"
+			  xmlns:jxb="http://java.sun.com/xml/ns/jaxb"
+			  xmlns:xs="http://www.w3.org/2001/XMLSchema"
+			  xmlns:test="http://www.kscs.com/jaxb2/contract/test"
+			  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+			  xmlns:xjc="http://java.sun.com/xml/ns/jaxb/xjc"
+			  xsi:schemaLocation="http://java.sun.com/xml/ns/jaxb http://java.sun.com/xml/ns/jaxb/bindingschema_2_1.xsd"
+			  xmlns:jcb="http://java.sun.com/xml/ns/jaxb">
+
+
+	<jcb:globalBindings fixedAttributeAsConstantProperty="true"/>
+
+	<jxb:bindings schemaLocation="jaxb2-plugin-test.xsd">
+		<jxb:bindings>
+		</jxb:bindings>
+		<jxb:bindings node="//xs:element[@name='phone']">
+			<jxb:property name="phoneNumber" />
+		</jxb:bindings>
+		<jxb:bindings node="//xs:element[@name='last-name']">
+			<jxb:property name="surname"/>
+		</jxb:bindings>
+	</jxb:bindings>
+</jxb:bindings>
