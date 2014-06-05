@@ -4,6 +4,9 @@ import com.kscs.jaxb2.contract.test.*;
 import org.junit.Assert;
 import org.junit.Test;
 
+import javax.xml.bind.JAXB;
+import java.io.File;
+
 /**
  * Test for the FluentBuilderPlugin
  */
@@ -93,6 +96,18 @@ public class FluentBuilderPluginTest {
 		Assert.assertNull(propertyPath.get("address").get("city").get("inhabitants").get("phoneNumber"));
 		Assert.assertNotNull(propertyPath.get("address").get("city").get("inhabitants").get("address"));
 		Assert.assertNotNull(propertyPath.get("address").get("city").get("inhabitants").get("address").get("street"));
+	}
+
+	@Test
+	public void testImmutable() {
+		final Tourist tourist = Tourist.builder().withAddress().withCity().withInhabitants(Worker.builder().withName("aa").withAddress().withStreet("wwww").end().withCompany("company").build()).withPostalCode("AAAA").withTown("Bonn").end().withStreet("Hermannstädter Str. 10").end().withDestination("Thailand").build();
+
+		JAXB.marshal(tourist, new File("target/tourist.xml"));
+
+		final Tourist unmmarshalledTourist = JAXB.unmarshal(new File("target/tourist.xml"), Tourist.class);
+
+		final BeanAssert beanAssert = new BeanAssert("com.kscs.jaxb2.contract.test");
+		beanAssert.assertPropertyEquality(tourist, unmmarshalledTourist);
 	}
 
 	@Test
