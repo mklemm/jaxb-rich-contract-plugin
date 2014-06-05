@@ -76,9 +76,12 @@ public class SelectorGenerator {
 			final JVar rootParam = constructor.param(JMod.FINAL, rootTypeParam, "root");
 			final JVar parentParam = constructor.param(JMod.FINAL, parentTypeParam, "parent");
 			final JVar propertyNameParam = constructor.param(JMod.FINAL, this.apiConstructs.stringClass, "propertyName");
-			final JVar includeParam = constructor.param(JMod.FINAL, getSelectorParamType(this.apiConstructs.codeModel.wildcard(), definedClass.wildcard()), this.selectorParamName);
-			constructor.body().invoke("super").arg(rootParam).arg(parentParam).arg(propertyNameParam).arg(includeParam);
-
+			if(this.selectorParamName != null) {
+				final JVar includeParam = constructor.param(JMod.FINAL, getSelectorParamType(this.apiConstructs.codeModel.wildcard(), definedClass.wildcard()), this.selectorParamName);
+				constructor.body().invoke("super").arg(rootParam).arg(parentParam).arg(propertyNameParam).arg(includeParam);
+			} else {
+				constructor.body().invoke("super").arg(rootParam).arg(parentParam).arg(propertyNameParam);
+			}
 			final JClass productMapType = this.apiConstructs.codeModel.ref(Map.class).narrow(String.class).narrow(this.propertyPathClass);
 			final JMethod buildChildrenMethod = selectorClass.method(JMod.PUBLIC, productMapType, "buildChildren");
 			buildChildrenMethod.annotate(Override.class);
@@ -92,12 +95,20 @@ public class SelectorGenerator {
 			final JDefinedClass rootSelectorClass = definedClass._class(JMod.PUBLIC | JMod.STATIC, this.rootSelectorClassName);
 			rootSelectorClass._extends(selectorClass.narrow(rootSelectorClass).narrow(Void.class));
 			final JMethod rootSelectorConstructor = rootSelectorClass.constructor(JMod.NONE);
-			final JVar rootSelectorClassIncludeParam = rootSelectorConstructor.param(JMod.FINAL, getSelectorParamType(this.apiConstructs.voidClass, definedClass), this.selectorParamName);
-			rootSelectorConstructor.body().invoke("super").arg(JExpr._null()).arg(JExpr._null()).arg(JExpr._null()).arg(rootSelectorClassIncludeParam);
+			if(this.selectorParamName != null) {
+				final JVar rootSelectorClassIncludeParam = rootSelectorConstructor.param(JMod.FINAL, getSelectorParamType(this.apiConstructs.voidClass, definedClass), this.selectorParamName);
+				rootSelectorConstructor.body().invoke("super").arg(JExpr._null()).arg(JExpr._null()).arg(JExpr._null()).arg(rootSelectorClassIncludeParam);
+			} else {
+				rootSelectorConstructor.body().invoke("super").arg(JExpr._null()).arg(JExpr._null()).arg(JExpr._null());
+			}
 
 			final JMethod rootMethod = rootSelectorClass.method(JMod.STATIC | JMod.PUBLIC, rootSelectorClass, "_root");
-			final JVar rootIncludeParam = rootMethod.param(JMod.FINAL, getSelectorParamType(this.apiConstructs.voidClass, definedClass), this.selectorParamName);
-			rootMethod.body()._return(JExpr._new(rootSelectorClass).arg(rootIncludeParam));
+			if(this.selectorParamName != null) {
+				final JVar rootIncludeParam = rootMethod.param(JMod.FINAL, getSelectorParamType(this.apiConstructs.voidClass, definedClass), this.selectorParamName);
+				rootMethod.body()._return(JExpr._new(rootSelectorClass).arg(rootIncludeParam));
+			} else {
+				rootMethod.body()._return(JExpr._new(rootSelectorClass));
+			}
 
 
 			return new MetaInfoOutline(this, classOutline, selectorClass, rootTypeParam, parentTypeParam, buildChildrenMethod, productMapVar);
@@ -146,6 +157,7 @@ class MetaInfoOutline {
 		this.rootTypeParam = rootTypeParam;
 		this.parentTypeParam = parentTypeParam;
 		this.buildChildrenMethod = buildChildrenMethod;
+		this.buildChildrenMethod.body().add(productMapVar.invoke("putAll").arg(JExpr._super().invoke(buildChildrenMethod)));
 		this.productMapVar = productMapVar;
 	}
 
@@ -166,10 +178,14 @@ class MetaInfoOutline {
 						returnType = this.selectorGenerator.getApiConstructs().codeModel.ref(this.selectorGenerator.selectorBaseClass).narrow(this.rootTypeParam).narrow(this.selectorClass.narrow(this.rootTypeParam).narrow(this.parentTypeParam));
 					}
 					final JFieldVar includeField = this.selectorClass.field(JMod.PRIVATE, returnType, definedField.name(), JExpr._null());
-					final JMethod includeMethod = this.selectorClass.method(JMod.PUBLIC, returnType, definedField.name());
-					final JVar includeParam = includeMethod.param(JMod.FINAL, this.selectorGenerator.getSelectorParamType(this.classOutline.implClass, elementType), this.selectorGenerator.selectorParamName);
 					final JFieldRef fieldRef = JExpr._this().ref(includeField);
-					includeMethod.body()._return(JOp.cond(fieldRef.eq(JExpr._null()), fieldRef.assign(JExpr._new(returnType).arg(JExpr._this().ref("_root")).arg(JExpr._this()).arg(JExpr.lit(definedField.name())).arg(includeParam)), fieldRef));
+					final JMethod includeMethod = this.selectorClass.method(JMod.PUBLIC, returnType, definedField.name());
+					if(this.selectorGenerator.selectorParamName != null) {
+						final JVar includeParam = includeMethod.param(JMod.FINAL, this.selectorGenerator.getSelectorParamType(this.classOutline.implClass, elementType), this.selectorGenerator.selectorParamName);
+						includeMethod.body()._return(JOp.cond(fieldRef.eq(JExpr._null()), fieldRef.assign(JExpr._new(returnType).arg(JExpr._this().ref("_root")).arg(JExpr._this()).arg(JExpr.lit(definedField.name())).arg(includeParam)), fieldRef));
+					} else {
+						includeMethod.body()._return(JOp.cond(fieldRef.eq(JExpr._null()), fieldRef.assign(JExpr._new(returnType).arg(JExpr._this().ref("_root")).arg(JExpr._this()).arg(JExpr.lit(definedField.name()))), fieldRef));
+					}
 
 					this.buildChildrenMethod.body()._if(fieldRef.ne(JExpr._null()))._then().add(this.productMapVar.invoke("put").arg(JExpr.lit(definedField.name())).arg(fieldRef.invoke("init")));
 				}

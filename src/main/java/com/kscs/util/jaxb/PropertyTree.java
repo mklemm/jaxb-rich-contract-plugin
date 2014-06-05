@@ -25,64 +25,52 @@
 package com.kscs.util.jaxb;
 
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
 /**
  * Represents a property path for use in the clone() method
  */
-public class PropertyPath {
-	private final Map<String, PropertyPath> children;
+public class PropertyTree {
+	private final Map<String, PropertyTree> children;
 	private final String propertyName;
-	private final boolean including;
 
 	public static final class Builder {
 		private final Map<String, Builder> children = new LinkedHashMap<String, Builder>();
 		private final Builder parent;
 		private final String propertyName;
-		private final boolean including;
 
-		public Builder(final boolean including) {
-			this(null, null, including);
+		public Builder() {
+			this(null, null);
 		}
 
-		private Builder(final Builder parent, final String propertyName, final boolean including) {
+		private Builder(final Builder parent, final String propertyName) {
 			this.parent = parent;
 			this.propertyName = propertyName;
-			this.including = including;
 		}
 
-		public Builder include(final String propertyName) {
+		public Builder with(final String propertyName) {
 			Builder child = this.children.get(propertyName);
 			if (child == null) {
-				child = new Builder(this, propertyName, true);
+				child = new Builder(this, propertyName);
 				this.children.put(propertyName, child);
 			}
 			return child;
 		}
 
-		public Builder exclude(final String propertyName) {
-			Builder child = this.children.get(propertyName);
-			if (child == null) {
-				child = new Builder(this, propertyName, false);
-				this.children.put(propertyName, child);
-			}
-			return child;
-		}
 
-		public PropertyPath build() {
+		public PropertyTree build() {
 			if (this.parent != null) {
 				return this.parent.build();
 			} else {
-				return new PropertyPath(this.propertyName, this.including, buildChildren());
+				return new PropertyTree(this.propertyName, buildChildren());
 			}
 		}
 
-		private Map<String, PropertyPath> buildChildren() {
-			final Map<String, PropertyPath> childProducts = new LinkedHashMap<String, PropertyPath>(this.children.size());
+		private Map<String, PropertyTree> buildChildren() {
+			final Map<String, PropertyTree> childProducts = new LinkedHashMap<String, PropertyTree>(this.children.size());
 			for (final Builder childBuilder : this.children.values()) {
-				final PropertyPath child = new PropertyPath(childBuilder.propertyName, childBuilder.including,childBuilder.buildChildren());
+				final PropertyTree child = new PropertyTree(childBuilder.propertyName, childBuilder.buildChildren());
 				childProducts.put(child.propertyName, child);
 			}
 			return Collections.unmodifiableMap(childProducts);
@@ -102,48 +90,21 @@ public class PropertyPath {
 		}
 	}
 
-	public static Builder includeAll() {
-		return new Builder(true);
+	public static Builder builder() {
+		return new Builder();
 	}
 
-	public static Builder excludeAll() {
-		return new Builder(false);
-	}
-
-	public PropertyPath(final String propertyName, final boolean including, final Map<String, PropertyPath> children) {
+	public PropertyTree(final String propertyName, final Map<String, PropertyTree> children) {
 		this.propertyName = propertyName;
-		this.including = including;
 		this.children = Collections.unmodifiableMap(children);
 	}
 
-	private PropertyPath( final String propertyName, final boolean including) {
-		this(propertyName, including, new HashMap<String, PropertyPath>());
+	public PropertyTree get(final String propertyName) {
+		return isLeaf() ? null : this.children.get(propertyName);
 	}
 
-	public PropertyPath get(final String propertyName) {
-		if (this.children == null || this.children.isEmpty()) {
-			return this;
-		} else {
-			final PropertyPath path = this.children.get(propertyName);
-			return path == null ? new PropertyPath( "*", this.including) : path;
-		}
-	}
-
-	public boolean includes() {
-		return this.including || isAnyChildIncluding();
-	}
-
-	private boolean isAnyChildIncluding() {
-		for(final PropertyPath child : this.children.values()) {
-			if(child.includes()) {
-				return true;
-			}
-		}
-		return false;
-	}
-
-	public boolean excludes() {
-		return !this.including;
+	public boolean isLeaf() {
+		return this.children == null || this.children.isEmpty();
 	}
 
 	public String propertyName() {

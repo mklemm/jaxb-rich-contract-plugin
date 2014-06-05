@@ -21,20 +21,36 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-
 package com.kscs.util.jaxb;
 
 /**
- * Defines the contract for a partially cloneable
- * object.
+ * @author mirko 2014-06-04
  */
-public interface PathCloneable<T extends PathCloneable<T>> {
+public interface PartialCloneable<T extends PartialCloneable<T>> {
 
 	/**
 	 * Clones this instances partially, the parts
-	 * will be defined by {@param path}
-	 * @param path Defines which parts of the object tree will be cloned
+	 * will be defined by {@param propertyTree}
+	 * @param propertyTree Defines which parts of the object tree will be cloned or excluded
+	 * @param propertyTreeUse Defines how the clone graph will be used: To include or to exclude properties.
 	 * @return A copy of the original object.
 	 */
-	T clone(final PropertyPath path);
+	T clone(final PropertyTree propertyTree, final PropertyTreeUse propertyTreeUse);
+
+	/**
+	 * Clones this instances partially, the parts
+	 * to be EXCLUDED will be defined by {@param propertyTree}
+	 * @param propertyTree Defines which parts of the object tree will be excluded
+	 * @return A copy of the original object.
+	 */
+	T cloneExcept(final PropertyTree propertyTree);
+
+	/**
+	 * Clones this instances partially, the parts
+	 * to be INCLUDED will be defined by {@param propertyTree},
+	 * all other parts will be excluded.
+	 * @param propertyTree Defines which parts of the object tree will be included in the clone
+	 * @return A copy of the original object.
+	 */
+	T cloneOnly(final PropertyTree propertyTree);
 }

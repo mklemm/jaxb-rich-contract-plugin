@@ -75,20 +75,20 @@ public class GroupInterfaceGenerator {
 		return null;
 	}
 
-	private static List<XSElementDecl> findElementDecls(final XSModelGroupDecl modelGroup) {
-		final List<XSElementDecl> elementDecls = new ArrayList<XSElementDecl>();
+	private static List<PropertyUse<XSElementDecl>> findElementDecls(final XSModelGroupDecl modelGroup) {
+		final List<PropertyUse<XSElementDecl>> elementDecls = new ArrayList<PropertyUse<XSElementDecl>>();
 		for (final XSParticle child : modelGroup.getModelGroup()) {
 			if (child.getTerm() instanceof XSElementDecl) {
-				elementDecls.add((XSElementDecl) child.getTerm());
+				elementDecls.add(new PropertyUse<XSElementDecl>((XSElementDecl) child.getTerm(), child.getAnnotation()));
 			}
 		}
 		return elementDecls;
 	}
 
-	private static List<XSAttributeDecl> findAttributeDecls(final XSAttGroupDecl attGroupDecl) {
-		final List<XSAttributeDecl> attributeDecls = new ArrayList<XSAttributeDecl>();
+	private static List<PropertyUse<XSAttributeDecl>> findAttributeDecls(final XSAttGroupDecl attGroupDecl) {
+		final List<PropertyUse<XSAttributeDecl>> attributeDecls = new ArrayList<PropertyUse<XSAttributeDecl>>();
 		for (final XSAttributeUse child : attGroupDecl.getDeclaredAttributeUses()) {
-			attributeDecls.add(child.getDecl());
+			attributeDecls.add(new PropertyUse<XSAttributeDecl>(child.getDecl(), child.getAnnotation()));
 		}
 		return attributeDecls;
 	}
@@ -141,21 +141,24 @@ public class GroupInterfaceGenerator {
 	}
 
 
-	private static String getPropertyName(final XSDeclaration declaration, final NameConverter conv) {
-		final XSAnnotation annotation = declaration.getAnnotation();
+	private static String getPropertyName(final PropertyUse<? extends XSDeclaration> propertyUse, final NameConverter conv) {
+		// First, look for propertyName annotation on attribute/element use, then on attribute/element declaration, if neither is set,
+		// use XSD name of element/attribute
+		return getAnnotatedPropertyName(propertyUse.annotation, getAnnotatedPropertyName(propertyUse.declaration.getAnnotation(), conv.toPropertyName(propertyUse.declaration.getName())));
+	}
+
+	private static String getAnnotatedPropertyName(final XSAnnotation annotation, final String defaultName) {
 		if (annotation != null && annotation.getAnnotation() != null && annotation.getAnnotation() instanceof BindInfo) {
-			GroupInterfaceGenerator.LOGGER.fine("Found binding info for " + declaration.getName());
 			final BindInfo bindInfo = (BindInfo) annotation.getAnnotation();
 			final BIProperty propertyBindingInfo = bindInfo.get(BIProperty.class);
 			if (propertyBindingInfo != null) {
-				final String specifiedPropertyName = propertyBindingInfo.getPropertyName(false);
-				return specifiedPropertyName == null ? conv.toPropertyName(declaration.getName()) : specifiedPropertyName;
+				return propertyBindingInfo.getPropertyName(false);
 			}
 		}
-		return conv.toPropertyName(declaration.getName());
+		return defaultName;
 	}
 
-	private static JMethod findGetter(final NameConverter conv, final ClassOutline classOutline, final XSDeclaration element) {
+	private static JMethod findGetter(final NameConverter conv, final ClassOutline classOutline, final PropertyUse<? extends XSDeclaration> element) {
 		final String propertyName = getPropertyName(element, conv);
 		String getterName = "get" + propertyName;
 		JMethod m = classOutline.implClass.getMethod(getterName, new JType[0]);
@@ -166,7 +169,7 @@ public class GroupInterfaceGenerator {
 		return m;
 	}
 
-	private static FieldOutline getFieldOutline(final NameConverter conv, final ClassOutline classOutline, final XSDeclaration element) {
+	private static FieldOutline getFieldOutline(final NameConverter conv, final ClassOutline classOutline, final PropertyUse<? extends XSDeclaration> element) {
 		final String propertyName = getPropertyName(element, conv);
 		for (final FieldOutline fieldOutline : classOutline.getDeclaredFields()) {
 			if (fieldOutline.getPropertyInfo().getName(true).equals(propertyName)) {
@@ -177,7 +180,7 @@ public class GroupInterfaceGenerator {
 	}
 
 
-	private static JMethod findSetter(final NameConverter conv, final ClassOutline classOutline, final XSDeclaration element) {
+	private static JMethod findSetter(final NameConverter conv, final ClassOutline classOutline, final PropertyUse<? extends XSDeclaration> element) {
 		final String propertyName = getPropertyName(element, conv);
 		final String setterName = "set" + propertyName;
 		for (final JMethod method : classOutline.implClass.methods()) {
@@ -234,16 +237,17 @@ public class GroupInterfaceGenerator {
 			final XSComponent xsTypeComponent = classOutline.target.getSchemaComponent();
 			final XSComplexType classComponent = getTypeDefinition(xsTypeComponent);
 			if (classComponent != null) {
-				generateProperties(attributeGroupInterfaces, classOutline, findAttributeGroups(classComponent), new Finder<XSAttributeDecl, XSAttGroupDecl>() {
+				generateProperties(attributeGroupInterfaces, classOutline, findAttributeGroups(classComponent), new Finder<PropertyUse<XSAttributeDecl>, XSAttGroupDecl>() {
 					@Override
-					public Collection<? extends XSAttributeDecl> find(final XSAttGroupDecl declaration) {
-						return findAttributeDecls(declaration);
+					public Collection<? extends PropertyUse<XSAttributeDecl>> find(final XSAttGroupDecl attributeGroup) {
+						return findAttributeDecls(attributeGroup);
 					}
+
 				});
 
-				generateProperties(modelGroupInterfaces, classOutline, findModelGroups(classComponent), new Finder<XSDeclaration, XSModelGroupDecl>() {
+				generateProperties(modelGroupInterfaces, classOutline, findModelGroups(classComponent), new Finder<PropertyUse<XSElementDecl>, XSModelGroupDecl>() {
 					@Override
-					public Collection<? extends XSDeclaration> find(final XSModelGroupDecl declaration) {
+					public Collection<? extends PropertyUse<XSElementDecl>> find(final XSModelGroupDecl declaration) {
 						return findElementDecls(declaration);
 					}
 				});
@@ -276,7 +280,7 @@ public class GroupInterfaceGenerator {
 
 	}
 
-	private <E extends XSDeclaration, G extends XSDeclaration> void generateProperties(final Map<QName, InterfaceOutline<G>> groupInterfaces, final ClassOutline classOutline, final Iterable<? extends G> groupUses, final Finder<E, G> findGroupFunc) {
+	private <E extends PropertyUse<? extends XSDeclaration>, G extends XSDeclaration> void generateProperties(final Map<QName, InterfaceOutline<G>> groupInterfaces, final ClassOutline classOutline, final Iterable<? extends G> groupUses, final Finder<E, G> findGroupFunc) {
 		for (final G groupUse : groupUses) {
 			final InterfaceOutline definedGroupType = groupInterfaces.get(getQName(groupUse));
 			if (definedGroupType != null) {
@@ -290,8 +294,8 @@ public class GroupInterfaceGenerator {
 				interfaceOutlines.add(definedGroupType);
 
 				if (definedGroupType.getDeclaredFields() == null) {
-					for (final E declaration : findGroupFunc.find(groupUse)) {
-						generateProperty(classOutline, definedGroupType, declaration);
+					for (final E propertyUse : findGroupFunc.find(groupUse)) {
+						generateProperty(classOutline, definedGroupType, propertyUse);
 					}
 				}
 			}
@@ -325,15 +329,15 @@ public class GroupInterfaceGenerator {
 		}
 	}
 
-	private <G extends XSDeclaration> FieldOutline generateProperty(final ClassOutline implementingClass, final InterfaceOutline<G> groupInterface, final XSDeclaration declaration) {
-		final FieldOutline implementedField = getFieldOutline(this.nameConverter, implementingClass, declaration);
+	private <G extends XSDeclaration> FieldOutline generateProperty(final ClassOutline implementingClass, final InterfaceOutline<G> groupInterface, final PropertyUse<? extends XSDeclaration> propertyUse) {
+		final FieldOutline implementedField = getFieldOutline(this.nameConverter, implementingClass, propertyUse);
 		if (implementedField != null) {
-			final JMethod implementedGetter = findGetter(this.nameConverter, implementingClass, declaration);
+			final JMethod implementedGetter = findGetter(this.nameConverter, implementingClass, propertyUse);
 			if(implementedGetter != null) {
 				final JMethod newGetter = groupInterface.getImplClass().method(JMod.NONE, implementedGetter.type(),
 						implementedGetter.name());
 				if (!this.immutable) {
-					final JMethod implementedSetter = findSetter(this.nameConverter, implementingClass, declaration);
+					final JMethod implementedSetter = findSetter(this.nameConverter, implementingClass, propertyUse);
 					if (implementedSetter != null) {
 						final JMethod newSetter = groupInterface.getImplClass().method(JMod.NONE, implementedSetter.type(),
 								implementedSetter.name());
@@ -352,6 +356,16 @@ public class GroupInterfaceGenerator {
 
 	private static interface Finder<R, P> {
 		Collection<? extends R> find(final P declaration);
+	}
+
+	private static class PropertyUse<D extends XSDeclaration> {
+		final D declaration;
+		final XSAnnotation annotation;
+
+		PropertyUse(final D declaration, final XSAnnotation annotation) {
+			this.declaration = declaration;
+			this.annotation = annotation;
+		}
 	}
 
 }

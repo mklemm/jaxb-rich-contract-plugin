@@ -38,21 +38,25 @@ public class Selector<TRoot extends Selector<TRoot, ?>, TParent> {
 	protected final boolean _include;
 
 	public Selector(final TRoot root, final TParent parent, final String propertyName, final boolean include) {
-		this._root = root == null ? (TRoot) this : root;
-		this._parent = parent;
-		this._propertyName = propertyName;
-		this._include = include;
+			this._root = root == null ? (TRoot) this : root;
+			this._parent = parent;
+			this._propertyName = propertyName;
+			this._include = include;
+	}
+
+	public Selector(final TRoot root, final TParent parent, final String propertyName) {
+		this(root, parent, propertyName, true);
 	}
 
 	/**
 	 * @deprecated This is only used by builders and other implementational details
 	 */
 	@Deprecated
-	public Map<String, PropertyPath> buildChildren() {
+	public Map<String, PropertyTree> buildChildren() {
 		return Collections.emptyMap();
 	}
 
-	public PropertyPath build() {
+	public PropertyTree build() {
 		return this._root.init();
 	}
 
@@ -60,7 +64,7 @@ public class Selector<TRoot extends Selector<TRoot, ?>, TParent> {
 	 * @deprecated This is only used by builders and other implementational details
 	 */
 	@Deprecated
-	public PropertyPath init() {
-		return new PropertyPath(this._propertyName, this._include, buildChildren());
+	public PropertyTree init() {
+		return new PropertyTree(this._propertyName, buildChildren());
 	}
 }

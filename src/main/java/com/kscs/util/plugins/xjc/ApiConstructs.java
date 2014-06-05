@@ -24,10 +24,7 @@
 
 package com.kscs.util.plugins.xjc;
 
-import com.kscs.util.jaxb.BuilderUtilities;
-import com.kscs.util.jaxb.PathCloneable;
-import com.kscs.util.jaxb.PropertyPath;
-import com.kscs.util.jaxb.TransformerPath;
+import com.kscs.util.jaxb.*;
 import com.sun.codemodel.*;
 import com.sun.tools.xjc.Options;
 import com.sun.tools.xjc.Plugin;
@@ -66,12 +63,15 @@ public class ApiConstructs {
 	final Outline outline;
 	final ErrorHandler errorHandler;
 	final Map<String, ClassOutline> classes;
-	final JClass pathCloneableInterface;
+	final JClass graphCloneableInterface;
 	final JClass builderUtilitiesClass;
-	final JClass propertyPathClass;
 	final JClass stringClass;
 	final JClass voidClass;
 	final JClass transformerPathClass;
+	final JClass cloneGraphClass;
+	final JExpression excludeConst;
+	final JExpression includeConst;
+
 
 	ApiConstructs(final Outline outline, final Options opt, final ErrorHandler errorHandler) {
 		this.outline = outline;
@@ -84,16 +84,18 @@ public class ApiConstructs {
 		this.collectionsClass = this.codeModel.ref(Collections.class);
 		this.arraysClass = this.codeModel.ref(Arrays.class);
 		this.cloneableInterface = this.codeModel.ref(Cloneable.class);
-		this.pathCloneableInterface = this.codeModel.ref(PathCloneable.class);
+		this.graphCloneableInterface = this.codeModel.ref(PartialCloneable.class);
 		this.classes = new HashMap<String, ClassOutline>(outline.getClasses().size());
 		this.builderUtilitiesClass = this.codeModel.ref(BuilderUtilities.class);
-		this.propertyPathClass = this.codeModel.ref(PropertyPath.class);
+		this.cloneGraphClass = this.codeModel.ref(PropertyTree.class);
 		this.transformerPathClass = this.codeModel.ref(TransformerPath.class);
 		this.stringClass = this.codeModel.ref(String.class);
 		this.voidClass = this.codeModel.ref(Void.class);
 		for(final ClassOutline classOutline : this.outline.getClasses()) {
 			this.classes.put(classOutline.implClass.fullName(), classOutline);
 		}
+		this.excludeConst = this.codeModel.ref(PropertyTreeUse.class).staticRef("EXCLUDE");
+		this.includeConst = this.codeModel.ref(PropertyTreeUse.class).staticRef("INCLUDE");
 	}
 
 	public JInvocation asList(final JExpression expression) {
