@@ -23,6 +23,7 @@
  */
 package com.kscs.util.plugins.xjc;
 
+import com.kscs.util.jaxb.Copyable;
 import com.sun.codemodel.*;
 import com.sun.tools.xjc.outline.ClassOutline;
 import com.sun.tools.xjc.outline.FieldOutline;
@@ -317,10 +318,7 @@ public class GroupInterfaceGenerator {
 			final JDefinedClass groupInterface = this.apiConstructs.outline.getClassFactory().createInterface(container, this.nameConverter.toClassName(modelGroup.getName()), modelGroup.getLocator());
 
 			if (this.needsCloneMethod) {
-				final JMethod cloneMethod = groupInterface.method(JMod.PUBLIC, this.apiConstructs.codeModel.ref(Object.class), "clone");
-				if (this.cloneMethodThrows) {
-					cloneMethod._throws(CloneNotSupportedException.class);
-				}
+				groupInterface._implements(Copyable.class);
 			}
 
 			return new InterfaceOutline<G>(modelGroup, groupInterface);

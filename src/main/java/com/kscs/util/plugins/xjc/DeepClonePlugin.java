@@ -114,6 +114,7 @@ public class DeepClonePlugin extends Plugin {
 
 		if (this.generateTransformer) {
 			if (this.generateTools) {
+				PluginUtil.writeSourceFile(getClass(), opt.targetDir, Copyable.class.getName());
 				PluginUtil.writeSourceFile(getClass(), opt.targetDir, PropertyTransformer.class.getName());
 				PluginUtil.writeSourceFile(getClass(), opt.targetDir, PropertyInfo.class.getName());
 				PluginUtil.writeSourceFile(getClass(), opt.targetDir, TransformerPath.class.getName());
@@ -136,6 +137,7 @@ public class DeepClonePlugin extends Plugin {
 
 		for (final ClassOutline classOutline : outline.getClasses()) {
 			classOutline.implClass._implements(Cloneable.class);
+			classOutline.implClass._implements(Copyable.class);
 			if(this.generateGraphCloneMethod) {
 				classOutline.implClass._implements(PartialCloneable.class);
 			}
@@ -144,6 +146,7 @@ public class DeepClonePlugin extends Plugin {
 		for (final ClassOutline classOutline : outline.getClasses()) {
 
 			generateCloneMethod(apiConstructs, classOutline);
+			generateCreateCopyMethod(apiConstructs, classOutline);
 			if (this.generateGraphCloneMethod) {
 				generateGraphCloneMethod(apiConstructs, classOutline);
 			}
@@ -157,6 +160,29 @@ public class DeepClonePlugin extends Plugin {
 		}
 		return true;
 
+	}
+
+	private void generateCreateCopyMethod(final ApiConstructs apiConstructs, final ClassOutline classOutline) {
+		final JDefinedClass definedClass = classOutline.implClass;
+		final boolean mustCatch = "java.lang.Object".equals(definedClass._extends().fullName()) || apiConstructs.cloneThrows(definedClass._extends(), this.throwCloneNotSupported) || mustCatch(apiConstructs, classOutline, new Predicate<JClass>() {
+			@Override
+			public boolean matches(final JClass arg) {
+				return apiConstructs.cloneThrows(arg, DeepClonePlugin.this.throwCloneNotSupported);
+			}
+		});
+
+		final JMethod createCopyMethod = definedClass.method(JMod.PUBLIC, definedClass, "createCopy");
+		createCopyMethod.annotate(Override.class);
+
+		if(this.throwCloneNotSupported && mustCatch) {
+			final JTryBlock tryBlock = createCopyMethod.body()._try();
+			tryBlock.body()._return(JExpr.invoke("clone"));
+			final JCatchBlock catchBlock = tryBlock._catch(apiConstructs.codeModel.ref(CloneNotSupportedException.class));
+			final JVar exceptionVar = catchBlock.param("cnse");
+			catchBlock.body()._throw(JExpr._new(apiConstructs.codeModel.ref(RuntimeException.class)).arg(exceptionVar));
+		} else {
+			createCopyMethod.body()._return(JExpr.invoke("clone"));
+		}
 	}
 
 	private void generateCloneMethod(final ApiConstructs apiConstructs, final ClassOutline classOutline) {

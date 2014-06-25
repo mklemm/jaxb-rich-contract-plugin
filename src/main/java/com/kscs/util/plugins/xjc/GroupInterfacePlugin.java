@@ -72,6 +72,8 @@ public class GroupInterfacePlugin extends Plugin {
 	public boolean run(final Outline outline, final Options opt, final ErrorHandler errorHandler)
 			throws SAXException {
 
+
+
 		if(this.generator == null) {
 			this.generator = new GroupInterfaceGenerator(new ApiConstructs(outline, opt, errorHandler), this.declareSetters, this.declareBuilderInterface);
 			this.generator.generateGroupInterfaceModel();
