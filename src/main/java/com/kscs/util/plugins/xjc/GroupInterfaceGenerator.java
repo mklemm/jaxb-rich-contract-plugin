@@ -317,7 +317,7 @@ public class GroupInterfaceGenerator {
 			final JDefinedClass groupInterface = this.apiConstructs.outline.getClassFactory().createInterface(container, this.nameConverter.toClassName(modelGroup.getName()), modelGroup.getLocator());
 
 			if (this.needsCloneMethod) {
-				final JMethod cloneMethod = groupInterface.method(JMod.PUBLIC, groupInterface, "clone");
+				final JMethod cloneMethod = groupInterface.method(JMod.PUBLIC, this.apiConstructs.codeModel.ref(Object.class), "clone");
 				if (this.cloneMethodThrows) {
 					cloneMethod._throws(CloneNotSupportedException.class);
 				}
