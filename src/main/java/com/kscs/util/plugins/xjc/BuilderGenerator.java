@@ -457,6 +457,11 @@ public class BuilderGenerator {
 							body.assign(newField, fieldRef);
 						}
 					}
+				} else {
+					final JPrimitiveType fieldType = (JPrimitiveType) field.type();
+					final JFieldRef newField = JExpr.ref(newObjectVar, field);
+					final JFieldRef fieldRef = otherParam.ref(field);
+					body.assign(newField, fieldRef);
 				}
 			}
 		}
