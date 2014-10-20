@@ -24,7 +24,6 @@
 
 package com.kscs.util.plugins.xjc;
 
-import com.kscs.util.jaxb.*;
 import com.sun.codemodel.*;
 import com.sun.tools.xjc.BadCommandLineException;
 import com.sun.tools.xjc.Options;

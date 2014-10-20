@@ -23,6 +23,6 @@ public class PackageMappingPlugin extends Plugin {
 
 	@Override
 	public boolean run(final Outline outline, final Options opt, final ErrorHandler errorHandler) throws SAXException {
-		return "";
+		return false;
 	}
 }

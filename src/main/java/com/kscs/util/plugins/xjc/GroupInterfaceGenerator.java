@@ -50,6 +50,7 @@ public class GroupInterfaceGenerator {
 	private final boolean immutable;
 	private final boolean cloneMethodThrows;
 	private final boolean needsCloneMethod;
+	private final boolean needsCopyMethod;
 	private final NameConverter nameConverter;
 	private final Map<String, List<InterfaceOutline<?>>> implementations = new HashMap<String, List<InterfaceOutline<?>>>();
 
@@ -60,10 +61,12 @@ public class GroupInterfaceGenerator {
 		final BoundPropertiesPlugin boundPropertiesPlugin = this.apiConstructs.findPlugin(BoundPropertiesPlugin.class);
 		this.throwsPropertyVetoException = boundPropertiesPlugin != null && boundPropertiesPlugin.isConstrained() && boundPropertiesPlugin.isSetterThrows();
 		final DeepClonePlugin deepClonePlugin = this.apiConstructs.findPlugin(DeepClonePlugin.class);
+		final DeepCopyPlugin deepCopyPlugin = this.apiConstructs.findPlugin(DeepCopyPlugin.class);
 		final FluentBuilderPlugin fluentBuilderPlugin = this.apiConstructs.findPlugin(FluentBuilderPlugin.class);
 		this.declareBuilderInterface = declareBuilderInterface && fluentBuilderPlugin != null;
 		this.needsCloneMethod = deepClonePlugin != null;
 		this.cloneMethodThrows = this.needsCloneMethod && deepClonePlugin.isThrowCloneNotSupported();
+		this.needsCopyMethod = deepCopyPlugin != null;
 		this.nameConverter = this.apiConstructs.outline.getModel().getNameConverter();
 	}
 
@@ -317,8 +320,13 @@ public class GroupInterfaceGenerator {
 
 			final JDefinedClass groupInterface = this.apiConstructs.outline.getClassFactory().createInterface(container, this.nameConverter.toClassName(modelGroup.getName()), modelGroup.getLocator());
 
-			if (this.needsCloneMethod) {
+			if (this.needsCopyMethod) {
 				groupInterface._implements(Copyable.class);
+			}
+
+			if (this.needsCloneMethod) {
+				groupInterface._implements(Cloneable.class);
+				groupInterface.method(JMod.NONE, Object.class, "clone");
 			}
 
 			return new InterfaceOutline<G>(modelGroup, groupInterface);

@@ -33,7 +33,7 @@ import java.util.Map;
 import java.util.logging.Logger;
 
 /**
- * @author mirko 2014-04-03
+ * Generates Property Tree builder structures
  */
 public class SelectorGenerator {
 

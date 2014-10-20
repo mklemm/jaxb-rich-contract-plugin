@@ -24,34 +24,8 @@
 
 package com.kscs.util.plugins.xjc;
 
-import java.io.IOException;
-import java.text.MessageFormat;
-import java.util.ResourceBundle;
-
-import com.kscs.util.jaxb.Copyable;
-import com.kscs.util.jaxb.PartialCopyable;
-import com.kscs.util.jaxb.PropertyInfo;
-import com.kscs.util.jaxb.PropertyTransformer;
-import com.kscs.util.jaxb.PropertyTree;
-import com.kscs.util.jaxb.PropertyTreeUse;
-import com.kscs.util.jaxb.Selector;
-import com.kscs.util.jaxb.Transformer;
-import com.kscs.util.jaxb.TransformerPath;
-import com.sun.codemodel.JBlock;
-import com.sun.codemodel.JCatchBlock;
-import com.sun.codemodel.JClass;
-import com.sun.codemodel.JDefinedClass;
-import com.sun.codemodel.JDocComment;
-import com.sun.codemodel.JExpr;
-import com.sun.codemodel.JExpression;
-import com.sun.codemodel.JFieldRef;
-import com.sun.codemodel.JFieldVar;
-import com.sun.codemodel.JForEach;
-import com.sun.codemodel.JInvocation;
-import com.sun.codemodel.JMethod;
-import com.sun.codemodel.JMod;
-import com.sun.codemodel.JTryBlock;
-import com.sun.codemodel.JVar;
+import com.kscs.util.jaxb.*;
+import com.sun.codemodel.*;
 import com.sun.tools.xjc.BadCommandLineException;
 import com.sun.tools.xjc.Options;
 import com.sun.tools.xjc.Plugin;
@@ -60,6 +34,10 @@ import com.sun.tools.xjc.outline.FieldOutline;
 import com.sun.tools.xjc.outline.Outline;
 import org.xml.sax.ErrorHandler;
 import org.xml.sax.SAXException;
+
+import java.io.IOException;
+import java.text.MessageFormat;
+import java.util.ResourceBundle;
 
 import static com.kscs.util.plugins.xjc.PluginUtil.nullSafe;
 
@@ -251,7 +229,7 @@ public class DeepCopyPlugin extends Plugin {
 				return (!apiConstructs.partialCopyableInterface.isAssignableFrom(fieldType)) && apiConstructs.cloneThrows(fieldType, false);
 			}
 		});
-		final JMethod cloneMethod = definedClass.method(JMod.PUBLIC, definedClass, apiConstructs.cloneMethod);
+		final JMethod cloneMethod = definedClass.method(JMod.PUBLIC, definedClass, apiConstructs.copyMethod);
 		final PartialCopyGenerator cloneGenerator = new PartialCopyGenerator(apiConstructs, cloneMethod);
 		cloneMethod.annotate(Override.class);
 
@@ -273,8 +251,15 @@ public class DeepCopyPlugin extends Plugin {
 		}
 		//JBlock currentBlock = body;
 		final JVar newObjectVar;
-		if (definedClass._extends() != null && apiConstructs.cloneableInterface.isAssignableFrom(definedClass._extends())) {
-			newObjectVar = body.decl(JMod.FINAL, definedClass, "newObject", JExpr.cast(definedClass, JExpr._super().invoke(apiConstructs.cloneMethod).arg(cloneGenerator.getPropertyTreeParam()).arg(cloneGenerator.getIncludeParam())));
+		final boolean superPartialCopyable = apiConstructs.partialCopyableInterface.isAssignableFrom(definedClass._extends());
+		final boolean superCopyable = apiConstructs.copyableInterface.isAssignableFrom(definedClass._extends());
+		final boolean superCloneable = apiConstructs.cloneableInterface.isAssignableFrom(definedClass._extends());
+		if (superPartialCopyable) {
+			newObjectVar = body.decl(JMod.FINAL, definedClass, "newObject", JExpr.cast(definedClass, JExpr._super().invoke(apiConstructs.copyMethod).arg(cloneGenerator.getPropertyTreeParam()).arg(cloneGenerator.getIncludeParam())));
+		} else if(superCopyable) {
+			newObjectVar = body.decl(JMod.FINAL, definedClass, "newObject", JExpr.cast(definedClass, JExpr._super().invoke(apiConstructs.copyMethod)));
+		} else if(superCloneable) {
+			newObjectVar = body.decl(JMod.FINAL, definedClass, "newObject", JExpr.cast(definedClass, JExpr._super().invoke(apiConstructs.cloneMethod)));
 		} else {
 			newObjectVar = body.decl(JMod.FINAL, definedClass, "newObject", null);
 			final JTryBlock newObjectTry = body._try();

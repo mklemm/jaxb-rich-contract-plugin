@@ -90,11 +90,11 @@ public class BoundPropertiesPlugin extends Plugin {
 				this.setterThrows = argSetterThrows;
 			}
 			return 1;
-		} else if (arg.startsWith("-generate-tools=")) {
+		} else if (arg.startsWith("-constrained-properties-generate-tools=")) {
 			final boolean argGenerateTools = isTrue(arg);
 			final boolean argNoGenerateTools = isFalse(arg);
 			if (!argGenerateTools && !argNoGenerateTools) {
-				throw new BadCommandLineException("-generate-tools" + BoundPropertiesPlugin.BOOLEAN_OPTION_ERROR_MSG);
+				throw new BadCommandLineException("-constrained-properties-generate-tools" + BoundPropertiesPlugin.BOOLEAN_OPTION_ERROR_MSG);
 			} else {
 				this.generateTools = argGenerateTools;
 			}
@@ -118,7 +118,7 @@ public class BoundPropertiesPlugin extends Plugin {
 				.addOption("constrained", this.constrained)
 				.addOption("bound", this.bound)
 				.addOption("setter-throws", this.setterThrows)
-				.addOption("generate-tools", this.generateTools)
+				.addOption("constrained-properties-generate-tools", this.generateTools)
 				.build();
 	}
 

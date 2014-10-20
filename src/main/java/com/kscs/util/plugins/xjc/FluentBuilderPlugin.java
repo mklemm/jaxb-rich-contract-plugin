@@ -24,10 +24,10 @@
 
 package com.kscs.util.plugins.xjc;
 
-import com.kscs.util.jaxb.*;
-import com.kscs.util.jaxb.PartialCopyable;
+import com.kscs.util.jaxb.BuilderUtilities;
 import com.kscs.util.jaxb.PropertyTree;
 import com.kscs.util.jaxb.PropertyTreeUse;
+import com.kscs.util.jaxb.Selector;
 import com.sun.codemodel.ClassType;
 import com.sun.codemodel.JClassAlreadyExistsException;
 import com.sun.codemodel.JDefinedClass;
@@ -53,7 +53,7 @@ import java.util.ResourceBundle;
 public class FluentBuilderPlugin extends Plugin {
 	private boolean generateTools = true;
 	private boolean narrow = true;
-	private boolean graphClone = true;
+	private boolean copyPartial = true;
 	private final ResourceBundle resources;
 
 
@@ -75,8 +75,8 @@ public class FluentBuilderPlugin extends Plugin {
 		PluginUtil.Arg<Boolean> arg = PluginUtil.parseBooleanArgument("fluent-builder-generate-tools", this.generateTools, opt, args, i);
 		this.generateTools = arg.getValue();
 		if (arg.getArgsParsed() == 0) {
-			arg = PluginUtil.parseBooleanArgument("fluent-builder-partial-clone", this.graphClone, opt, args, i);
-			this.graphClone = arg.getValue();
+			arg = PluginUtil.parseBooleanArgument("fluent-builder-copy-partial", this.copyPartial, opt, args, i);
+			this.copyPartial = arg.getValue();
 		}
 		if (arg.getArgsParsed() == 0) {
 			arg = PluginUtil.parseBooleanArgument("fluent-builder-narrow", this.narrow, opt, args, i);
@@ -87,7 +87,7 @@ public class FluentBuilderPlugin extends Plugin {
 
 	@Override
 	public String getUsage() {
-		final PluginUsageBuilder pluginUsageBuilder = new PluginUsageBuilder(this.resources, "usage").addMain("fluent-builder").addOption("fluent-builder-generate-tools", this.generateTools).addOption("fluent-builder-partial-clone", this.graphClone).addOption("fluent-builder-narrow", this.narrow);
+		final PluginUsageBuilder pluginUsageBuilder = new PluginUsageBuilder(this.resources, "usage").addMain("fluent-builder").addOption("fluent-builder-generate-tools", this.generateTools).addOption("fluent-builder-copy-partial", this.copyPartial).addOption("fluent-builder-narrow", this.narrow);
 
 		return pluginUsageBuilder.build();
 	}
@@ -101,10 +101,17 @@ public class FluentBuilderPlugin extends Plugin {
 
 		if (this.generateTools) {
 			PluginUtil.writeSourceFile(getClass(), opt.targetDir, BuilderUtilities.class.getName());
-			if(this.graphClone) {
+		}
+
+		if(this.copyPartial) {
+			if(this.generateTools) {
 				PluginUtil.writeSourceFile(getClass(), opt.targetDir, PropertyTreeUse.class.getName());
 				PluginUtil.writeSourceFile(getClass(), opt.targetDir, PropertyTree.class.getName());
-				PluginUtil.writeSourceFile(getClass(), opt.targetDir, PartialCopyable.class.getName());
+				PluginUtil.writeSourceFile(getClass(), opt.targetDir, Selector.class.getName());
+			}
+			if(apiConstructs.findPlugin(DeepCopyPlugin.class) == null) {
+				final SelectorGenerator selectorGenerator = new SelectorGenerator(apiConstructs, Selector.class, "Selector", "Select", null, null, apiConstructs.cloneGraphClass);
+							selectorGenerator.generateMetaFields();
 			}
 		}
 
@@ -120,7 +127,7 @@ public class FluentBuilderPlugin extends Plugin {
 
 
 		for (final BuilderOutline builderOutline : builderClasses.values()) {
-			final BuilderGenerator builderGenerator = new BuilderGenerator(apiConstructs, builderClasses, builderOutline, this.graphClone, this.narrow);
+			final BuilderGenerator builderGenerator = new BuilderGenerator(apiConstructs, builderClasses, builderOutline, this.copyPartial, this.narrow);
 			builderGenerator.buildProperties();
 		}
 		return true;

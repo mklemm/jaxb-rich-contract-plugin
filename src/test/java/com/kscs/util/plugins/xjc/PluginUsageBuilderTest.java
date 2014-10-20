@@ -26,7 +26,7 @@ package com.kscs.util.plugins.xjc;
 import org.junit.Test;
 
 /**
- * @author mirko 2014-04-03
+ * Test usage output
  */
 public class PluginUsageBuilderTest {
 	@Test
@@ -50,6 +50,12 @@ public class PluginUsageBuilderTest {
 	@Test
 	public void testPluginUsageDeepClone() {
 		final DeepClonePlugin plugin = new DeepClonePlugin();
+		System.out.println(plugin.getUsage());
+	}
+
+	@Test
+	public void testPluginUsageDeepCopy() {
+		final DeepCopyPlugin plugin = new DeepCopyPlugin();
 		System.out.println(plugin.getUsage());
 	}
 

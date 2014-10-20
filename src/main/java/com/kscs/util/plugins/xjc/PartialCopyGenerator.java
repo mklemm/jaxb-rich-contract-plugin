@@ -106,6 +106,50 @@ public class PartialCopyGenerator {
 		}
 	}
 
+	public void generateTransformingFieldAssignment(final JBlock body, final JFieldVar field, final JExpression targetInstanceVar, final JExpression sourceInstanceVar) {
+		final JFieldRef newField = targetInstanceVar.ref(field);
+		final JFieldRef fieldRef = sourceInstanceVar.ref(field);
+
+		final JVar fieldPathVar = generatePropertyTreeVarDeclaration(body, field);
+		final JExpression includeCondition = getIncludeCondition(fieldPathVar);
+		final JConditional ifHasClonePath = body._if(includeCondition);
+		final JBlock currentBlock = ifHasClonePath._then();
+		if (field.type().isReference()) {
+			final JClass fieldType = (JClass) field.type();
+			if (this.apiConstructs.collectionClass.isAssignableFrom(fieldType)) {
+				final JClass elementType = fieldType.getTypeParameters().get(0);
+				if (this.apiConstructs.partialCopyableInterface.isAssignableFrom(elementType)) {
+					final JForEach forLoop = this.apiConstructs.loop(currentBlock, fieldRef, elementType, newField, elementType);
+					forLoop.body().invoke(newField, "add").arg(nullSafe(forLoop.var(), this.apiConstructs.castOnDemand(elementType, forLoop.var().invoke(this.apiConstructs.copyMethod).arg(fieldPathVar).arg(this.includeParam))));
+				} else if (this.apiConstructs.copyableInterface.isAssignableFrom(elementType)) {
+					final JForEach forLoop = this.apiConstructs.loop(currentBlock, fieldRef, elementType, newField, elementType);
+					forLoop.body().invoke(newField, "add").arg(nullSafe(forLoop.var(), this.apiConstructs.castOnDemand(elementType, forLoop.var().invoke(this.apiConstructs.copyMethod))));
+				} else if (this.apiConstructs.cloneableInterface.isAssignableFrom(elementType)) {
+					final JForEach forLoop = this.apiConstructs.loop(currentBlock, fieldRef, elementType, newField, elementType);
+					forLoop.body().invoke(newField, "add").arg(nullSafe(forLoop.var(), this.apiConstructs.castOnDemand(elementType, forLoop.var().invoke(this.apiConstructs.cloneMethod))));
+				} else {
+					currentBlock.assign(newField, nullSafe(fieldRef, this.apiConstructs.newArrayList(elementType).arg(fieldRef)));
+				}
+
+				final ImmutablePlugin immutablePlugin = this.apiConstructs.findPlugin(ImmutablePlugin.class);
+				if (immutablePlugin != null) {
+					immutablePlugin.immutableInit(this.apiConstructs, body, targetInstanceVar, field);
+				}
+
+			} else if (this.apiConstructs.partialCopyableInterface.isAssignableFrom(fieldType)) {
+				currentBlock.assign(newField, nullSafe(fieldRef, this.apiConstructs.castOnDemand(fieldType, fieldRef.invoke(this.apiConstructs.copyMethod).arg(fieldPathVar).arg(this.includeParam))));
+			} else if (this.apiConstructs.copyableInterface.isAssignableFrom(fieldType)) {
+				currentBlock.assign(newField, nullSafe(fieldRef, this.apiConstructs.castOnDemand(fieldType, fieldRef.invoke(this.apiConstructs.copyMethod))));
+			} else if (this.apiConstructs.cloneableInterface.isAssignableFrom(fieldType)) {
+				currentBlock.assign(newField, nullSafe(fieldRef, this.apiConstructs.castOnDemand(fieldType, fieldRef.invoke(this.apiConstructs.cloneMethod))));
+			} else {
+				currentBlock.assign(newField, fieldRef);
+			}
+		} else {
+			currentBlock.assign(newField, fieldRef);
+		}
+	}
+
 	JExpression getIncludeCondition(final JVar fieldPathVar) {
 		return JOp.cond(
 				this.includeParam.eq(this.apiConstructs.includeConst),
@@ -113,6 +157,8 @@ public class PartialCopyGenerator {
 				fieldPathVar.eq(JExpr._null()).cor(fieldPathVar.invoke("isLeaf").not())
 		);
 	}
+
+
 
 	JVar generatePropertyTreeVarDeclaration(final JBlock body, final JFieldVar field) {
 		return body.decl(JMod.FINAL, this.apiConstructs.codeModel._ref(PropertyTree.class), field.name() + "PropertyTree", JOp.cond(this.propertyTreeParam.eq(JExpr._null()), JExpr._null(), this.propertyTreeParam.invoke("get").arg(JExpr.lit(field.name()))));
