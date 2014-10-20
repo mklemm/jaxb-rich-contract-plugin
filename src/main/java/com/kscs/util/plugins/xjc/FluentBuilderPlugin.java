@@ -25,7 +25,7 @@
 package com.kscs.util.plugins.xjc;
 
 import com.kscs.util.jaxb.*;
-import com.kscs.util.jaxb.PartialCloneable;
+import com.kscs.util.jaxb.PartialCopyable;
 import com.kscs.util.jaxb.PropertyTree;
 import com.kscs.util.jaxb.PropertyTreeUse;
 import com.sun.codemodel.ClassType;
@@ -87,7 +87,7 @@ public class FluentBuilderPlugin extends Plugin {
 
 	@Override
 	public String getUsage() {
-		final PluginUsageBuilder pluginUsageBuilder = new PluginUsageBuilder(this.resources, "usage").addMain("fluent-builder").addOption("generate-tools", this.generateTools).addOption("partial-clone", this.graphClone).addOption("narrow", this.narrow);
+		final PluginUsageBuilder pluginUsageBuilder = new PluginUsageBuilder(this.resources, "usage").addMain("fluent-builder").addOption("fluent-builder-generate-tools", this.generateTools).addOption("fluent-builder-partial-clone", this.graphClone).addOption("fluent-builder-narrow", this.narrow);
 
 		return pluginUsageBuilder.build();
 	}
@@ -104,7 +104,7 @@ public class FluentBuilderPlugin extends Plugin {
 			if(this.graphClone) {
 				PluginUtil.writeSourceFile(getClass(), opt.targetDir, PropertyTreeUse.class.getName());
 				PluginUtil.writeSourceFile(getClass(), opt.targetDir, PropertyTree.class.getName());
-				PluginUtil.writeSourceFile(getClass(), opt.targetDir, PartialCloneable.class.getName());
+				PluginUtil.writeSourceFile(getClass(), opt.targetDir, PartialCopyable.class.getName());
 			}
 		}
 

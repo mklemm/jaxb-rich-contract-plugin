@@ -24,9 +24,11 @@
 package com.kscs.util.jaxb;
 
 /**
- * @author mirko 2014-06-04
+ * Contract for objects that can be copied partially,
+ * i.e. by explicitly excluding or including specified
+ * branches of the object tree.
  */
-public interface PartialCloneable<T extends PartialCloneable<T>> {
+public interface PartialCopyable<T extends PartialCopyable<T>> {
 
 	/**
 	 * Clones this instances partially, the parts
@@ -35,7 +37,7 @@ public interface PartialCloneable<T extends PartialCloneable<T>> {
 	 * @param propertyTreeUse Defines how the clone graph will be used: To include or to exclude properties.
 	 * @return A copy of the original object.
 	 */
-	T clone(final PropertyTree propertyTree, final PropertyTreeUse propertyTreeUse);
+	T createCopy(final PropertyTree propertyTree, final PropertyTreeUse propertyTreeUse);
 
 	/**
 	 * Clones this instances partially, the parts
@@ -43,7 +45,7 @@ public interface PartialCloneable<T extends PartialCloneable<T>> {
 	 * @param propertyTree Defines which parts of the object tree will be excluded
 	 * @return A copy of the original object.
 	 */
-	T cloneExcept(final PropertyTree propertyTree);
+	T copyExcept(final PropertyTree propertyTree);
 
 	/**
 	 * Clones this instances partially, the parts
@@ -52,5 +54,5 @@ public interface PartialCloneable<T extends PartialCloneable<T>> {
 	 * @param propertyTree Defines which parts of the object tree will be included in the clone
 	 * @return A copy of the original object.
 	 */
-	T cloneOnly(final PropertyTree propertyTree);
+	T copyOnly(final PropertyTree propertyTree);
 }

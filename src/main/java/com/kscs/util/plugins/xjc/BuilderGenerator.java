@@ -41,6 +41,7 @@ import static com.kscs.util.plugins.xjc.PluginUtil.nullSafe;
  */
 public class BuilderGenerator {
 	private static final Logger LOGGER = Logger.getLogger(BuilderGenerator.class.getName());
+	public static final String ITEM_VAR_NAME = "_item";
 	protected final ApiConstructs apiConstructs;
 	protected final JDefinedClass definedClass;
 	protected final JDefinedClass builderClass;
@@ -212,7 +213,7 @@ public class BuilderGenerator {
 
 				final JConditional addListIfNull = addListMethod.body()._if(JExpr._this().ref(builderField).eq(JExpr._null()));
 				addListIfNull._then().assign(JExpr._this().ref(builderField), JExpr._new(builderArrayListClass));
-				final JForEach addListForEach = addListMethod.body().forEach(elementType, "item", addListParam);
+				final JForEach addListForEach = addListMethod.body().forEach(elementType, BuilderGenerator.ITEM_VAR_NAME, addListParam);
 				addListForEach.body().add(JExpr._this().ref(builderField).invoke("add").arg(JExpr._new(builderFieldElementType).arg(JExpr._this()).arg(addListForEach.var()).arg(JExpr.FALSE)));
 				addListMethod.body()._return(JExpr._this());
 
@@ -222,7 +223,7 @@ public class BuilderGenerator {
 
 				final JConditional ifNull = initBody._if(JExpr._this().ref(builderField).ne(JExpr._null()));
 				collectionVar = ifNull._then().decl(JMod.FINAL, this.apiConstructs.listClass.narrow(elementType), fieldName, JExpr._new(this.apiConstructs.arrayListClass.narrow(elementType)).arg(JExpr._this().ref(builderField).invoke("size")));
-				final JForEach initForEach = ifNull._then().forEach(builderFieldElementType, "item", JExpr._this().ref(builderField));
+				final JForEach initForEach = ifNull._then().forEach(builderFieldElementType, ITEM_VAR_NAME, JExpr._this().ref(builderField));
 				initForEach.body().add(collectionVar.invoke("add").arg(initForEach.var().invoke(ApiConstructs.BUILD_METHOD_NAME)));
 				ifNull._then().assign(productParam.ref(fieldName), collectionVar);
 			}
@@ -487,7 +488,7 @@ public class BuilderGenerator {
 		final JVar parentBuilderParam = constructor.param(JMod.FINAL, this.parentBuilderTypeParam, "parentBuilder");
 		final JVar otherParam = constructor.param(JMod.FINAL, this.classOutline.getImplClass(), "other");
 		final JVar copyParam = constructor.param(JMod.FINAL, this.apiConstructs.codeModel.BOOLEAN, "copy");
-		final GraphCloneGenerator cloneGenerator = new GraphCloneGenerator(this.apiConstructs, constructor);
+		final PartialCopyGenerator cloneGenerator = new PartialCopyGenerator(this.apiConstructs, constructor);
 
 		if (this.classOutline.getSuperClass() != null) {
 			constructor.body().invoke("super").arg(parentBuilderParam).arg(otherParam).arg(copyParam);
@@ -509,7 +510,7 @@ public class BuilderGenerator {
 		final boolean mustCatch = mustCatch(this.apiConstructs, this.classOutline, new Predicate<JClass>() {
 			@Override
 			public boolean matches(final JClass fieldType) {
-				return (!BuilderGenerator.this.apiConstructs.canInstantiate(fieldType)) && (!BuilderGenerator.this.apiConstructs.graphCloneableInterface.isAssignableFrom(fieldType)) && BuilderGenerator.this.apiConstructs.cloneThrows(fieldType, false);
+				return (!BuilderGenerator.this.apiConstructs.canInstantiate(fieldType)) && (!BuilderGenerator.this.apiConstructs.partialCopyableInterface.isAssignableFrom(fieldType)) && BuilderGenerator.this.apiConstructs.cloneThrows(fieldType, false);
 			}
 		});
 
@@ -544,7 +545,7 @@ public class BuilderGenerator {
 								final JClass childBuilderType = childBuilderOutline.getDefinedBuilderClass().narrow(this.builderType);
 								final JForEach forLoop = loop(currentBlock, fieldRef, elementType, newField, childBuilderType);
 								forLoop.body().invoke(newField, "add").arg(nullSafe(forLoop.var(), generateRuntimeTypeExpression(childBuilderType, forLoop.var(), fieldPathVar)));
-							} else if (this.apiConstructs.graphCloneableInterface.isAssignableFrom(elementType)) {
+							} else if (this.apiConstructs.partialCopyableInterface.isAssignableFrom(elementType)) {
 								final JForEach forLoop = loop(currentBlock, fieldRef, elementType, newField, elementType);
 								forLoop.body().invoke(newField, "add").arg(nullSafe(forLoop.var(), this.apiConstructs.castOnDemand(elementType, forLoop.var().invoke("clone").arg(fieldPathVar).arg(cloneGenerator.getIncludeParam()))));
 							} else if (this.apiConstructs.cloneableInterface.isAssignableFrom(elementType)) {
@@ -562,7 +563,7 @@ public class BuilderGenerator {
 							} else if (childBuilderOutline != null) {
 								final JClass childBuilderType = childBuilderOutline.getDefinedBuilderClass().narrow(this.builderType);
 								currentBlock.assign(newField, nullSafe(fieldRef, generateRuntimeTypeExpression(childBuilderType, fieldRef, fieldPathVar)));
-							} else if (this.apiConstructs.graphCloneableInterface.isAssignableFrom(fieldType)) {
+							} else if (this.apiConstructs.partialCopyableInterface.isAssignableFrom(fieldType)) {
 								currentBlock.assign(newField, nullSafe(fieldRef, this.apiConstructs.castOnDemand(fieldType, fieldRef.invoke("clone").arg(fieldPathVar).arg(cloneGenerator.getIncludeParam()))));
 							} else if (this.apiConstructs.cloneableInterface.isAssignableFrom(fieldType)) {
 								currentBlock.assign(newField, nullSafe(fieldRef, this.apiConstructs.castOnDemand(fieldType, fieldRef.invoke("clone"))));
@@ -686,7 +687,7 @@ public class BuilderGenerator {
 		final JConditional ifNull = block._if(source.eq(JExpr._null()));
 		ifNull._then().assign(target, JExpr._null());
 		ifNull._else().assign(target, JExpr._new(this.apiConstructs.arrayListClass.narrow(targetElementType)));
-		return ifNull._else().forEach(sourceElementType, "item", source);
+		return ifNull._else().forEach(sourceElementType, BuilderGenerator.ITEM_VAR_NAME, source);
 	}
 
 	private static interface Predicate<T> {

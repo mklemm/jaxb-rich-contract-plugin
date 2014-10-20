@@ -51,6 +51,11 @@ public class ApiConstructs {
 	public static final String UNMODIFIABLE_LIST = "unmodifiableList";
 	public static final String ADD_ALL = "addAll";
 	public static final String GET_BUILDER = "getBuilder";
+	public static final String CLONE_METHOD_NAME = "clone";
+	public static final String COPY_METHOD_NAME = "createCopy";
+	public static final String COPY_EXCEPT_METHOD_NAME = "copyExcept";
+	public static final String COPY_ONLY_METHOD_NAME = "copyOnly";
+
 
 	final JCodeModel codeModel;
 	final JClass arrayListClass;
@@ -63,7 +68,8 @@ public class ApiConstructs {
 	final Outline outline;
 	final ErrorHandler errorHandler;
 	final Map<String, ClassOutline> classes;
-	final JClass graphCloneableInterface;
+	final JClass partialCopyableInterface;
+	final JClass copyableInterface;
 	final JClass builderUtilitiesClass;
 	final JClass stringClass;
 	final JClass voidClass;
@@ -71,6 +77,10 @@ public class ApiConstructs {
 	final JClass cloneGraphClass;
 	final JExpression excludeConst;
 	final JExpression includeConst;
+	final String cloneMethod;
+	final String copyMethod;
+	final String copyExceptMethod;
+	final String copyOnlyMethod;
 
 
 	ApiConstructs(final Outline outline, final Options opt, final ErrorHandler errorHandler) {
@@ -84,7 +94,8 @@ public class ApiConstructs {
 		this.collectionsClass = this.codeModel.ref(Collections.class);
 		this.arraysClass = this.codeModel.ref(Arrays.class);
 		this.cloneableInterface = this.codeModel.ref(Cloneable.class);
-		this.graphCloneableInterface = this.codeModel.ref(PartialCloneable.class);
+		this.partialCopyableInterface = this.codeModel.ref(PartialCopyable.class);
+		this.copyableInterface = this.codeModel.ref(Copyable.class);
 		this.classes = new HashMap<String, ClassOutline>(outline.getClasses().size());
 		this.builderUtilitiesClass = this.codeModel.ref(BuilderUtilities.class);
 		this.cloneGraphClass = this.codeModel.ref(PropertyTree.class);
@@ -96,6 +107,10 @@ public class ApiConstructs {
 		}
 		this.excludeConst = this.codeModel.ref(PropertyTreeUse.class).staticRef("EXCLUDE");
 		this.includeConst = this.codeModel.ref(PropertyTreeUse.class).staticRef("INCLUDE");
+		this.cloneMethod = CLONE_METHOD_NAME;
+		this.copyMethod = COPY_METHOD_NAME;
+		this.copyExceptMethod = COPY_EXCEPT_METHOD_NAME;
+		this.copyOnlyMethod = COPY_ONLY_METHOD_NAME;
 	}
 
 	public JInvocation asList(final JExpression expression) {

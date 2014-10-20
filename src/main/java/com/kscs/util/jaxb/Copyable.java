@@ -24,8 +24,11 @@
 package com.kscs.util.jaxb;
 
 /**
- * @author mirko 2014-06-25
+ * Contract for objects that can be copied,
+ * similar to the "Object.clone()" contract,
+ * but only available on objects explicitly implementing
+ * this interface.
  */
-public interface Copyable {
-	Object createCopy();
+public interface Copyable<T extends Copyable<T>> {
+	T createCopy();
 }

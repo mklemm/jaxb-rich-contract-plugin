@@ -32,17 +32,17 @@ import static com.kscs.util.plugins.xjc.PluginUtil.nullSafe;
 /**
  * @author mirko 2014-06-04
  */
-public class GraphCloneGenerator {
+public class PartialCopyGenerator {
 	private final ApiConstructs apiConstructs;
 	private final JVar includeParam;
-	private final JVar cloneGraphParam;
-	private final JMethod cloneMethod;
+	private final JVar propertyTreeParam;
+	private final JMethod copyMethod;
 
-	public GraphCloneGenerator(final ApiConstructs apiConstructs, final JMethod cloneMethod) {
+	public PartialCopyGenerator(final ApiConstructs apiConstructs, final JMethod copyMethod) {
 		this.apiConstructs = apiConstructs;
-		this.cloneMethod = cloneMethod;
-		this.cloneGraphParam = cloneMethod.param(JMod.FINAL, PropertyTree.class, "propertyTree");
-		this.includeParam = cloneMethod.param(JMod.FINAL, PropertyTreeUse.class, "treeUse");
+		this.copyMethod = copyMethod;
+		this.propertyTreeParam = copyMethod.param(JMod.FINAL, PropertyTree.class, "propertyTree");
+		this.includeParam = copyMethod.param(JMod.FINAL, PropertyTreeUse.class, "treeUse");
 	}
 
 	public ApiConstructs getApiConstructs() {
@@ -53,12 +53,12 @@ public class GraphCloneGenerator {
 		return this.includeParam;
 	}
 
-	public JVar getCloneGraphParam() {
-		return this.cloneGraphParam;
+	public JVar getPropertyTreeParam() {
+		return this.propertyTreeParam;
 	}
 
-	public JMethod getCloneMethod() {
-		return this.cloneMethod;
+	public JMethod getCopyMethod() {
+		return this.copyMethod;
 	}
 
 
@@ -74,12 +74,15 @@ public class GraphCloneGenerator {
 			final JClass fieldType = (JClass) field.type();
 			if (this.apiConstructs.collectionClass.isAssignableFrom(fieldType)) {
 				final JClass elementType = fieldType.getTypeParameters().get(0);
-				if (this.apiConstructs.graphCloneableInterface.isAssignableFrom(elementType)) {
+				if (this.apiConstructs.partialCopyableInterface.isAssignableFrom(elementType)) {
 					final JForEach forLoop = this.apiConstructs.loop(currentBlock, fieldRef, elementType, newField, elementType);
-					forLoop.body().invoke(newField, "add").arg(nullSafe(forLoop.var(), this.apiConstructs.castOnDemand(elementType, forLoop.var().invoke("clone").arg(fieldPathVar).arg(this.includeParam))));
+					forLoop.body().invoke(newField, "add").arg(nullSafe(forLoop.var(), this.apiConstructs.castOnDemand(elementType, forLoop.var().invoke(this.apiConstructs.copyMethod).arg(fieldPathVar).arg(this.includeParam))));
+				} else if (this.apiConstructs.copyableInterface.isAssignableFrom(elementType)) {
+					final JForEach forLoop = this.apiConstructs.loop(currentBlock, fieldRef, elementType, newField, elementType);
+					forLoop.body().invoke(newField, "add").arg(nullSafe(forLoop.var(), this.apiConstructs.castOnDemand(elementType, forLoop.var().invoke(this.apiConstructs.copyMethod))));
 				} else if (this.apiConstructs.cloneableInterface.isAssignableFrom(elementType)) {
 					final JForEach forLoop = this.apiConstructs.loop(currentBlock, fieldRef, elementType, newField, elementType);
-					forLoop.body().invoke(newField, "add").arg(nullSafe(forLoop.var(), this.apiConstructs.castOnDemand(elementType, forLoop.var().invoke("clone"))));
+					forLoop.body().invoke(newField, "add").arg(nullSafe(forLoop.var(), this.apiConstructs.castOnDemand(elementType, forLoop.var().invoke(this.apiConstructs.cloneMethod))));
 				} else {
 					currentBlock.assign(newField, nullSafe(fieldRef, this.apiConstructs.newArrayList(elementType).arg(fieldRef)));
 				}
@@ -89,10 +92,12 @@ public class GraphCloneGenerator {
 					immutablePlugin.immutableInit(this.apiConstructs, body, targetInstanceVar, field);
 				}
 
-			} else if (this.apiConstructs.graphCloneableInterface.isAssignableFrom(fieldType)) {
-				currentBlock.assign(newField, nullSafe(fieldRef, this.apiConstructs.castOnDemand(fieldType, fieldRef.invoke("clone").arg(fieldPathVar).arg(this.includeParam))));
+			} else if (this.apiConstructs.partialCopyableInterface.isAssignableFrom(fieldType)) {
+				currentBlock.assign(newField, nullSafe(fieldRef, this.apiConstructs.castOnDemand(fieldType, fieldRef.invoke(this.apiConstructs.copyMethod).arg(fieldPathVar).arg(this.includeParam))));
+			} else if (this.apiConstructs.copyableInterface.isAssignableFrom(fieldType)) {
+				currentBlock.assign(newField, nullSafe(fieldRef, this.apiConstructs.castOnDemand(fieldType, fieldRef.invoke(this.apiConstructs.copyMethod))));
 			} else if (this.apiConstructs.cloneableInterface.isAssignableFrom(fieldType)) {
-				currentBlock.assign(newField, nullSafe(fieldRef, this.apiConstructs.castOnDemand(fieldType, fieldRef.invoke("clone"))));
+				currentBlock.assign(newField, nullSafe(fieldRef, this.apiConstructs.castOnDemand(fieldType, fieldRef.invoke(this.apiConstructs.cloneMethod))));
 			} else {
 				currentBlock.assign(newField, fieldRef);
 			}
@@ -110,6 +115,6 @@ public class GraphCloneGenerator {
 	}
 
 	JVar generatePropertyTreeVarDeclaration(final JBlock body, final JFieldVar field) {
-		return body.decl(JMod.FINAL, this.apiConstructs.codeModel._ref(PropertyTree.class), field.name() + "PropertyTree", JOp.cond(this.cloneGraphParam.eq(JExpr._null()), JExpr._null(), this.cloneGraphParam.invoke("get").arg(JExpr.lit(field.name()))));
+		return body.decl(JMod.FINAL, this.apiConstructs.codeModel._ref(PropertyTree.class), field.name() + "PropertyTree", JOp.cond(this.propertyTreeParam.eq(JExpr._null()), JExpr._null(), this.propertyTreeParam.invoke("get").arg(JExpr.lit(field.name()))));
 	}
 }
