@@ -41,6 +41,7 @@ import java.util.Set;
  */
 public final class PluginUtil {
 	public static final String BOOLEAN_OPTION_ERROR_MSG = " option must be either (\"true\",\"on\",\"y\",\"yes\") or (\"false\", \"off\", \"n\",\"no\").";
+	public static final String STRING_OPTION_ERROR_MSG = " option must not be empty.";
 
 	public static void writeSourceFile(final Class<?> thisClass, final File targetDir, final String resourceName) {
 		try {
@@ -95,6 +96,18 @@ public final class PluginUtil {
 			}
 		}
 		return new Arg<Boolean>(defaultValue, 0);
+	}
+
+	public static Arg<String> parseStringArgument(final String name, final String defaultValue, final Options opt, final String[] args, final int i) throws BadCommandLineException {
+		final String arg = args[i].toLowerCase();
+		if (arg.startsWith("-" + name.toLowerCase() + "=")) {
+			if (arg.isEmpty()) {
+				throw new BadCommandLineException("-" + name.toLowerCase() + " " + PluginUtil.STRING_OPTION_ERROR_MSG);
+			} else {
+				return new Arg<String>(arg, 1);
+			}
+		}
+		return new Arg<String>(defaultValue, 0);
 	}
 
 	private static boolean isTrue(final String arg) {

@@ -36,6 +36,7 @@ public class Transformer<TRoot extends Transformer<TRoot, ?>, TParent> {
 	protected final String _propertyName;
 	protected final PropertyTransformer<?,?> _propertyTransformer;
 
+	@SuppressWarnings("unchecked")
 	public Transformer(final TRoot root, final TParent parent, final String propertyName, final PropertyTransformer<?,?> propertyTransformer) {
 		this._root = root == null ? (TRoot) this : root;
 		this._parent = parent;
@@ -44,9 +45,8 @@ public class Transformer<TRoot extends Transformer<TRoot, ?>, TParent> {
 	}
 
 	/**
-	 * @deprecated This is only used by builders and other implementational details
+	 * This is only used by builders and other implementational details
 	 */
-	@Deprecated
 	public Map<String, TransformerPath> buildChildren() {
 		return Collections.emptyMap();
 	}
@@ -56,9 +56,8 @@ public class Transformer<TRoot extends Transformer<TRoot, ?>, TParent> {
 	}
 
 	/**
-	 * @deprecated This is only used by builders and other implementational details
+	 * This is only used by builders and other implementational details
 	 */
-	@Deprecated
 	public TransformerPath init() {
 		return new TransformerPath(this._propertyName, this._propertyTransformer, buildChildren());
 	}

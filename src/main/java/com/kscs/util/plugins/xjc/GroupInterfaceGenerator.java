@@ -320,14 +320,15 @@ public class GroupInterfaceGenerator {
 
 			final JDefinedClass groupInterface = this.apiConstructs.outline.getClassFactory().createInterface(container, this.nameConverter.toClassName(modelGroup.getName()), modelGroup.getLocator());
 
+			/*
 			if (this.needsCopyMethod) {
 				groupInterface._implements(Copyable.class);
 			}
 
 			if (this.needsCloneMethod) {
 				groupInterface._implements(Cloneable.class);
-				groupInterface.method(JMod.NONE, Object.class, "clone");
-			}
+				//groupInterface.method(JMod.NONE, Object.class, "clone");
+			}*/
 
 			return new InterfaceOutline<G>(modelGroup, groupInterface);
 		} else {

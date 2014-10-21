@@ -37,6 +37,7 @@ public class Selector<TRoot extends Selector<TRoot, ?>, TParent> {
 	protected final String _propertyName;
 	protected final boolean _include;
 
+	@SuppressWarnings("unchecked")
 	public Selector(final TRoot root, final TParent parent, final String propertyName, final boolean include) {
 			this._root = root == null ? (TRoot) this : root;
 			this._parent = parent;
@@ -49,9 +50,8 @@ public class Selector<TRoot extends Selector<TRoot, ?>, TParent> {
 	}
 
 	/**
-	 * @deprecated This is only used by builders and other implementational details
+	 * This is only used by builders and other implementational details
 	 */
-	@Deprecated
 	public Map<String, PropertyTree> buildChildren() {
 		return Collections.emptyMap();
 	}
@@ -61,9 +61,8 @@ public class Selector<TRoot extends Selector<TRoot, ?>, TParent> {
 	}
 
 	/**
-	 * @deprecated This is only used by builders and other implementational details
+	 * This is only used by builders and other implementational details
 	 */
-	@Deprecated
 	public PropertyTree init() {
 		return new PropertyTree(this._propertyName, buildChildren());
 	}
