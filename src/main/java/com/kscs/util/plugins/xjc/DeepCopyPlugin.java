@@ -101,10 +101,12 @@ public class DeepCopyPlugin extends Plugin {
 	public boolean run(final Outline outline, final Options opt, final ErrorHandler errorHandler) throws SAXException {
 		final ApiConstructs apiConstructs = new ApiConstructs(outline, opt, errorHandler);
 
+		if(this.generateTools) {
+			PluginUtil.writeSourceFile(getClass(), opt.targetDir, Copyable.class.getName());
+		}
 
 		if (this.generateTransformer) {
 			if (this.generateTools) {
-				PluginUtil.writeSourceFile(getClass(), opt.targetDir, Copyable.class.getName());
 				PluginUtil.writeSourceFile(getClass(), opt.targetDir, PropertyTransformer.class.getName());
 				PluginUtil.writeSourceFile(getClass(), opt.targetDir, PropertyInfo.class.getName());
 				PluginUtil.writeSourceFile(getClass(), opt.targetDir, TransformerPath.class.getName());
@@ -153,12 +155,13 @@ public class DeepCopyPlugin extends Plugin {
 	private void generateCreateCopyMethod(final ApiConstructs apiConstructs, final ClassOutline classOutline) {
 		final JDefinedClass definedClass = classOutline.implClass;
 
-		final boolean mustCatch = "java.lang.Object".equals(definedClass._extends().fullName()) || apiConstructs.cloneThrows(definedClass._extends(), false) || mustCatch(apiConstructs, classOutline, new Predicate<JClass>() {
+		final boolean hasSuper = !"java.lang.Object".equals(definedClass._extends().fullName());
+		final boolean mustCatch = hasSuper && (apiConstructs.cloneThrows(definedClass._extends(), false) || mustCatch(apiConstructs, classOutline, new Predicate<JClass>() {
 			@Override
 			public boolean matches(final JClass arg) {
 				return apiConstructs.cloneThrows(arg, false);
 			}
-		});
+		}));
 
 		final JMethod copyMethod = definedClass.method(JMod.PUBLIC, definedClass, apiConstructs.copyMethod);
 		copyMethod.annotate(Override.class);
@@ -176,9 +179,13 @@ public class DeepCopyPlugin extends Plugin {
 			body = tryBlock.body();
 		}
 
-		final boolean superCopyable = apiConstructs.codeModel.ref(Copyable.class).isAssignableFrom(definedClass._extends());
-
-		final JVar newObjectVar = body.decl(JMod.FINAL, definedClass, "newObject", JExpr.cast(definedClass, JExpr._super().invoke(superCopyable ? apiConstructs.copyMethod : apiConstructs.cloneMethod)));
+		final JVar newObjectVar;
+		if(hasSuper) {
+			final boolean superCopyable = apiConstructs.codeModel.ref(Copyable.class).isAssignableFrom(definedClass._extends());
+			newObjectVar = body.decl(JMod.FINAL, definedClass, "newObject", JExpr.cast(definedClass, JExpr._super().invoke(superCopyable ? apiConstructs.copyMethod : apiConstructs.cloneMethod)));
+		} else {
+			newObjectVar = generateDynamicInstantiate(apiConstructs, definedClass, body);
+		}
 		for (final FieldOutline fieldOutline : classOutline.getDeclaredFields()) {
 			final JFieldVar field = PluginUtil.getDeclaredField(fieldOutline);
 			if (field != null) {
@@ -203,7 +210,9 @@ public class DeepCopyPlugin extends Plugin {
 							immutablePlugin.immutableInit(apiConstructs, body, newObjectVar, field);
 						}
 					}
-					if (apiConstructs.cloneableInterface.isAssignableFrom(fieldType)) {
+					if (apiConstructs.copyableInterface.isAssignableFrom(fieldType)) {
+						body.assign(newField, nullSafe(fieldRef, apiConstructs.castOnDemand(fieldType, JExpr._this().ref(field).invoke(apiConstructs.copyMethod))));
+					} else if (apiConstructs.cloneableInterface.isAssignableFrom(fieldType)) {
 						body.assign(newField, nullSafe(fieldRef, apiConstructs.castOnDemand(fieldType, JExpr._this().ref(field).invoke(apiConstructs.cloneMethod))));
 					} else {
 						// body.assign(newField, JExpr._this().ref(field));
@@ -261,13 +270,7 @@ public class DeepCopyPlugin extends Plugin {
 		} else if(superCloneable) {
 			newObjectVar = body.decl(JMod.FINAL, definedClass, "newObject", JExpr.cast(definedClass, JExpr._super().invoke(apiConstructs.cloneMethod)));
 		} else {
-			newObjectVar = body.decl(JMod.FINAL, definedClass, "newObject", null);
-			final JTryBlock newObjectTry = body._try();
-			final JBlock tryBody = newObjectTry.body();
-			tryBody.assign(newObjectVar, JExpr.invoke("getClass").invoke("newInstance"));
-			final JCatchBlock newObjectCatch = newObjectTry._catch(apiConstructs.codeModel.ref(Exception.class));
-			final JVar exceptionVar = newObjectCatch.param("x");
-			newObjectCatch.body()._throw(JExpr._new(apiConstructs.codeModel.ref(RuntimeException.class)).arg(exceptionVar));
+			newObjectVar = generateDynamicInstantiate(apiConstructs, definedClass, body);
 		}
 
 		for (final FieldOutline fieldOutline : classOutline.getDeclaredFields()) {
@@ -286,6 +289,18 @@ public class DeepCopyPlugin extends Plugin {
 			catchBlock.body()._throw(JExpr._new(apiConstructs.codeModel.ref(RuntimeException.class)).arg(exceptionVar));
 		}
 
+	}
+
+	private JVar generateDynamicInstantiate(final ApiConstructs apiConstructs, final JDefinedClass definedClass, final JBlock body) {
+		final JVar newObjectVar;
+		newObjectVar = body.decl(JMod.FINAL, definedClass, "newObject", null);
+		final JTryBlock newObjectTry = body._try();
+		final JBlock tryBody = newObjectTry.body();
+		tryBody.assign(newObjectVar, JExpr.invoke("getClass").invoke("newInstance"));
+		final JCatchBlock newObjectCatch = newObjectTry._catch(apiConstructs.codeModel.ref(Exception.class));
+		final JVar exceptionVar = newObjectCatch.param("x");
+		newObjectCatch.body()._throw(JExpr._new(apiConstructs.codeModel.ref(RuntimeException.class)).arg(exceptionVar));
+		return newObjectVar;
 	}
 
 	private JMethod generateConvenienceCloneMethod(final JDefinedClass definedClass, final JMethod cloneMethod, final String methodName, final JExpression secondParam) {
