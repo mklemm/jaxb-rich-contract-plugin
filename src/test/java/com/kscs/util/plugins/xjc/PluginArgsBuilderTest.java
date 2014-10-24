@@ -23,53 +23,21 @@
  */
 package com.kscs.util.plugins.xjc;
 
+import com.sun.tools.xjc.BadCommandLineException;
 import org.junit.Test;
 
 /**
- * Test usage output
+ * Test for {@link com.kscs.util.plugins.xjc.PluginArgsBuilder}
  */
-public class PluginUsageBuilderTest {
+public class PluginArgsBuilderTest {
 	@Test
-	public void testPluginUsageFluentBuilder() {
+	public void testParseCommandLineFluentBuilder() throws BadCommandLineException {
 		final FluentBuilderPlugin plugin = new FluentBuilderPlugin();
-		System.out.println(plugin.getUsage());
+
+		final String[] args = {"-fluent-builder.narrow=y", "-otherplug.arg=0", "-fluent-builder.constructor=no", "-fluent-builder.wrongArg=1"};
+
+		for(int i=0; i < args.length; i++) {
+			i += plugin.parseArgument(null, args, i);
+		}
 	}
-
-	@Test
-	public void testPluginUsageImmutable() {
-		final ImmutablePlugin plugin = new ImmutablePlugin();
-		System.out.println(plugin.getUsage());
-	}
-
-	@Test
-	public void testPluginUsageGroupContract() {
-		final GroupInterfacePlugin plugin = new GroupInterfacePlugin();
-		System.out.println(plugin.getUsage());
-	}
-
-	@Test
-	public void testPluginUsageDeepClone() {
-		final DeepClonePlugin plugin = new DeepClonePlugin();
-		System.out.println(plugin.getUsage());
-	}
-
-	@Test
-	public void testPluginUsageDeepCopy() {
-		final DeepCopyPlugin plugin = new DeepCopyPlugin();
-		System.out.println(plugin.getUsage());
-	}
-
-	@Test
-	public void testPluginUsageBoundProperties() {
-		final BoundPropertiesPlugin plugin = new BoundPropertiesPlugin();
-		System.out.println(plugin.getUsage());
-	}
-
-	@Test
-	public void testPluginUsagePackageMapping() {
-		final PackageMappingPlugin plugin = new PackageMappingPlugin();
-		System.out.println(plugin.getUsage());
-	}
-
-
 }

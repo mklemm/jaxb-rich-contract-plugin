@@ -23,10 +23,9 @@
  */
 package com.kscs.util.plugins.xjc;
 
+import com.kscs.util.jaxb.*;
 import com.sun.codemodel.*;
-import com.sun.tools.xjc.BadCommandLineException;
 import com.sun.tools.xjc.Options;
-import com.sun.tools.xjc.Plugin;
 import com.sun.tools.xjc.outline.ClassOutline;
 import com.sun.tools.xjc.outline.FieldOutline;
 import com.sun.tools.xjc.outline.Outline;
@@ -35,95 +34,25 @@ import org.xml.sax.SAXException;
 
 import java.beans.*;
 import java.util.ArrayList;
-import java.util.ResourceBundle;
 
 /**
- * XJC Plugin generated conatrained and bound JavaBeans properties
+ * XJC Plugin generated constrained and bound JavaBeans properties
  */
-public class BoundPropertiesPlugin extends Plugin {
-	public static final String BOOLEAN_OPTION_ERROR_MSG = " option must be either (\"true\",\"on\",\"y\",\"yes\") or (\"false\", \"off\", \"n\",\"no\").";
-	public static final String CHANGE_EVENT_CLASS_NAME = "com.kscs.util.jaxb.CollectionChangeEvent";
-	public static final String CHANGE_LISTENER_CLASS_NAME = "com.kscs.util.jaxb.CollectionChangeListener";
-	public static final String VETOABLE_CHANGE_LISTENER_CLASS_NAME = "com.kscs.util.jaxb.VetoableCollectionChangeListener";
-	public static final String EVENT_TYPE_ENUM_NAME = "com.kscs.util.jaxb.CollectionChangeEventType";
-	public static final String BOUND_LIST_INTERFACE_NAME = "com.kscs.util.jaxb.BoundList";
-	public static final String PROXY_CLASS_NAME = "com.kscs.util.jaxb.BoundListProxy";
+public class BoundPropertiesPlugin extends AbstractPlugin {
 
+	private volatile boolean constrained = true;
+	private volatile boolean bound = true;
+	private volatile boolean setterThrows = false;
+	private volatile boolean generateTools = true;
 
-	private boolean constrained = true;
-	private boolean bound = true;
-	private boolean setterThrows = false;
-	private boolean generateTools = true;
-
-	@Override
-	public String getOptionName() {
-		return "Xconstrained-properties";
-	}
-
-	@Override
-	public int parseArgument(final Options opt, final String[] args, final int i) throws BadCommandLineException {
-		final String arg = args[i].toLowerCase();
-		if (arg.startsWith("-constrained=")) {
-			final boolean argConstrained = isTrue(arg);
-			final boolean argNotConstrained = isFalse(arg);
-			if (!argConstrained && !argNotConstrained) {
-				throw new BadCommandLineException("-constrained" + BoundPropertiesPlugin.BOOLEAN_OPTION_ERROR_MSG);
-			} else {
-				this.constrained = argConstrained;
-			}
-			return 1;
-		} else if (arg.startsWith("-bound=")) {
-			final boolean argBound = isTrue(arg);
-			final boolean argNotBound = isFalse(arg);
-			if (!argBound && !argNotBound) {
-				throw new BadCommandLineException("-bound" + BoundPropertiesPlugin.BOOLEAN_OPTION_ERROR_MSG);
-			} else {
-				this.bound = argBound;
-			}
-			return 1;
-		} else if (arg.startsWith("-setter-throws=")) {
-			final boolean argSetterThrows = isTrue(arg);
-			final boolean argNoSetterThrows = isFalse(arg);
-			if (!argSetterThrows && !argNoSetterThrows) {
-				throw new BadCommandLineException("-setter-throws" + BoundPropertiesPlugin.BOOLEAN_OPTION_ERROR_MSG);
-			} else {
-				this.setterThrows = argSetterThrows;
-			}
-			return 1;
-		} else if (arg.startsWith("-constrained-properties-generate-tools=")) {
-			final boolean argGenerateTools = isTrue(arg);
-			final boolean argNoGenerateTools = isFalse(arg);
-			if (!argGenerateTools && !argNoGenerateTools) {
-				throw new BadCommandLineException("-constrained-properties-generate-tools" + BoundPropertiesPlugin.BOOLEAN_OPTION_ERROR_MSG);
-			} else {
-				this.generateTools = argGenerateTools;
-			}
-			return 1;
-		}
-		return 0;
-	}
-
-
-	private boolean isTrue(final String arg) {
-		return arg.endsWith("y") || arg.endsWith("true") || arg.endsWith("on") || arg.endsWith("yes");
-	}
-
-	private boolean isFalse(final String arg) {
-		return arg.endsWith("n") || arg.endsWith("false") || arg.endsWith("off") || arg.endsWith("no");
-	}
-
-	@Override
-	public String getUsage() {
-		return new PluginUsageBuilder(ResourceBundle.getBundle(BoundPropertiesPlugin.class.getName()), "usage").addMain("constrained-properties")
-				.addOption("constrained", this.constrained)
-				.addOption("bound", this.bound)
-				.addOption("setter-throws", this.setterThrows)
-				.addOption("constrained-properties-generate-tools", this.generateTools)
-				.build();
+	public BoundPropertiesPlugin() {
+		super("properties");
 	}
 
 	@Override
 	public boolean run(final Outline outline, final Options opt, final ErrorHandler errorHandler) throws SAXException {
+
+		final ApiConstructs apiConstructs = new ApiConstructs(outline, opt, errorHandler);
 		if (!this.constrained && !this.bound) {
 			return true;
 		}
@@ -132,15 +61,15 @@ public class BoundPropertiesPlugin extends Plugin {
 
 		if (this.generateTools) {
 			// generate bound collection helper classes
-			PluginUtil.writeSourceFile(getClass(), opt.targetDir, BoundPropertiesPlugin.BOUND_LIST_INTERFACE_NAME);
-			PluginUtil.writeSourceFile(getClass(), opt.targetDir, BoundPropertiesPlugin.EVENT_TYPE_ENUM_NAME);
-			PluginUtil.writeSourceFile(getClass(), opt.targetDir, BoundPropertiesPlugin.CHANGE_EVENT_CLASS_NAME);
-			PluginUtil.writeSourceFile(getClass(), opt.targetDir, BoundPropertiesPlugin.CHANGE_LISTENER_CLASS_NAME);
-			PluginUtil.writeSourceFile(getClass(), opt.targetDir, BoundPropertiesPlugin.VETOABLE_CHANGE_LISTENER_CLASS_NAME);
-			PluginUtil.writeSourceFile(getClass(), opt.targetDir, BoundPropertiesPlugin.PROXY_CLASS_NAME);
+			apiConstructs.writeSourceFile(BoundList.class);
+			apiConstructs.writeSourceFile(CollectionChangeEventType.class);
+			apiConstructs.writeSourceFile(CollectionChangeEvent.class);
+			apiConstructs.writeSourceFile(CollectionChangeListener.class);
+			apiConstructs.writeSourceFile(VetoableCollectionChangeListener.class);
+			apiConstructs.writeSourceFile(BoundListProxy.class);
 		}
 
-		final int setterAccess = PluginUtil.hasPlugin(opt, ImmutablePlugin.class) ? JMod.PROTECTED : JMod.PUBLIC;
+		final int setterAccess = apiConstructs.hasPlugin(ImmutablePlugin.class) ? JMod.PROTECTED : JMod.PUBLIC;
 
 		for (final ClassOutline classOutline : outline.getClasses()) {
 			final JDefinedClass definedClass = classOutline.implClass;
@@ -248,7 +177,7 @@ public class BoundPropertiesPlugin extends Plugin {
 		final JDefinedClass definedClass = classOutline.implClass;
 		final JFieldVar collectionField = definedClass.fields().get(fieldOutline.getPropertyInfo().getName(false));
 		final JClass elementType = ((JClass) collectionField.type()).getTypeParameters().get(0);
-		return definedClass.field(JMod.PRIVATE | JMod.TRANSIENT, m.ref(BoundPropertiesPlugin.BOUND_LIST_INTERFACE_NAME).narrow(elementType), collectionField.name() + "Proxy", JExpr._null());
+		return definedClass.field(JMod.PRIVATE | JMod.TRANSIENT, m.ref(BoundList.class).narrow(elementType), collectionField.name() + "Proxy", JExpr._null());
 	}
 
 	private JMethod generateLazyProxyInitGetter(final ClassOutline classOutline, final FieldOutline fieldOutline) {
@@ -258,7 +187,7 @@ public class BoundPropertiesPlugin extends Plugin {
 		final String getterName = "get" + fieldOutline.getPropertyInfo().getName(true);
 		final JFieldVar collectionField = definedClass.fields().get(fieldName);
 		final JClass elementType = ((JClass) collectionField.type()).getTypeParameters().get(0);
-		final JClass proxyFieldType = m.ref(BoundPropertiesPlugin.BOUND_LIST_INTERFACE_NAME).narrow(elementType);
+		final JClass proxyFieldType = m.ref(BoundList.class).narrow(elementType);
 		final JFieldRef collectionFieldRef = JExpr._this().ref(collectionField);
 		final JFieldRef proxyField = JExpr._this().ref(collectionField.name() + "Proxy");
 		final JMethod oldGetter = definedClass.getMethod(getterName, new JType[0]);
@@ -266,7 +195,7 @@ public class BoundPropertiesPlugin extends Plugin {
 		final JMethod newGetter = definedClass.method(JMod.PUBLIC, proxyFieldType, getterName);
 		newGetter.body()._if(collectionFieldRef.eq(JExpr._null()))._then().assign(collectionFieldRef, JExpr._new(m.ref(ArrayList.class).narrow(elementType)));
 		final JBlock ifProxyNull = newGetter.body()._if(proxyField.eq(JExpr._null()))._then();
-		ifProxyNull.assign(proxyField, JExpr._new(m.ref(BoundPropertiesPlugin.PROXY_CLASS_NAME).narrow(elementType)).arg(collectionFieldRef));
+		ifProxyNull.assign(proxyField, JExpr._new(m.ref(BoundListProxy.class).narrow(elementType)).arg(collectionFieldRef));
 		newGetter.body()._return(proxyField);
 		return newGetter;
 	}

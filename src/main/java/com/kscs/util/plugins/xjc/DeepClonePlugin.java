@@ -25,60 +25,21 @@
 package com.kscs.util.plugins.xjc;
 
 import com.sun.codemodel.*;
-import com.sun.tools.xjc.BadCommandLineException;
 import com.sun.tools.xjc.Options;
-import com.sun.tools.xjc.Plugin;
 import com.sun.tools.xjc.outline.ClassOutline;
 import com.sun.tools.xjc.outline.FieldOutline;
 import com.sun.tools.xjc.outline.Outline;
 import org.xml.sax.ErrorHandler;
 import org.xml.sax.SAXException;
 
-import java.io.IOException;
-import java.text.MessageFormat;
-import java.util.ResourceBundle;
-
 import static com.kscs.util.plugins.xjc.PluginUtil.nullSafe;
 
 /**
  * XJC Plugin to generate Object.clone() implementation method
  */
-public class DeepClonePlugin extends Plugin {
-	private boolean throwCloneNotSupported = false;
-
-	private final ResourceBundle resources;
-
+public class DeepClonePlugin extends AbstractPlugin {
 	public DeepClonePlugin() {
-		this.resources = ResourceBundle.getBundle(DeepClonePlugin.class.getName());
-	}
-
-	private String getMessage(final String key, final Object... params) {
-		return MessageFormat.format(this.resources.getString(key), params);
-	}
-
-
-	public boolean isThrowCloneNotSupported() {
-		return this.throwCloneNotSupported;
-	}
-
-	@Override
-	public String getOptionName() {
-		return "Xclone";
-	}
-
-	@Override
-	public int parseArgument(final Options opt, final String[] args, final int i) throws BadCommandLineException, IOException {
-		PluginUtil.Arg<Boolean> arg = PluginUtil.parseBooleanArgument("clone-throws", this.throwCloneNotSupported, opt, args, i);
-		this.throwCloneNotSupported = arg.getValue();
-		return arg.getArgsParsed();
-	}
-
-	@Override
-	public String getUsage() {
-		return new PluginUsageBuilder(this.resources, "usage")
-				.addMain("clone")
-				.addOption("clone-throws", this.throwCloneNotSupported)
-				.build();
+		super("clone");
 	}
 
 	@Override
@@ -100,32 +61,10 @@ public class DeepClonePlugin extends Plugin {
 	private void generateCloneMethod(final ApiConstructs apiConstructs, final ClassOutline classOutline) {
 		final JDefinedClass definedClass = classOutline.implClass;
 
-		final boolean mustCatch = "java.lang.Object".equals(definedClass._extends().fullName()) || apiConstructs.cloneThrows(definedClass._extends(), this.throwCloneNotSupported) || mustCatch(apiConstructs, classOutline, new Predicate<JClass>() {
-			@Override
-			public boolean matches(final JClass arg) {
-				return apiConstructs.cloneThrows(arg, DeepClonePlugin.this.throwCloneNotSupported);
-			}
-		});
-
 		final JMethod cloneMethod = definedClass.method(JMod.PUBLIC, definedClass, apiConstructs.cloneMethod);
 		cloneMethod.annotate(Override.class);
 
-		final JBlock outer;
-		final JBlock body;
-		final JTryBlock tryBlock;
-		if (this.throwCloneNotSupported) {
-			cloneMethod._throws(CloneNotSupportedException.class);
-		}
-		if (this.throwCloneNotSupported || !mustCatch) {
-			outer = cloneMethod.body();
-			tryBlock = null;
-			body = outer;
-		} else {
-			outer = cloneMethod.body();
-			tryBlock = outer._try();
-			body = tryBlock.body();
-		}
-
+		final JBlock body = cloneMethod.body();
 		final JVar newObjectVar = body.decl(JMod.FINAL, definedClass, "newObject", JExpr.cast(definedClass, JExpr._super().invoke(apiConstructs.cloneMethod)));
 		for (final FieldOutline fieldOutline : classOutline.getDeclaredFields()) {
 			final JFieldVar field = PluginUtil.getDeclaredField(fieldOutline);
@@ -158,30 +97,7 @@ public class DeepClonePlugin extends Plugin {
 		}
 		body._return(newObjectVar);
 
-		if (tryBlock != null) {
-			final JCatchBlock catchBlock = tryBlock._catch(apiConstructs.codeModel.ref(CloneNotSupportedException.class));
-			final JVar exceptionVar = catchBlock.param("cnse");
-			catchBlock.body()._throw(JExpr._new(apiConstructs.codeModel.ref(RuntimeException.class)).arg(exceptionVar));
-		}
+		cloneMethod._throws(CloneNotSupportedException.class);
 	}
 
-	private boolean mustCatch(final ApiConstructs apiConstructs, final ClassOutline classOutline, final Predicate<JClass> fieldTypePredicate) {
-		final JDefinedClass definedClass = classOutline.implClass;
-		for (final JFieldVar field : definedClass.fields().values()) {
-			if (field.type().isReference()) {
-				JClass fieldType = (JClass) field.type();
-				if (apiConstructs.collectionClass.isAssignableFrom(fieldType)) {
-					fieldType = fieldType.getTypeParameters().get(0);
-				}
-				if (fieldTypePredicate.matches(fieldType)) {
-					return true;
-				}
-			}
-		}
-		return false;
-	}
-
-	private static interface Predicate<T> {
-		boolean matches(final T arg);
-	}
 }

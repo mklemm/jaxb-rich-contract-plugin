@@ -23,53 +23,11 @@
  */
 package com.kscs.util.plugins.xjc;
 
-import org.junit.Test;
-
 /**
- * Test usage output
+ * Represents a reference to a variable
  */
-public class PluginUsageBuilderTest {
-	@Test
-	public void testPluginUsageFluentBuilder() {
-		final FluentBuilderPlugin plugin = new FluentBuilderPlugin();
-		System.out.println(plugin.getUsage());
-	}
-
-	@Test
-	public void testPluginUsageImmutable() {
-		final ImmutablePlugin plugin = new ImmutablePlugin();
-		System.out.println(plugin.getUsage());
-	}
-
-	@Test
-	public void testPluginUsageGroupContract() {
-		final GroupInterfacePlugin plugin = new GroupInterfacePlugin();
-		System.out.println(plugin.getUsage());
-	}
-
-	@Test
-	public void testPluginUsageDeepClone() {
-		final DeepClonePlugin plugin = new DeepClonePlugin();
-		System.out.println(plugin.getUsage());
-	}
-
-	@Test
-	public void testPluginUsageDeepCopy() {
-		final DeepCopyPlugin plugin = new DeepCopyPlugin();
-		System.out.println(plugin.getUsage());
-	}
-
-	@Test
-	public void testPluginUsageBoundProperties() {
-		final BoundPropertiesPlugin plugin = new BoundPropertiesPlugin();
-		System.out.println(plugin.getUsage());
-	}
-
-	@Test
-	public void testPluginUsagePackageMapping() {
-		final PackageMappingPlugin plugin = new PackageMappingPlugin();
-		System.out.println(plugin.getUsage());
-	}
-
-
+public interface Ref<T> {
+	void set(final T val);
+	T get();
+	Class<T> getType();
 }

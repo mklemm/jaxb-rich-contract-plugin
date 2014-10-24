@@ -24,48 +24,23 @@
 
 package com.kscs.util.plugins.xjc;
 
-import com.sun.tools.xjc.BadCommandLineException;
 import com.sun.tools.xjc.Options;
-import com.sun.tools.xjc.Plugin;
 import com.sun.tools.xjc.outline.ClassOutline;
 import com.sun.tools.xjc.outline.Outline;
 import org.xml.sax.ErrorHandler;
 import org.xml.sax.SAXException;
 
-import java.io.IOException;
 import java.util.List;
-import java.util.ResourceBundle;
 import java.util.logging.Logger;
 
-public class GroupInterfacePlugin extends Plugin {
+public class GroupInterfacePlugin extends AbstractPlugin {
 	private static final Logger LOGGER = Logger.getLogger(GroupInterfacePlugin.class.getName());
-	private boolean declareSetters = true;
-	private boolean declareBuilderInterface = true;
+	private volatile boolean declareSetters = true;
+	private volatile boolean declareBuilderInterface = true;
 	private GroupInterfaceGenerator generator = null;
 
-
-
-	@Override
-	public int parseArgument(final Options opt, final String[] args, final int i) throws BadCommandLineException, IOException {
-		PluginUtil.Arg<Boolean> arg = PluginUtil.parseBooleanArgument("declare-setters", this.declareSetters, opt, args, i);
-		this.declareSetters = arg.getValue();
-		if(arg.getArgsParsed() == 0) {
-			arg = PluginUtil.parseBooleanArgument("declare-builder-interface", this.declareBuilderInterface, opt, args, i);
-			this.declareBuilderInterface = arg.getValue();
-		}
-		return arg.getArgsParsed();
-	}
-
-	@Override
-	public String getOptionName() {
-		return "Xgroup-contract";
-	}
-
-	@Override
-	public String getUsage() {
-		return new PluginUsageBuilder(ResourceBundle.getBundle(GroupInterfacePlugin.class.getName()), "usage")
-				.addMain("group-contract")
-				.addOption("declare-setters", this.declareSetters).build();
+	public GroupInterfacePlugin() {
+		super("group-contract");
 	}
 
 	@Override

@@ -23,7 +23,6 @@
  */
 package com.kscs.util.plugins.xjc;
 
-import com.kscs.util.jaxb.Copyable;
 import com.sun.codemodel.*;
 import com.sun.tools.xjc.outline.ClassOutline;
 import com.sun.tools.xjc.outline.FieldOutline;
@@ -40,7 +39,7 @@ import java.util.*;
 import java.util.logging.Logger;
 
 /**
- * @author mirko 2014-05-29
+ * Helper class to generate interfaces from attributeGroup and group XSD declarations
  */
 public class GroupInterfaceGenerator {
 	private static final Logger LOGGER = Logger.getLogger(GroupInterfaceGenerator.class.getName());
@@ -65,7 +64,7 @@ public class GroupInterfaceGenerator {
 		final FluentBuilderPlugin fluentBuilderPlugin = this.apiConstructs.findPlugin(FluentBuilderPlugin.class);
 		this.declareBuilderInterface = declareBuilderInterface && fluentBuilderPlugin != null;
 		this.needsCloneMethod = deepClonePlugin != null;
-		this.cloneMethodThrows = this.needsCloneMethod && deepClonePlugin.isThrowCloneNotSupported();
+		this.cloneMethodThrows = this.needsCloneMethod;
 		this.needsCopyMethod = deepCopyPlugin != null;
 		this.nameConverter = this.apiConstructs.outline.getModel().getNameConverter();
 	}

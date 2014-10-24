@@ -400,23 +400,7 @@ public class BuilderGenerator {
 			ifStmt._else().assign(JExpr._this().ref(this.productField), otherParam);
 		}
 
-		final JBlock body;
-		final JTryBlock tryBlock;
-
-		final boolean mustCatch = mustCatch(this.apiConstructs, this.classOutline, new Predicate<JClass>() {
-			@Override
-			public boolean matches(final JClass fieldType) {
-				return (!BuilderGenerator.this.apiConstructs.canInstantiate(fieldType)) && BuilderGenerator.this.apiConstructs.cloneThrows(fieldType, false);
-			}
-		});
-
-		if (mustCatch) {
-			tryBlock = outer._try();
-			body = tryBlock.body();
-		} else {
-			tryBlock = null;
-			body = outer.block();
-		}
+		final JBlock body = outer.block();
 
 		final JExpression newObjectVar = JExpr._this();
 		for (final FieldOutline fieldOutline : this.classOutline.getDeclaredFields()) {
@@ -437,9 +421,14 @@ public class BuilderGenerator {
 							final JClass childBuilderType = childBuilderOutline.getDefinedBuilderClass().narrow(this.builderType);
 							final JForEach forLoop = loop(body, fieldRef, elementType, newField, childBuilderType);
 							forLoop.body().invoke(newField, "add").arg(nullSafe(fieldRef, generateRuntimeTypeExpression(childBuilderType, forLoop.var(), null)));
-						} else if (this.apiConstructs.cloneableInterface.isAssignableFrom(elementType)) {
+						} else if (this.apiConstructs.copyableInterface.isAssignableFrom(elementType)) {
 							final JForEach forLoop = loop(body, fieldRef, elementType, newField, elementType);
-							forLoop.body().invoke(newField, "add").arg(nullSafe(forLoop.var(), this.apiConstructs.castOnDemand(elementType, forLoop.var().invoke("clone"))));
+							forLoop.body().invoke(newField, "add").arg(nullSafe(forLoop.var(), this.apiConstructs.castOnDemand(elementType, forLoop.var().invoke(this.apiConstructs.copyMethod))));
+						} else if (this.apiConstructs.cloneableInterface.isAssignableFrom(elementType)) {
+							final ApiConstructs.MaybeTryBlock tryBlock = this.apiConstructs.tryOnDemand(body, elementType, this.apiConstructs.cloneMethod);
+							final JForEach forLoop = loop(tryBlock.body, fieldRef, elementType, newField, elementType);
+							forLoop.body().invoke(newField, "add").arg(nullSafe(forLoop.var(), this.apiConstructs.castOnDemand(elementType, forLoop.var().invoke(this.apiConstructs.cloneMethod))));
+							tryBlock.close();
 						} else {
 							body.assign(newField, nullSafe(fieldRef, JExpr._new(this.apiConstructs.arrayListClass.narrow(elementType)).arg(fieldRef)));
 						}
@@ -452,8 +441,12 @@ public class BuilderGenerator {
 						} else if (childBuilderOutline != null) {
 							final JClass childBuilderType = childBuilderOutline.getDefinedBuilderClass().narrow(this.builderType);
 							body.assign(newField, nullSafe(fieldRef, generateRuntimeTypeExpression(childBuilderType, fieldRef, null)));
+						} else if (this.apiConstructs.copyableInterface.isAssignableFrom(fieldType)) {
+							body.assign(newField, nullSafe(fieldRef, this.apiConstructs.castOnDemand(fieldType, fieldRef.invoke(this.apiConstructs.copyMethod))));
 						} else if (this.apiConstructs.cloneableInterface.isAssignableFrom(fieldType)) {
-							body.assign(newField, nullSafe(fieldRef, this.apiConstructs.castOnDemand(fieldType, fieldRef.invoke("clone"))));
+							final ApiConstructs.MaybeTryBlock tryBlock = this.apiConstructs.tryOnDemand(body, fieldType, this.apiConstructs.cloneMethod);
+							tryBlock.body.assign(newField, nullSafe(fieldRef, this.apiConstructs.castOnDemand(fieldType, fieldRef.invoke(this.apiConstructs.cloneMethod))));
+							tryBlock.close();
 						} else {
 							body.assign(newField, fieldRef);
 						}
@@ -465,12 +458,6 @@ public class BuilderGenerator {
 					body.assign(newField, fieldRef);
 				}
 			}
-		}
-
-		if (tryBlock != null) {
-			final JCatchBlock catchBlock = tryBlock._catch(this.apiConstructs.codeModel.ref(CloneNotSupportedException.class));
-			final JVar exceptionVar = catchBlock.param("cnse");
-			catchBlock.body()._throw(JExpr._new(this.apiConstructs.codeModel.ref(RuntimeException.class)).arg(exceptionVar));
 		}
 	}
 
@@ -510,7 +497,7 @@ public class BuilderGenerator {
 		final boolean mustCatch = mustCatch(this.apiConstructs, this.classOutline, new Predicate<JClass>() {
 			@Override
 			public boolean matches(final JClass fieldType) {
-				return (!BuilderGenerator.this.apiConstructs.canInstantiate(fieldType)) && (!BuilderGenerator.this.apiConstructs.partialCopyableInterface.isAssignableFrom(fieldType)) && BuilderGenerator.this.apiConstructs.cloneThrows(fieldType, false);
+				return (!BuilderGenerator.this.apiConstructs.canInstantiate(fieldType)) && (!BuilderGenerator.this.apiConstructs.partialCopyableInterface.isAssignableFrom(fieldType)) && BuilderGenerator.this.apiConstructs.cloneThrows(fieldType);
 			}
 		});
 
@@ -613,7 +600,7 @@ public class BuilderGenerator {
 		final boolean mustCatch = mustCatch(this.apiConstructs, this.classOutline, new Predicate<JClass>() {
 			@Override
 			public boolean matches(final JClass fieldType) {
-				return (!BuilderGenerator.this.apiConstructs.canInstantiate(fieldType)) && (!BuilderGenerator.this.apiConstructs.partialCopyableInterface.isAssignableFrom(fieldType)) && BuilderGenerator.this.apiConstructs.cloneThrows(fieldType, false);
+				return (!BuilderGenerator.this.apiConstructs.canInstantiate(fieldType)) && (!BuilderGenerator.this.apiConstructs.partialCopyableInterface.isAssignableFrom(fieldType)) && BuilderGenerator.this.apiConstructs.cloneThrows(fieldType);
 			}
 		});
 

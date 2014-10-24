@@ -26,6 +26,7 @@ package com.kscs.util.plugins.xjc;
 
 import com.kscs.util.jaxb.*;
 import com.sun.codemodel.*;
+import com.sun.codemodel.fmt.JStaticJavaFile;
 import com.sun.tools.xjc.Options;
 import com.sun.tools.xjc.Plugin;
 import com.sun.tools.xjc.outline.ClassOutline;
@@ -36,7 +37,7 @@ import java.lang.reflect.Method;
 import java.util.*;
 
 /**
- * Common constants and constructs
+ * Common constants, constructs and context dependent helper methods
  */
 public class ApiConstructs {
 	public static final String BUILDER_CLASS_NAME = "Builder";
@@ -53,6 +54,7 @@ public class ApiConstructs {
 	public static final String GET_BUILDER = "getBuilder";
 	public static final String CLONE_METHOD_NAME = "clone";
 	public static final String COPY_METHOD_NAME = "createCopy";
+	public static final String COPY_STATE_TO_METHOD_NAME = "copyStateTo";
 	public static final String COPY_EXCEPT_METHOD_NAME = "copyExcept";
 	public static final String COPY_ONLY_METHOD_NAME = "copyOnly";
 
@@ -79,6 +81,7 @@ public class ApiConstructs {
 	final JExpression includeConst;
 	final String cloneMethod;
 	final String copyMethod;
+	final String copyStateToMethod;
 	final String copyExceptMethod;
 	final String copyOnlyMethod;
 
@@ -102,15 +105,16 @@ public class ApiConstructs {
 		this.transformerPathClass = this.codeModel.ref(TransformerPath.class);
 		this.stringClass = this.codeModel.ref(String.class);
 		this.voidClass = this.codeModel.ref(Void.class);
-		for(final ClassOutline classOutline : this.outline.getClasses()) {
+		for (final ClassOutline classOutline : this.outline.getClasses()) {
 			this.classes.put(classOutline.implClass.fullName(), classOutline);
 		}
 		this.excludeConst = this.codeModel.ref(PropertyTreeUse.class).staticRef("EXCLUDE");
 		this.includeConst = this.codeModel.ref(PropertyTreeUse.class).staticRef("INCLUDE");
-		this.cloneMethod = CLONE_METHOD_NAME;
-		this.copyMethod = COPY_METHOD_NAME;
-		this.copyExceptMethod = COPY_EXCEPT_METHOD_NAME;
-		this.copyOnlyMethod = COPY_ONLY_METHOD_NAME;
+		this.cloneMethod = ApiConstructs.CLONE_METHOD_NAME;
+		this.copyMethod = ApiConstructs.COPY_METHOD_NAME;
+		this.copyStateToMethod = ApiConstructs.COPY_STATE_TO_METHOD_NAME;
+		this.copyExceptMethod = ApiConstructs.COPY_EXCEPT_METHOD_NAME;
+		this.copyOnlyMethod = ApiConstructs.COPY_ONLY_METHOD_NAME;
 	}
 
 	public JInvocation asList(final JExpression expression) {
@@ -122,11 +126,22 @@ public class ApiConstructs {
 	}
 
 	public boolean hasPlugin(final Class<? extends Plugin> pluginClass) {
-		return PluginUtil.hasPlugin(this.opt, pluginClass);
+		for (final Plugin plugin : this.opt.activePlugins) {
+			if (pluginClass.isInstance(plugin)) {
+				return true;
+			}
+		}
+		return false;
 	}
 
+	@SuppressWarnings("unchecked")
 	public <P extends Plugin> P findPlugin(final Class<P> pluginClass) {
-		return PluginUtil.findPlugin(this.opt, pluginClass);
+		for (final Plugin plugin : this.opt.activePlugins) {
+			if (pluginClass.isInstance(plugin)) {
+				return (P) plugin;
+			}
+		}
+		return null;
 	}
 
 	public boolean canInstantiate(final JType type) {
@@ -141,20 +156,20 @@ public class ApiConstructs {
 		return this.classes.get(typeSpec.fullName());
 	}
 
-	public boolean cloneThrows(final JType cloneableType, final boolean cloneThrows) {
+	public boolean cloneThrows(final JType cloneableType) {
 		try {
-			if("java.lang.Object".equals(cloneableType.fullName())) {
+			if ("java.lang.Object".equals(cloneableType.fullName())) {
 				return false;
 			} else if (getClassOutline(cloneableType) != null) {
-				return cloneThrows;
-			} else if(cloneableType.isReference()) {
+				return true;
+			} else if (cloneableType.isReference()) {
 				final Class<?> runtimeClass = Class.forName(cloneableType.fullName());
 				final Method cloneMethod = runtimeClass.getMethod("clone");
 				return cloneMethod.getExceptionTypes() != null && cloneMethod.getExceptionTypes().length > 0 && cloneMethod.getExceptionTypes()[0].equals(CloneNotSupportedException.class);
 			} else {
 				return false;
 			}
-		} catch(final ClassNotFoundException cnfx) {
+		} catch (final ClassNotFoundException cnfx) {
 			return false;
 		} catch (final NoSuchMethodException e) {
 			return false;
@@ -170,5 +185,51 @@ public class ApiConstructs {
 
 	public JInvocation newArrayList(final JClass elementType) {
 		return JExpr._new(this.arrayListClass.narrow(elementType));
+	}
+
+	public void writeSourceFile(final Class<?> classToBeWritten) {
+		final String resourcePath = "/" + classToBeWritten.getName().replace('.', '/') + ".java";
+		final JPackage jPackage = this.outline.getCodeModel()._package(classToBeWritten.getPackage().getName());
+		final JStaticJavaFile javaFile = new JStaticJavaFile(jPackage, classToBeWritten.getSimpleName(), ApiConstructs.class.getResource(resourcePath), null);
+		jPackage.addResourceFile(javaFile);
+	}
+
+	public MaybeTryBlock tryOnDemand(final JBlock block, final JClass jClass, final String method) {
+		try {
+			final Class<?> binaryClass = Class.forName(jClass.fullName());
+			return new MaybeTryBlock(block, binaryClass, method);
+		} catch(ClassNotFoundException | NoSuchMethodException e) {
+			return new MaybeTryBlock(block, CloneNotSupportedException.class);
+		}
+	}
+
+	public final class MaybeTryBlock {
+		public final JBlock body;
+		public final Class<?>[] mustCatch;
+		public final JTryBlock tryBlock;
+
+		MaybeTryBlock(final JBlock block, final Class<?> binaryClass, final String method) throws NoSuchMethodException {
+			this(block, binaryClass.getMethod(method).getExceptionTypes());
+		}
+
+		MaybeTryBlock(final JBlock block, final Class<?>... mustCatch) {
+			this.mustCatch = mustCatch;
+			if(mustCatch.length == 0) {
+				this.body = block;
+				this.tryBlock = null;
+			} else {
+				this.tryBlock = block._try();
+				this.body = this.tryBlock.body();
+			}
+		}
+
+		public void close() {
+			if(this.tryBlock != null) {
+				for(final Class<?> exceptionType : this.mustCatch) {
+					final JCatchBlock catchBlock = this.tryBlock._catch(ApiConstructs.this.codeModel.ref(exceptionType));
+					catchBlock.body()._return(JExpr._new(ApiConstructs.this.codeModel.ref(RuntimeException.class)).arg(catchBlock.param("e")));
+				}
+			}
+		}
 	}
 }

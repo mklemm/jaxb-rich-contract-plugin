@@ -32,64 +32,26 @@ import com.sun.codemodel.ClassType;
 import com.sun.codemodel.JClassAlreadyExistsException;
 import com.sun.codemodel.JDefinedClass;
 import com.sun.codemodel.JMod;
-import com.sun.tools.xjc.BadCommandLineException;
 import com.sun.tools.xjc.Options;
-import com.sun.tools.xjc.Plugin;
 import com.sun.tools.xjc.outline.ClassOutline;
 import com.sun.tools.xjc.outline.Outline;
 import org.xml.sax.ErrorHandler;
 import org.xml.sax.SAXException;
 import org.xml.sax.SAXParseException;
 
-import java.io.IOException;
-import java.text.MessageFormat;
 import java.util.LinkedHashMap;
 import java.util.Map;
-import java.util.ResourceBundle;
 
 /**
  * Plugin to generate fluent Builders for generated classes
  */
-public class FluentBuilderPlugin extends Plugin {
-	private boolean generateTools = true;
-	private boolean narrow = true;
-	private boolean copyPartial = true;
-	private final ResourceBundle resources;
-
+public class FluentBuilderPlugin extends AbstractPlugin {
+	private volatile boolean generateTools = true;
+	private volatile boolean narrow = true;
+	private volatile boolean partial = true;
 
 	public FluentBuilderPlugin() {
-		this.resources = ResourceBundle.getBundle(FluentBuilderPlugin.class.getName());
-	}
-
-	private String getMessage(final String key, final Object... params) {
-		return MessageFormat.format(this.resources.getString(key), params);
-	}
-
-	@Override
-	public String getOptionName() {
-		return "Xfluent-builder";
-	}
-
-	@Override
-	public int parseArgument(final Options opt, final String[] args, final int i) throws BadCommandLineException, IOException {
-		PluginUtil.Arg<Boolean> arg = PluginUtil.parseBooleanArgument("fluent-builder-generate-tools", this.generateTools, opt, args, i);
-		this.generateTools = arg.getValue();
-		if (arg.getArgsParsed() == 0) {
-			arg = PluginUtil.parseBooleanArgument("fluent-builder-copy-partial", this.copyPartial, opt, args, i);
-			this.copyPartial = arg.getValue();
-		}
-		if (arg.getArgsParsed() == 0) {
-			arg = PluginUtil.parseBooleanArgument("fluent-builder-narrow", this.narrow, opt, args, i);
-			this.narrow = arg.getValue();
-		}
-		return arg.getArgsParsed();
-	}
-
-	@Override
-	public String getUsage() {
-		final PluginUsageBuilder pluginUsageBuilder = new PluginUsageBuilder(this.resources, "usage").addMain("fluent-builder").addOption("fluent-builder-generate-tools", this.generateTools).addOption("fluent-builder-copy-partial", this.copyPartial).addOption("fluent-builder-narrow", this.narrow);
-
-		return pluginUsageBuilder.build();
+		super("fluent-builder");
 	}
 
 	@Override
@@ -100,14 +62,14 @@ public class FluentBuilderPlugin extends Plugin {
 		final ApiConstructs apiConstructs = new ApiConstructs(outline, opt, errorHandler);
 
 		if (this.generateTools) {
-			PluginUtil.writeSourceFile(getClass(), opt.targetDir, BuilderUtilities.class.getName());
+			apiConstructs.writeSourceFile(BuilderUtilities.class);
 		}
 
-		if(this.copyPartial) {
+		if(this.partial) {
 			if(this.generateTools) {
-				PluginUtil.writeSourceFile(getClass(), opt.targetDir, PropertyTreeUse.class.getName());
-				PluginUtil.writeSourceFile(getClass(), opt.targetDir, PropertyTree.class.getName());
-				PluginUtil.writeSourceFile(getClass(), opt.targetDir, Selector.class.getName());
+				apiConstructs.writeSourceFile(PropertyTreeUse.class);
+				apiConstructs.writeSourceFile(PropertyTree.class);
+				apiConstructs.writeSourceFile(Selector.class);
 			}
 			if(apiConstructs.findPlugin(DeepCopyPlugin.class) == null) {
 				final SelectorGenerator selectorGenerator = new SelectorGenerator(apiConstructs, Selector.class, "Selector", "Select", null, null, apiConstructs.cloneGraphClass);
@@ -127,7 +89,7 @@ public class FluentBuilderPlugin extends Plugin {
 
 
 		for (final BuilderOutline builderOutline : builderClasses.values()) {
-			final BuilderGenerator builderGenerator = new BuilderGenerator(apiConstructs, builderClasses, builderOutline, this.copyPartial, this.narrow);
+			final BuilderGenerator builderGenerator = new BuilderGenerator(apiConstructs, builderClasses, builderOutline, this.partial, this.narrow);
 			builderGenerator.buildProperties();
 		}
 		return true;

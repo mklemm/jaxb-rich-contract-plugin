@@ -25,9 +25,8 @@ package com.kscs.util.plugins.xjc;
 
 import java.io.PrintWriter;
 import java.io.StringWriter;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.ResourceBundle;
+import java.text.MessageFormat;
+import java.util.*;
 
 /**
  * Generates a formatted output of plugin usage information
@@ -35,33 +34,48 @@ import java.util.ResourceBundle;
  * @author mirko 2014-04-03
  */
 public class PluginUsageBuilder {
+	private static final Map<Class<?>,String> OPTION_USAGES = new HashMap<Class<?>, String>() {{
+		put(boolean.class, "-{2}.{0}='{true|false}' ({1})");
+		put(Boolean.class, "-{2}.{0}='{true|false}' ({1})");
+		put(String.class, "-{2}.{0}=<string> ({1})");
+	}};
+	public static final int OPTION_LINE_LENGTH = 70;
+	public static final int HEADER_LINE_LENGTH = 80;
+
 	private final StringWriter stringWriter = new StringWriter();
 	private final PrintWriter writer = new PrintWriter(this.stringWriter);
 	private final ResourceBundle resourceBundle;
 	private final String keyBase;
+	private final String pluginName;
 
-	public PluginUsageBuilder(final ResourceBundle resourceBundle, final String keyBase) {
+	public PluginUsageBuilder(final ResourceBundle resourceBundle, final String keyBase, final String pluginName) {
 		this.resourceBundle = resourceBundle;
 		this.keyBase = keyBase;
+		this.pluginName = pluginName;
+		addMain(pluginName);
 	}
 
-	public PluginUsageBuilder addMain(final String optionName) {
+	public PluginUsageBuilder(final Class<?> pluginClass, final String pluginName) {
+		this(ResourceBundle.getBundle(pluginClass.getName()), "usage", pluginName);
+	}
+
+	private PluginUsageBuilder addMain(final String optionName) {
 		this.writer.print(this.resourceBundle.getString(this.keyBase + ".usage"));
 		this.writer.println(": -X" + optionName);
 		this.writer.println();
-		for (final String line : chopLines(80, this.resourceBundle.getString(this.keyBase))) {
+		for (final String line : chopLines(PluginUsageBuilder.HEADER_LINE_LENGTH, this.resourceBundle.getString(this.keyBase))) {
 			this.writer.println(line);
 		}
 		this.writer.println("\n"+this.resourceBundle.getString(this.keyBase + ".options") + ":");
 		return this;
 	}
 
-	public PluginUsageBuilder addOption(final String optionName, final boolean defaultValue) {
-		final String key = this.keyBase + "." + transformName(optionName);
+	public <T> PluginUsageBuilder addOption(final String optionName, final T defaultValue) {
+		final String key = this.keyBase + ".opt." + optionName;
 		this.writer.println();
-		this.writer.print("\t-");
-		this.writer.println(optionName + "={y|n} ("+(defaultValue ? "y" : "n")+") :");
-		for (final String line : chopLines(70, this.resourceBundle.getString(key))) {
+		this.writer.print("\t");
+		this.writer.println(getOptionUsage(optionName, defaultValue)+" :");
+		for (final String line : chopLines(PluginUsageBuilder.OPTION_LINE_LENGTH, this.resourceBundle.getString(key))) {
 			this.writer.print("\t\t");
 			this.writer.println(line);
 		}
@@ -69,19 +83,8 @@ public class PluginUsageBuilder {
 		return this;
 	}
 
-
-	private static String transformName(final String xmlName) {
-		final StringBuilder sb = new StringBuilder();
-		boolean first = true;
-		for (final String word : xmlName.split("\\-")) {
-			if (first) {
-				sb.append(word);
-				first = false;
-			} else {
-				sb.append(word.substring(0, 1).toUpperCase()).append(word.substring(1));
-			}
-		}
-		return sb.toString();
+	public <T> String getOptionUsage(final String optionName, final T defaultValue) {
+		return MessageFormat.format(PluginUsageBuilder.OPTION_USAGES.get(defaultValue.getClass()), optionName, defaultValue, this.pluginName);
 	}
 
 	private static List<String> chopLines(final int maxLineLength, final String input) {
