@@ -72,7 +72,7 @@ public class FluentBuilderPlugin extends AbstractPlugin {
 				apiConstructs.writeSourceFile(Selector.class);
 			}
 			if(apiConstructs.findPlugin(DeepCopyPlugin.class) == null) {
-				final SelectorGenerator selectorGenerator = new SelectorGenerator(apiConstructs, Selector.class, "Selector", "Select", null, null, apiConstructs.cloneGraphClass);
+				final SelectorGenerator selectorGenerator = new SelectorGenerator(apiConstructs, Selector.class, "_Selector", "Select", null, null, apiConstructs.cloneGraphClass);
 							selectorGenerator.generateMetaFields();
 			}
 		}
