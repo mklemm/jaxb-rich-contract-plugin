@@ -25,6 +25,7 @@ package com.kscs.util.plugins.xjc;
 
 import javax.xml.namespace.QName;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import com.sun.codemodel.JDefinedClass;
 import com.sun.tools.xjc.outline.FieldOutline;
@@ -36,7 +37,7 @@ import com.sun.xml.xsom.XSDeclaration;
 public class InterfaceOutline<T extends XSDeclaration> implements TypeOutline {
 	private InterfaceOutline<T> superInterface = null;
 	private final JDefinedClass implClass;
-	private List<PropertyOutline> declaredFields = null;
+	private List<PropertyOutline> declaredFields = Collections.emptyList();
 	private final T schemaComponent;
 	private final QName name;
 
