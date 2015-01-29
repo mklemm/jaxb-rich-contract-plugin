@@ -37,7 +37,7 @@ import com.sun.xml.xsom.XSDeclaration;
 public class InterfaceOutline<T extends XSDeclaration> implements TypeOutline {
 	private InterfaceOutline<T> superInterface = null;
 	private final JDefinedClass implClass;
-	private List<PropertyOutline> declaredFields = Collections.emptyList();
+	private List<PropertyOutline> declaredFields = null;
 	private final T schemaComponent;
 	private final QName name;
 
@@ -49,12 +49,12 @@ public class InterfaceOutline<T extends XSDeclaration> implements TypeOutline {
 
 	@Override
 	public List<PropertyOutline> getDeclaredFields() {
-		return this.declaredFields;
+		return this.declaredFields == null ? Collections.<PropertyOutline>emptyList() : this.declaredFields;
 	}
 
 	public void addField(final FieldOutline field) {
 		if(this.declaredFields == null) {
-			this.declaredFields = new ArrayList<PropertyOutline>();
+			this.declaredFields = new ArrayList<>();
 		}
 		this.declaredFields.add(new DefinedPropertyOutline(field));
 	}
