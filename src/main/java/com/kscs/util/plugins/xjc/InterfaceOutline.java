@@ -25,7 +25,6 @@ package com.kscs.util.plugins.xjc;
 
 import javax.xml.namespace.QName;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import com.sun.codemodel.JDefinedClass;
 import com.sun.tools.xjc.outline.FieldOutline;
@@ -49,7 +48,7 @@ public class InterfaceOutline<T extends XSDeclaration> implements TypeOutline {
 
 	@Override
 	public List<PropertyOutline> getDeclaredFields() {
-		return this.declaredFields == null ? Collections.<PropertyOutline>emptyList() : this.declaredFields;
+		return this.declaredFields;
 	}
 
 	public void addField(final FieldOutline field) {

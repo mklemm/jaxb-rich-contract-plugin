@@ -24,12 +24,20 @@
 
 package com.kscs.util.plugins.xjc;
 
+import javax.xml.namespace.NamespaceContext;
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.xpath.XPath;
+import javax.xml.xpath.XPathConstants;
+import javax.xml.xpath.XPathExpression;
 import javax.xml.xpath.XPathFactory;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.ResourceBundle;
 import java.util.logging.Logger;
 import com.sun.tools.xjc.BadCommandLineException;
@@ -39,12 +47,16 @@ import com.sun.tools.xjc.model.Model;
 import com.sun.tools.xjc.outline.ClassOutline;
 import com.sun.tools.xjc.outline.Outline;
 import com.sun.xml.xsom.XSAttGroupDecl;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.w3c.dom.NodeList;
 import org.xml.sax.ErrorHandler;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 
 public class GroupInterfacePlugin extends Plugin {
 	private static final Logger LOGGER = Logger.getLogger(GroupInterfacePlugin.class.getName());
+	public static final String XS_NS = "http://www.w3.org/2001/XMLSchema";
 	private boolean declareSetters = true;
 	private boolean declareBuilderInterface = true;
 	private GroupInterfaceGenerator generator = null;
@@ -98,11 +110,34 @@ public class GroupInterfacePlugin extends Plugin {
 
 	@Override
 	public void onActivated(final Options opts) throws BadCommandLineException {
-		final XPathFactory xPathFactory = XPathFactory.newInstance();
-		final XPath attGroupXPath = xPathFactory.newXPath();
-		final HashMap<String,String> attGroupQNamesByNamespaceUri = new HashMap<>();
-		for(final InputSource grammar : opts.getGrammars()) {
+		try {
+			final XPathFactory xPathFactory = XPathFactory.newInstance();
+			final DocumentBuilderFactory documentBuilderFactory = DocumentBuilderFactory.newInstance();
+			documentBuilderFactory.setNamespaceAware(true);
+			final DocumentBuilder documentBuilder = documentBuilderFactory.newDocumentBuilder();
+			final XPath xPath = xPathFactory.newXPath();
+			final NamespaceContext namespaceContext = new MappingNamespaceContext().add("xs", XS_NS);
+			xPath.setNamespaceContext(namespaceContext);
+			final XPathExpression attGroupExpression = xPath.compile("/xs:schema/xs:attributeGroup/@name");
+			final XPathExpression modelGroupExpression = xPath.compile("/xs:schema/xs:group/@name");
+			final XPathExpression targetNamespaceExpression = xPath.compile("/xs:schema/@targetNamespace");
 
+			final HashMap<String, List<String>> attGroupQNamesByNamespaceUri = new HashMap<>();
+			final HashMap<String, List<String>> modelGroupQNamesByNamespaceUri = new HashMap<>();
+			for (final InputSource grammar : opts.getGrammars()) {
+				final String targetNamespaceUri = targetNamespaceExpression.evaluate(grammar);
+				final NodeList attGroupNodes = (NodeList)attGroupExpression.evaluate(grammar, XPathConstants.NODESET);
+				final NodeList modelGroupNodes = (NodeList)modelGroupExpression.evaluate(grammar, XPathConstants.NODESET);
+
+				if(attGroupNodes.getLength() > 0 && modelGroupNodes.getLength() > 0) {
+					final Document dummySchema = documentBuilder.newDocument();
+					dummySchema.setXmlVersion("1.0");
+					final Element rootEl = dummySchema.createElementNS(XS_NS, "xs:schema");
+					rootEl.setAttribute("targetNamespace", targetNamespaceUri+"/__dummy");
+				}
+			}
+		} catch(final Exception e) {
+			throw new BadCommandLineException("Error setting up group-interface-plugin" + e);
 		}
 	}
 
@@ -113,5 +148,45 @@ public class GroupInterfacePlugin extends Plugin {
 			final XSAttGroupDecl attGroupDecl = iterator.next();
 
 		}
+	}
+
+	private static class MappingNamespaceContext implements NamespaceContext {
+		private final Map<String,List<String>> namespacesByUri = new HashMap<>();
+		private final HashMap<String,String> namespacesByPrefix = new HashMap<>();
+
+		public MappingNamespaceContext add(final String prefix, final String namespaceUri) {
+			putMapValue(this.namespacesByUri, namespaceUri, prefix);
+			this.namespacesByPrefix.put(prefix,namespaceUri);
+			return this;
+		}
+
+		@Override
+		public String getNamespaceURI(final String prefix) {
+			return this.namespacesByPrefix.get(prefix);
+		}
+
+		@Override
+		public String getPrefix(final String namespaceURI) {
+			return getPrefixes(namespaceURI).hasNext() ? (String)getPrefixes(namespaceURI).next() : null;
+		}
+
+		@Override
+		public Iterator getPrefixes(final String namespaceURI) {
+			return getMapValues(namespacesByUri, namespaceURI).iterator();
+		}
+	}
+
+	private static List<String> getMapValues(final Map<String,List<String>> map, final String key) {
+		final List<String> val = map.get(key);
+		return val == null ? Collections.<String>emptyList() : val;
+	}
+
+	private static void putMapValue(final Map<String,List<String>> map, final String key, final String value) {
+		List<String> values = map.get(key);
+		if(values == null) {
+			values = new ArrayList<>();
+			map.put(key, values);
+		}
+		values.add(value);
 	}
 }

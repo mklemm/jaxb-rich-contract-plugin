@@ -762,13 +762,14 @@ public class BuilderGenerator {
 
 
 	private void generateBuilderMemberOverrides(final TypeOutline superClass) {
-		for (final PropertyOutline superFieldOutline : superClass.getDeclaredFields()) {
-			if (superFieldOutline.hasGetter()) {
-				final String superPropertyName = superFieldOutline.getBaseName();
-				generateBuilderMemberOverride(superFieldOutline, superFieldOutline, superPropertyName);
+		if(superClass.getDeclaredFields() != null) {
+			for (final PropertyOutline superFieldOutline : superClass.getDeclaredFields()) {
+				if (superFieldOutline.hasGetter()) {
+					final String superPropertyName = superFieldOutline.getBaseName();
+					generateBuilderMemberOverride(superFieldOutline, superFieldOutline, superPropertyName);
+				}
 			}
 		}
-
 		if (superClass.getSuperClass() != null) {
 			generateBuilderMemberOverrides(superClass.getSuperClass());
 		}
