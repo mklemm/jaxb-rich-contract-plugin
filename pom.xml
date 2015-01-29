@@ -6,7 +6,7 @@
 
 	<groupId>com.kscs.util</groupId>
 	<artifactId>jaxb2-rich-contract-plugin</artifactId>
-	<version>1.3.2-SNAPSHOT</version>
+	<version>1.3.1-SNAPSHOT</version>
 
 	<name>JAXB 2.2 extended contract generation plugin</name>
 	<packaging>jar</packaging>
