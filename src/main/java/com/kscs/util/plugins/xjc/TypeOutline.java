@@ -23,19 +23,17 @@
  */
 package com.kscs.util.plugins.xjc;
 
-import com.sun.codemodel.JDefinedClass;
-import com.sun.tools.xjc.outline.FieldOutline;
-
 import java.util.List;
+import com.sun.codemodel.JClass;
 
 /**
  * @author mirko 2014-05-29
  */
 public interface TypeOutline {
-	List<FieldOutline> getDeclaredFields();
+	List<PropertyOutline> getDeclaredFields();
 
 	TypeOutline getSuperClass();
-	JDefinedClass getImplClass();
+	JClass getImplClass();
 
 
 }

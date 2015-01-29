@@ -24,7 +24,17 @@
 
 package com.kscs.util.plugins.xjc;
 
-import com.sun.codemodel.*;
+import java.util.ResourceBundle;
+import com.sun.codemodel.JBlock;
+import com.sun.codemodel.JClass;
+import com.sun.codemodel.JConditional;
+import com.sun.codemodel.JDefinedClass;
+import com.sun.codemodel.JExpr;
+import com.sun.codemodel.JExpression;
+import com.sun.codemodel.JFieldVar;
+import com.sun.codemodel.JMethod;
+import com.sun.codemodel.JMod;
+import com.sun.codemodel.JType;
 import com.sun.tools.xjc.Options;
 import com.sun.tools.xjc.Plugin;
 import com.sun.tools.xjc.outline.ClassOutline;
@@ -32,8 +42,6 @@ import com.sun.tools.xjc.outline.FieldOutline;
 import com.sun.tools.xjc.outline.Outline;
 import org.xml.sax.ErrorHandler;
 import org.xml.sax.SAXException;
-
-import java.util.ResourceBundle;
 
 /**
  * XJC Plugin to make generated classes immutable
@@ -85,12 +93,19 @@ public class ImmutablePlugin extends Plugin {
 	public String getImmutableFieldName(final FieldOutline fieldVar) {
 		return fieldVar.getPropertyInfo().getName(false) + "_RO";
 	}
+	public String getImmutableFieldName(final PropertyOutline fieldVar) {
+		return fieldVar.getFieldName() + "_RO";
+	}
 	public String getImmutableFieldName(final JFieldVar fieldVar) {
 		return fieldVar.name() + "_RO";
 	}
 
 	public void immutableInit(final ApiConstructs apiConstructs, final JBlock body, final JExpression instanceRef, final FieldOutline collectionField) {
 		body.assign(instanceRef.ref(getImmutableFieldName(collectionField)), PluginUtil.nullSafe(collectionField, apiConstructs.unmodifiableList(instanceRef.ref(collectionField.getPropertyInfo().getName(false)))));
+	}
+
+	public void immutableInit(final ApiConstructs apiConstructs, final JBlock body, final JExpression instanceRef, final PropertyOutline collectionField) {
+		body.assign(instanceRef.ref(getImmutableFieldName(collectionField)), PluginUtil.nullSafe(collectionField, apiConstructs.unmodifiableList(instanceRef.ref(collectionField.getFieldName()))));
 	}
 
 	public void immutableInit(final ApiConstructs apiConstructs, final JBlock body, final JExpression instanceRef, final JFieldVar declaredField) {

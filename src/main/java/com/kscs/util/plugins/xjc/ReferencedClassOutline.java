@@ -21,29 +21,32 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
+
 package com.kscs.util.plugins.xjc;
 
-import javax.xml.namespace.QName;
+import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.List;
-import com.sun.codemodel.JDefinedClass;
-import com.sun.tools.xjc.outline.FieldOutline;
-import com.sun.xml.xsom.XSDeclaration;
+import com.sun.codemodel.JClass;
+import com.sun.codemodel.JCodeModel;
 
 /**
- * @author mirko 2014-05-29
+ * @author Mirko Klemm 2015-01-28
  */
-public class InterfaceOutline<T extends XSDeclaration> implements TypeOutline {
-	private InterfaceOutline<T> superInterface = null;
-	private final JDefinedClass implClass;
-	private List<PropertyOutline> declaredFields = null;
-	private final T schemaComponent;
-	private final QName name;
+public class ReferencedClassOutline implements TypeOutline {
+	private final Class<?> referencedClass;
+	private final JCodeModel codeModel;
+	private final List<PropertyOutline> declaredFields;
 
-	public InterfaceOutline(final T schemaComponent, final JDefinedClass implClass) {
-		this.schemaComponent = schemaComponent;
-		this.implClass = implClass;
-		this.name = new QName(schemaComponent.getTargetNamespace(), schemaComponent.getName());
+	private ReferencedClassOutline superClassOutline = null;
+
+	public ReferencedClassOutline(final JCodeModel codeModel, final Class<?> referencedClass) {
+		this.codeModel = codeModel;
+		this.referencedClass = referencedClass;
+		this.declaredFields = new ArrayList<PropertyOutline>(referencedClass.getDeclaredFields().length);
+		for(final Field field : referencedClass.getDeclaredFields()) {
+			this.declaredFields.add(new ReferencedPropertyOutline(codeModel, field));
+		}
 	}
 
 	@Override
@@ -51,34 +54,16 @@ public class InterfaceOutline<T extends XSDeclaration> implements TypeOutline {
 		return this.declaredFields;
 	}
 
-	public void addField(final FieldOutline field) {
-		if(this.declaredFields == null) {
-			this.declaredFields = new ArrayList<PropertyOutline>();
+	@Override
+	public TypeOutline getSuperClass() {
+		if(this.superClassOutline == null && this.referencedClass.getSuperclass() != null) {
+			this.superClassOutline = new ReferencedClassOutline(this.codeModel, this.referencedClass.getSuperclass());
 		}
-		this.declaredFields.add(new DefinedPropertyOutline(field));
+		return this.superClassOutline;
 	}
 
 	@Override
-	public InterfaceOutline getSuperClass() {
-		return this.superInterface;
+	public JClass getImplClass() {
+		return this.codeModel.ref(this.referencedClass);
 	}
-
-	@Override
-	public JDefinedClass getImplClass() {
-		return this.implClass;
-	}
-
-	public T getSchemaComponent() {
-		return this.schemaComponent;
-	}
-
-	public QName getName() {
-		return this.name;
-	}
-
-	void setSuperInterface(final InterfaceOutline superInterface) {
-		this.superInterface = superInterface;
-	}
-
-
 }

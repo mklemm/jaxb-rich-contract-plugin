@@ -23,33 +23,61 @@
  */
 package com.kscs.util.plugins.xjc;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import com.sun.codemodel.JClass;
 import com.sun.codemodel.JDefinedClass;
 import com.sun.tools.xjc.outline.ClassOutline;
 import com.sun.tools.xjc.outline.FieldOutline;
-
-import java.util.Arrays;
-import java.util.List;
 
 /**
  * @author mirko 2014-05-29
  */
 public class DefinedClassOutline implements TypeOutline {
+	private final ApiConstructs apiConstructs;
 	private final ClassOutline classOutline;
-	private DefinedClassOutline cachedSuperClass = null;
+	private final List<PropertyOutline> declaredFields;
+	private TypeOutline cachedSuperClass = null;
 
-	public DefinedClassOutline(final ClassOutline classOutline) {
+	public DefinedClassOutline(final ApiConstructs apiConstructs, final ClassOutline classOutline) {
+		this.apiConstructs = apiConstructs;
 		this.classOutline = classOutline;
+		final List<PropertyOutline> properties = new ArrayList<PropertyOutline>(classOutline.getDeclaredFields().length);
+		for (final FieldOutline fieldOutline : classOutline.getDeclaredFields()) {
+			properties.add(new DefinedPropertyOutline(fieldOutline));
+		}
+		this.declaredFields = Collections.unmodifiableList(properties);
 	}
 
 	@Override
-	public List<FieldOutline> getDeclaredFields() {
-		return Arrays.asList(this.classOutline.getDeclaredFields());
+	public List<PropertyOutline> getDeclaredFields() {
+		return this.declaredFields;
 	}
 
 	@Override
 	public TypeOutline getSuperClass() {
-		if(this.cachedSuperClass == null && this.classOutline.getSuperClass() != null) {
-			this.cachedSuperClass = new DefinedClassOutline(this.classOutline.getSuperClass());
+		if (this.cachedSuperClass == null) {
+			if (this.classOutline.getSuperClass() != null) {
+				this.cachedSuperClass = new DefinedClassOutline(this.apiConstructs, this.classOutline.getSuperClass());
+			} else {
+				try {
+					final Class<?> ungeneratedSuperClass = Class.forName(this.classOutline.implClass._extends().fullName());
+					if (Object.class.equals(ungeneratedSuperClass)) {
+						return null;
+					} else {
+						final JClass jClass = this.apiConstructs.getBuilderClass(ungeneratedSuperClass);
+						if (jClass != null) {
+							return new ReferencedClassOutline(this.apiConstructs.codeModel, ungeneratedSuperClass);
+						} else {
+							return null;
+						}
+					}
+				} catch (final Exception e) {
+					throw new RuntimeException("Cannot find superclass of " + this.classOutline.target.getName() + ": " + this.classOutline.target.getLocator());
+				}
+
+			}
 		}
 		return this.cachedSuperClass;
 	}

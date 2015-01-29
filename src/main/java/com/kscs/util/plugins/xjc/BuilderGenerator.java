@@ -24,15 +24,31 @@
 
 package com.kscs.util.plugins.xjc;
 
-import com.kscs.util.jaxb.PropertyTree;
-import com.kscs.util.jaxb.PropertyTreeUse;
-import com.sun.codemodel.*;
-import com.sun.tools.xjc.outline.FieldOutline;
-
 import java.util.List;
 import java.util.Map;
 import java.util.ResourceBundle;
 import java.util.logging.Logger;
+import com.kscs.util.jaxb.PropertyTree;
+import com.kscs.util.jaxb.PropertyTreeUse;
+import com.sun.codemodel.JAssignmentTarget;
+import com.sun.codemodel.JBlock;
+import com.sun.codemodel.JCatchBlock;
+import com.sun.codemodel.JClass;
+import com.sun.codemodel.JConditional;
+import com.sun.codemodel.JDefinedClass;
+import com.sun.codemodel.JExpr;
+import com.sun.codemodel.JExpression;
+import com.sun.codemodel.JFieldRef;
+import com.sun.codemodel.JFieldVar;
+import com.sun.codemodel.JForEach;
+import com.sun.codemodel.JInvocation;
+import com.sun.codemodel.JMethod;
+import com.sun.codemodel.JMod;
+import com.sun.codemodel.JPrimitiveType;
+import com.sun.codemodel.JTryBlock;
+import com.sun.codemodel.JType;
+import com.sun.codemodel.JTypeVar;
+import com.sun.codemodel.JVar;
 
 import static com.kscs.util.plugins.xjc.PluginUtil.nullSafe;
 
@@ -40,8 +56,8 @@ import static com.kscs.util.plugins.xjc.PluginUtil.nullSafe;
  * Helper class to generate fluent builder classes in two steps
  */
 public class BuilderGenerator {
-	private static final Logger LOGGER = Logger.getLogger(BuilderGenerator.class.getName());
 	public static final String ITEM_VAR_NAME = "_item";
+	private static final Logger LOGGER = Logger.getLogger(BuilderGenerator.class.getName());
 	protected final ApiConstructs apiConstructs;
 	protected final JDefinedClass definedClass;
 	protected final JDefinedClass builderClass;
@@ -63,9 +79,9 @@ public class BuilderGenerator {
 		this.apiConstructs = apiConstructs;
 		this.builderOutlines = builderOutlines;
 		this.classOutline = builderOutline.getClassOutline();
-		this.definedClass = this.classOutline.getImplClass();
+		this.definedClass = (JDefinedClass) this.classOutline.getImplClass();
 		this.immutablePlugin = apiConstructs.findPlugin(ImmutablePlugin.class);
-		this.builderClass = builderOutline.getDefinedBuilderClass();
+		this.builderClass = (JDefinedClass) builderOutline.getDefinedBuilderClass();
 		this.copyPartial = copyPartial;
 		this.narrow = narrow;
 		this.resources = ResourceBundle.getBundle(BuilderGenerator.class.getName());
@@ -90,21 +106,21 @@ public class BuilderGenerator {
 			this.productField = null;
 		}
 
-		if(this.implement) {
+		if (this.implement) {
 			generateCopyConstructor();
-			if(this.copyPartial) {
+			if (this.copyPartial) {
 				generateGraphCopyConstructor();
 			}
 		}
 
 	}
 
-	protected void generateBuilderMember(final FieldOutline fieldOutline, final JBlock initBody, final JVar productParam) {
-		final String propertyName = fieldOutline.getPropertyInfo().getName(true);
-		final String fieldName = fieldOutline.getPropertyInfo().getName(false);
+	protected void generateBuilderMember(final PropertyOutline fieldOutline, final JBlock initBody, final JVar productParam) {
+		final String propertyName = fieldOutline.getBaseName();
+		final String fieldName = fieldOutline.getFieldName();
 		final JType fieldType = fieldOutline.getRawType();
 
-		if (fieldOutline.getPropertyInfo().isCollection()) {
+		if (fieldOutline.isCollection()) {
 			if (fieldOutline.getRawType().isArray()) {
 				generateArrayProperty(initBody, productParam, fieldOutline, fieldType.elementType(), this.builderType);
 			} else {
@@ -117,8 +133,8 @@ public class BuilderGenerator {
 		}
 	}
 
-	private void generateSingularProperty(final JBlock initBody, final JVar productParam, final FieldOutline fieldOutline, final String propertyName) {
-		final String fieldName = fieldOutline.getPropertyInfo().getName(false);
+	private void generateSingularProperty(final JBlock initBody, final JVar productParam, final PropertyOutline fieldOutline, final String propertyName) {
+		final String fieldName = fieldOutline.getFieldName();
 		final JType fieldType = fieldOutline.getRawType();
 		final BuilderOutline childBuilderOutline = getBuilderDeclaration(fieldType);
 		if (childBuilderOutline == null) {
@@ -151,9 +167,9 @@ public class BuilderGenerator {
 		}
 	}
 
-	private void generateCollectionProperty(final JBlock initBody, final JVar productParam, final FieldOutline fieldOutline, final JClass elementType) {
-		final String fieldName = fieldOutline.getPropertyInfo().getName(false);
-		final String propertyName = fieldOutline.getPropertyInfo().getName(true);
+	private void generateCollectionProperty(final JBlock initBody, final JVar productParam, final PropertyOutline fieldOutline, final JClass elementType) {
+		final String fieldName = fieldOutline.getFieldName();
+		final String propertyName = fieldOutline.getBaseName();
 		final JType fieldType = fieldOutline.getRawType();
 
 		final JClass listType = this.apiConstructs.listClass.narrow(elementType.wildcard());
@@ -179,7 +195,6 @@ public class BuilderGenerator {
 		final JVar collectionVar;
 
 		final BuilderOutline childBuilderOutline = getBuilderDeclaration(elementType);
-
 		if (childBuilderOutline == null) {
 			if (this.implement) {
 				final JFieldVar builderField = this.builderClass.field(JMod.PRIVATE, fieldType, fieldName);
@@ -235,11 +250,11 @@ public class BuilderGenerator {
 	}
 
 
-	protected void generateBuilderMemberOverride(final FieldOutline superFieldOutline, final FieldOutline fieldOutline, final String superPropertyName) {
+	protected void generateBuilderMemberOverride(final PropertyOutline superFieldOutline, final PropertyOutline fieldOutline, final String superPropertyName) {
 		final JType fieldType = fieldOutline.getRawType();
-		final String fieldName = fieldOutline.getPropertyInfo().getName(false);
+		final String fieldName = fieldOutline.getFieldName();
 
-		if (superFieldOutline.getPropertyInfo().isCollection()) {
+		if (superFieldOutline.isCollection()) {
 			if (!fieldType.isArray()) {
 				final JClass elementType = ((JClass) fieldType).getTypeParameters().get(0);
 				final JClass listType = this.apiConstructs.listClass.narrow(elementType.wildcard());
@@ -326,7 +341,7 @@ public class BuilderGenerator {
 	}
 
 	protected void generateImplementsClause() {
-		if(this.classOutline instanceof DefinedClassOutline) {
+		if (this.classOutline instanceof DefinedClassOutline) {
 			final DefinedClassOutline definedClassOutline = (DefinedClassOutline) this.classOutline;
 			final GroupInterfacePlugin groupInterfacePlugin = this.apiConstructs.findPlugin(GroupInterfacePlugin.class);
 			if (groupInterfacePlugin != null) {
@@ -339,7 +354,7 @@ public class BuilderGenerator {
 
 	protected JMethod generateBuildMethod(final JMethod initMethod) {
 		final JMethod buildMethod = this.builderClass.method(JMod.PUBLIC, this.definedClass, ApiConstructs.BUILD_METHOD_NAME);
-		if(this.implement) {
+		if (this.implement) {
 			if (this.definedClass.isAbstract()) {
 				buildMethod.body()._return(JExpr.cast(this.definedClass, JExpr._this().ref("_product")));
 			} else {
@@ -403,7 +418,7 @@ public class BuilderGenerator {
 		final JBlock body;
 		final JTryBlock tryBlock;
 
-		final boolean mustCatch = mustCatch(this.apiConstructs, this.classOutline, new Predicate<JClass>() {
+		final boolean mustCatch = mustCatch(this.classOutline, new Predicate<JClass>() {
 			@Override
 			public boolean matches(final JClass fieldType) {
 				return (!BuilderGenerator.this.apiConstructs.canInstantiate(fieldType)) && BuilderGenerator.this.apiConstructs.cloneThrows(fieldType, false);
@@ -419,8 +434,8 @@ public class BuilderGenerator {
 		}
 
 		final JExpression newObjectVar = JExpr._this();
-		for (final FieldOutline fieldOutline : this.classOutline.getDeclaredFields()) {
-			final JFieldVar field = PluginUtil.getDeclaredField(fieldOutline);
+		for (final PropertyOutline fieldOutline : this.classOutline.getDeclaredFields()) {
+			final JFieldVar field = fieldOutline.getFieldVar();
 			if (field != null) {
 				if (field.type().isReference()) {
 					final JClass fieldType = (JClass) field.type();
@@ -428,7 +443,7 @@ public class BuilderGenerator {
 					final JFieldRef fieldRef = otherParam.ref(field);
 					if (this.apiConstructs.collectionClass.isAssignableFrom(fieldType)) {
 						final JClass elementType = fieldType.getTypeParameters().get(0);
-						final BuilderOutline childBuilderOutline = this.builderOutlines.get(elementType.fullName());
+						final BuilderOutline childBuilderOutline = getBuilderDeclaration(elementType);
 						if (this.narrow && this.apiConstructs.canInstantiate(elementType)) {
 							final JClass childBuilderType = childBuilderOutline.getDefinedBuilderClass().narrow(this.builderType);
 							final JForEach forLoop = loop(body, fieldRef, elementType, newField, childBuilderType);
@@ -445,7 +460,7 @@ public class BuilderGenerator {
 						}
 
 					} else {
-						final BuilderOutline childBuilderOutline = this.builderOutlines.get(fieldType.fullName());
+						final BuilderOutline childBuilderOutline = getBuilderDeclaration(fieldType);
 						if (this.narrow && this.apiConstructs.canInstantiate(fieldType)) {
 							final JClass childBuilderType = childBuilderOutline.getDefinedBuilderClass().narrow(this.builderType);
 							body.assign(newField, nullSafe(fieldRef, JExpr._new(childBuilderType).arg(JExpr._this()).arg(fieldRef).arg(JExpr.TRUE)));
@@ -507,7 +522,7 @@ public class BuilderGenerator {
 		final JBlock body;
 		final JTryBlock tryBlock;
 
-		final boolean mustCatch = mustCatch(this.apiConstructs, this.classOutline, new Predicate<JClass>() {
+		final boolean mustCatch = mustCatch(this.classOutline, new Predicate<JClass>() {
 			@Override
 			public boolean matches(final JClass fieldType) {
 				return (!BuilderGenerator.this.apiConstructs.canInstantiate(fieldType)) && (!BuilderGenerator.this.apiConstructs.partialCopyableInterface.isAssignableFrom(fieldType)) && BuilderGenerator.this.apiConstructs.cloneThrows(fieldType, false);
@@ -523,8 +538,8 @@ public class BuilderGenerator {
 		}
 		JBlock currentBlock;
 		final JExpression newObjectVar = JExpr._this();
-		for (final FieldOutline fieldOutline : this.classOutline.getDeclaredFields()) {
-			final JFieldVar field = PluginUtil.getDeclaredField(fieldOutline);
+		for (final PropertyOutline fieldOutline : this.classOutline.getDeclaredFields()) {
+			final JFieldVar field = fieldOutline.getFieldVar();
 			if (field != null) {
 				if ((field.mods().getValue() & (JMod.FINAL | JMod.STATIC)) == 0) {
 					final JFieldRef newField = JExpr.ref(newObjectVar, field);
@@ -536,7 +551,7 @@ public class BuilderGenerator {
 						final JClass fieldType = (JClass) field.type();
 						if (this.apiConstructs.collectionClass.isAssignableFrom(fieldType)) {
 							final JClass elementType = fieldType.getTypeParameters().get(0);
-							final BuilderOutline childBuilderOutline = this.builderOutlines.get(elementType.fullName());
+							final BuilderOutline childBuilderOutline = getBuilderDeclaration(elementType);
 							if (this.narrow && this.apiConstructs.canInstantiate(elementType)) {
 								final JClass childBuilderType = childBuilderOutline.getDefinedBuilderClass().narrow(this.builderType);
 								final JForEach forLoop = loop(currentBlock, fieldRef, elementType, newField, childBuilderType);
@@ -556,7 +571,7 @@ public class BuilderGenerator {
 							}
 
 						} else {
-							final BuilderOutline childBuilderOutline = this.builderOutlines.get(fieldType.fullName());
+							final BuilderOutline childBuilderOutline = getBuilderDeclaration(fieldType);
 							if (this.narrow && this.apiConstructs.canInstantiate(fieldType)) {
 								final JClass childBuilderType = childBuilderOutline.getDefinedBuilderClass().narrow(this.builderType);
 								currentBlock.assign(newField, nullSafe(fieldRef, JExpr._new(childBuilderType).arg(JExpr._this()).arg(fieldRef).arg(JExpr.TRUE).arg(fieldPathVar).arg(cloneGenerator.getIncludeParam())));
@@ -610,7 +625,7 @@ public class BuilderGenerator {
 		final JBlock body;
 		final JTryBlock tryBlock;
 
-		final boolean mustCatch = mustCatch(this.apiConstructs, this.classOutline, new Predicate<JClass>() {
+		final boolean mustCatch = mustCatch(this.classOutline, new Predicate<JClass>() {
 			@Override
 			public boolean matches(final JClass fieldType) {
 				return (!BuilderGenerator.this.apiConstructs.canInstantiate(fieldType)) && (!BuilderGenerator.this.apiConstructs.partialCopyableInterface.isAssignableFrom(fieldType)) && BuilderGenerator.this.apiConstructs.cloneThrows(fieldType, false);
@@ -626,8 +641,8 @@ public class BuilderGenerator {
 		}
 		JBlock currentBlock;
 		final JExpression newObjectVar = JExpr._this();
-		for (final FieldOutline fieldOutline : this.classOutline.getDeclaredFields()) {
-			final JFieldVar field = PluginUtil.getDeclaredField(fieldOutline);
+		for (final PropertyOutline fieldOutline : this.classOutline.getDeclaredFields()) {
+			final JFieldVar field = fieldOutline.getFieldVar();
 			if (field != null) {
 				if ((field.mods().getValue() & (JMod.FINAL | JMod.STATIC)) == 0) {
 					final JFieldRef newField = JExpr.ref(newObjectVar, field);
@@ -639,7 +654,7 @@ public class BuilderGenerator {
 						final JClass fieldType = (JClass) field.type();
 						if (this.apiConstructs.collectionClass.isAssignableFrom(fieldType)) {
 							final JClass elementType = fieldType.getTypeParameters().get(0);
-							final BuilderOutline childBuilderOutline = this.builderOutlines.get(elementType.fullName());
+							final BuilderOutline childBuilderOutline = getBuilderDeclaration(elementType);
 							if (this.narrow && this.apiConstructs.canInstantiate(elementType)) {
 								final JClass childBuilderType = childBuilderOutline.getDefinedBuilderClass().narrow(this.builderType);
 								final JForEach forLoop = loop(currentBlock, fieldRef, elementType, newField, childBuilderType);
@@ -659,7 +674,7 @@ public class BuilderGenerator {
 							}
 
 						} else {
-							final BuilderOutline childBuilderOutline = this.builderOutlines.get(fieldType.fullName());
+							final BuilderOutline childBuilderOutline = getBuilderDeclaration(fieldType);
 							if (this.narrow && this.apiConstructs.canInstantiate(fieldType)) {
 								final JClass childBuilderType = childBuilderOutline.getDefinedBuilderClass().narrow(this.builderType);
 								currentBlock.assign(newField, nullSafe(fieldRef, JExpr._new(childBuilderType).arg(JExpr._this()).arg(fieldRef).arg(JExpr.TRUE).arg(fieldPathVar).arg(cloneGenerator.getIncludeParam())));
@@ -690,15 +705,10 @@ public class BuilderGenerator {
 	}
 
 
-	private boolean mustCatch(final ApiConstructs apiConstructs, final TypeOutline classOutline, final Predicate<JClass> fieldTypePredicate) {
-		final JDefinedClass definedClass = classOutline.getImplClass();
-		for (final JFieldVar field : definedClass.fields().values()) {
-			if (field.type().isReference()) {
-				JClass fieldType = (JClass) field.type();
-				if (apiConstructs.collectionClass.isAssignableFrom(fieldType)) {
-					fieldType = fieldType.getTypeParameters().get(0);
-				}
-				if (fieldTypePredicate.matches(fieldType)) {
+	private boolean mustCatch(final TypeOutline classOutline, final Predicate<JClass> fieldTypePredicate) {
+		for (final PropertyOutline field : classOutline.getDeclaredFields()) {
+			if (field.getRawType().isReference()) {
+				if (fieldTypePredicate.matches((JClass)field.getRawType())) {
 					return true;
 				}
 			}
@@ -712,7 +722,7 @@ public class BuilderGenerator {
 		final JMethod initMethod;
 		final JVar productParam;
 		final JBlock initBody;
-		if(this.implement) {
+		if (this.implement) {
 			initMethod = this.builderClass.method(JMod.PROTECTED, this.definedClass, ApiConstructs.INIT_METHOD_NAME);
 			final JTypeVar typeVar = initMethod.generify("P", this.definedClass);
 			initMethod.type(typeVar);
@@ -724,9 +734,9 @@ public class BuilderGenerator {
 			productParam = null;
 		}
 
-		if(this.classOutline.getDeclaredFields() != null) {
-			for (final FieldOutline fieldOutline : this.classOutline.getDeclaredFields()) {
-				if (PluginUtil.hasGetter(this.definedClass, fieldOutline)) {
+		if (this.classOutline.getDeclaredFields() != null) {
+			for (final PropertyOutline fieldOutline : this.classOutline.getDeclaredFields()) {
+				if (fieldOutline.hasGetter()) {
 					generateBuilderMember(fieldOutline, initBody, productParam);
 				}
 			}
@@ -736,9 +746,9 @@ public class BuilderGenerator {
 
 		if (superClass != null) {
 			generateExtendsClause(getBuilderDeclaration(superClass.getImplClass()));
-			if(this.implement) initBody._return(JExpr._super().invoke(initMethod).arg(productParam));
+			if (this.implement) initBody._return(JExpr._super().invoke(initMethod).arg(productParam));
 			generateBuilderMemberOverrides(superClass);
-		} else if(this.implement) {
+		} else if (this.implement) {
 			initBody._return(productParam);
 		}
 
@@ -752,10 +762,9 @@ public class BuilderGenerator {
 
 
 	private void generateBuilderMemberOverrides(final TypeOutline superClass) {
-		final JDefinedClass definedSuperClass = superClass.getImplClass();
-		for (final FieldOutline superFieldOutline : superClass.getDeclaredFields()) {
-			if (PluginUtil.hasGetter(definedSuperClass, superFieldOutline)) {
-				final String superPropertyName = superFieldOutline.getPropertyInfo().getName(true);
+		for (final PropertyOutline superFieldOutline : superClass.getDeclaredFields()) {
+			if (superFieldOutline.hasGetter()) {
+				final String superPropertyName = superFieldOutline.getBaseName();
 				generateBuilderMemberOverride(superFieldOutline, superFieldOutline, superPropertyName);
 			}
 		}
@@ -766,17 +775,22 @@ public class BuilderGenerator {
 	}
 
 	protected BuilderOutline getBuilderDeclaration(final JType type) {
-		return this.builderOutlines.get(type.fullName());
+		BuilderOutline builderOutline = this.builderOutlines.get(type.fullName());
+		if(builderOutline == null) {
+			builderOutline = this.apiConstructs.getReferencedBuilderOutline(type);
+		}
+		return builderOutline;
 	}
 
-	protected void generateArrayProperty(final JBlock initBody, final JVar productParam, final FieldOutline fieldOutline, final JType elementType, final JType builderType) {
-		final String fieldName = fieldOutline.getPropertyInfo().getName(false);
-		final String propertyName = fieldOutline.getPropertyInfo().getName(true);
+
+	protected void generateArrayProperty(final JBlock initBody, final JVar productParam, final PropertyOutline fieldOutline, final JType elementType, final JType builderType) {
+		final String fieldName = fieldOutline.getFieldName();
+		final String propertyName = fieldOutline.getBaseName();
 		final JType fieldType = fieldOutline.getRawType();
 
 		final JMethod withVarargsMethod = this.builderClass.method(JMod.PUBLIC, builderType, ApiConstructs.WITH_METHOD_PREFIX + propertyName);
 		final JVar withVarargsParam = withVarargsMethod.varParam(elementType, fieldName);
-		if(this.implement) {
+		if (this.implement) {
 			final JFieldVar builderField = this.builderClass.field(JMod.PRIVATE, fieldType, fieldName, JExpr._null());
 			withVarargsMethod.body().assign(JExpr._this().ref(builderField), withVarargsParam);
 			withVarargsMethod.body()._return(JExpr._this());

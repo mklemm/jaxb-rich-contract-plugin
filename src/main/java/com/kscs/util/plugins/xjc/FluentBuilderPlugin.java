@@ -24,6 +24,11 @@
 
 package com.kscs.util.plugins.xjc;
 
+import java.io.IOException;
+import java.text.MessageFormat;
+import java.util.LinkedHashMap;
+import java.util.Map;
+import java.util.ResourceBundle;
 import com.kscs.util.jaxb.BuilderUtilities;
 import com.kscs.util.jaxb.PropertyTree;
 import com.kscs.util.jaxb.PropertyTreeUse;
@@ -40,12 +45,6 @@ import com.sun.tools.xjc.outline.Outline;
 import org.xml.sax.ErrorHandler;
 import org.xml.sax.SAXException;
 import org.xml.sax.SAXParseException;
-
-import java.io.IOException;
-import java.text.MessageFormat;
-import java.util.LinkedHashMap;
-import java.util.Map;
-import java.util.ResourceBundle;
 
 /**
  * Plugin to generate fluent Builders for generated classes
@@ -118,13 +117,12 @@ public class FluentBuilderPlugin extends Plugin {
 		for (final ClassOutline classOutline : outline.getClasses()) {
 			final JDefinedClass definedClass = classOutline.implClass;
 			try {
-				final BuilderOutline builderOutline = new BuilderOutline(new DefinedClassOutline(classOutline), classOutline.implClass._class(JMod.PUBLIC | JMod.STATIC, ApiConstructs.BUILDER_CLASS_NAME, ClassType.CLASS));
+				final BuilderOutline builderOutline = new BuilderOutline(new DefinedClassOutline(apiConstructs, classOutline), classOutline.implClass._class(JMod.PUBLIC | JMod.STATIC, ApiConstructs.BUILDER_CLASS_NAME, ClassType.CLASS));
 				builderClasses.put(definedClass.fullName(), builderOutline);
 			} catch (final JClassAlreadyExistsException caex) {
 				errorHandler.warning(new SAXParseException("Class \"" + definedClass.name() + "\" already contains inner class \"Builder\". Skipping generation of fluent builder.", classOutline.target.getLocator(), caex));
 			}
 		}
-
 
 		for (final BuilderOutline builderOutline : builderClasses.values()) {
 			final BuilderGenerator builderGenerator = new BuilderGenerator(apiConstructs, builderClasses, builderOutline, this.copyPartial, this.narrow);

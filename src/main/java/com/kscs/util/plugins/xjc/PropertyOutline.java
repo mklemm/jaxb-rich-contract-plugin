@@ -21,30 +21,21 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
+
 package com.kscs.util.plugins.xjc;
 
-import com.sun.codemodel.JClass;
+import com.sun.codemodel.JFieldVar;
+import com.sun.codemodel.JType;
 
 /**
- * @author mirko
- * 25.03.14
- *
+ * @author Mirko Klemm 2015-01-28
  */
-public class BuilderOutline {
-	private final JClass definedBuilderClass;
-	private final TypeOutline classOutline;
-
-	protected BuilderOutline(final TypeOutline classOutline, final JClass definedBuilderClass)  {
-		this.classOutline = classOutline;
-		this.definedBuilderClass = definedBuilderClass;
-	}
-
-	public JClass getDefinedBuilderClass() {
-		return this.definedBuilderClass;
-	}
-
-	public TypeOutline getClassOutline() {
-		return this.classOutline;
-	}
-
+public interface PropertyOutline {
+	String getBaseName();
+	String getFieldName();
+	JType getRawType();
+	JType getElementType();
+	JFieldVar getFieldVar();
+	boolean hasGetter();
+	boolean isCollection();
 }

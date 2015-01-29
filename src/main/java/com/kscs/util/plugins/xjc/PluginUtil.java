@@ -24,17 +24,32 @@
 
 package com.kscs.util.plugins.xjc;
 
-import com.sun.codemodel.*;
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.util.Iterator;
+import java.util.Set;
+import com.sun.codemodel.JAssignmentTarget;
+import com.sun.codemodel.JBlock;
+import com.sun.codemodel.JClass;
+import com.sun.codemodel.JCodeModel;
+import com.sun.codemodel.JConditional;
+import com.sun.codemodel.JDefinedClass;
+import com.sun.codemodel.JExpr;
+import com.sun.codemodel.JExpression;
+import com.sun.codemodel.JFieldVar;
+import com.sun.codemodel.JMethod;
+import com.sun.codemodel.JOp;
+import com.sun.codemodel.JType;
 import com.sun.tools.xjc.BadCommandLineException;
 import com.sun.tools.xjc.Options;
 import com.sun.tools.xjc.Plugin;
 import com.sun.tools.xjc.outline.ClassOutline;
 import com.sun.tools.xjc.outline.FieldOutline;
 import com.sun.tools.xjc.outline.Outline;
-
-import java.io.*;
-import java.util.Iterator;
-import java.util.Set;
 
 /**
  * Common utilities for XJC plugins
@@ -167,6 +182,10 @@ public final class PluginUtil {
 
 	public static JExpression nullSafe(final FieldOutline test, final JExpression source) {
 		return nullSafe(JExpr.ref(test.getPropertyInfo().getName(false)), source);
+	}
+
+	public static JExpression nullSafe(final PropertyOutline test, final JExpression source) {
+		return nullSafe(JExpr.ref(test.getFieldName()), source);
 	}
 
 	public static JBlock ifNull(final JBlock block, final JExpression test, final JAssignmentTarget target) {

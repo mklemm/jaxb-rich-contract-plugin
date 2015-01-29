@@ -24,16 +24,37 @@
 
 package com.kscs.util.plugins.xjc;
 
-import com.kscs.util.jaxb.*;
-import com.sun.codemodel.*;
+import java.lang.reflect.Method;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import com.kscs.util.jaxb.BuilderUtilities;
+import com.kscs.util.jaxb.Copyable;
+import com.kscs.util.jaxb.PartialCopyable;
+import com.kscs.util.jaxb.PropertyTree;
+import com.kscs.util.jaxb.PropertyTreeUse;
+import com.kscs.util.jaxb.TransformerPath;
+import com.sun.codemodel.JAssignmentTarget;
+import com.sun.codemodel.JBlock;
+import com.sun.codemodel.JClass;
+import com.sun.codemodel.JCodeModel;
+import com.sun.codemodel.JConditional;
+import com.sun.codemodel.JExpr;
+import com.sun.codemodel.JExpression;
+import com.sun.codemodel.JFieldRef;
+import com.sun.codemodel.JForEach;
+import com.sun.codemodel.JInvocation;
+import com.sun.codemodel.JType;
 import com.sun.tools.xjc.Options;
 import com.sun.tools.xjc.Plugin;
 import com.sun.tools.xjc.outline.ClassOutline;
+import com.sun.tools.xjc.outline.EnumOutline;
 import com.sun.tools.xjc.outline.Outline;
 import org.xml.sax.ErrorHandler;
-
-import java.lang.reflect.Method;
-import java.util.*;
 
 /**
  * Common constants and constructs
@@ -68,6 +89,7 @@ public class ApiConstructs {
 	final Outline outline;
 	final ErrorHandler errorHandler;
 	final Map<String, ClassOutline> classes;
+	final Map<String, EnumOutline> enums;
 	final JClass partialCopyableInterface;
 	final JClass copyableInterface;
 	final JClass builderUtilitiesClass;
@@ -97,6 +119,7 @@ public class ApiConstructs {
 		this.partialCopyableInterface = this.codeModel.ref(PartialCopyable.class);
 		this.copyableInterface = this.codeModel.ref(Copyable.class);
 		this.classes = new HashMap<String, ClassOutline>(outline.getClasses().size());
+		this.enums = new HashMap<String, EnumOutline>(outline.getEnums().size());
 		this.builderUtilitiesClass = this.codeModel.ref(BuilderUtilities.class);
 		this.cloneGraphClass = this.codeModel.ref(PropertyTree.class);
 		this.transformerPathClass = this.codeModel.ref(TransformerPath.class);
@@ -105,12 +128,15 @@ public class ApiConstructs {
 		for(final ClassOutline classOutline : this.outline.getClasses()) {
 			this.classes.put(classOutline.implClass.fullName(), classOutline);
 		}
+		for(final EnumOutline classOutline : this.outline.getEnums()) {
+			this.enums.put(classOutline.clazz.fullName(), classOutline);
+		}
 		this.excludeConst = this.codeModel.ref(PropertyTreeUse.class).staticRef("EXCLUDE");
 		this.includeConst = this.codeModel.ref(PropertyTreeUse.class).staticRef("INCLUDE");
-		this.cloneMethod = CLONE_METHOD_NAME;
-		this.copyMethod = COPY_METHOD_NAME;
-		this.copyExceptMethod = COPY_EXCEPT_METHOD_NAME;
-		this.copyOnlyMethod = COPY_ONLY_METHOD_NAME;
+		this.cloneMethod = ApiConstructs.CLONE_METHOD_NAME;
+		this.copyMethod = ApiConstructs.COPY_METHOD_NAME;
+		this.copyExceptMethod = ApiConstructs.COPY_EXCEPT_METHOD_NAME;
+		this.copyOnlyMethod = ApiConstructs.COPY_ONLY_METHOD_NAME;
 	}
 
 	public JInvocation asList(final JExpression expression) {
@@ -139,6 +165,10 @@ public class ApiConstructs {
 
 	public ClassOutline getClassOutline(final JType typeSpec) {
 		return this.classes.get(typeSpec.fullName());
+	}
+
+	public EnumOutline getEnumOutline(final JType typeSpec) {
+		return this.enums.get(typeSpec.fullName());
 	}
 
 	public boolean cloneThrows(final JType cloneableType, final boolean cloneThrows) {
@@ -171,4 +201,32 @@ public class ApiConstructs {
 	public JInvocation newArrayList(final JClass elementType) {
 		return JExpr._new(this.arrayListClass.narrow(elementType));
 	}
+
+	public BuilderOutline getReferencedBuilderOutline(final JType type) {
+		try {
+			BuilderOutline builderOutline = null;
+			if (getClassOutline(type) == null && getEnumOutline(type) == null && type.isReference() && !type.isPrimitive() && !type.isArray() && type.fullName().contains(".")) {
+				final Class<?> cls = Class.forName(type.binaryName());
+				final JClass builderClass = getBuilderClass(cls);
+				if (builderClass != null) {
+					final ReferencedClassOutline referencedClassOutline = new ReferencedClassOutline(this.codeModel, cls);
+					builderOutline = new BuilderOutline(referencedClassOutline, builderClass);
+				}
+			}
+			return builderOutline;
+		} catch (final Exception e) {
+			return null;
+		}
+
+	}
+
+	protected JClass getBuilderClass(final Class<?> cls) {
+		try {
+			final Class<?> builderClass = Class.forName(cls.getName()+"$"+ ApiConstructs.BUILDER_CLASS_NAME);
+			return this.codeModel.ref(builderClass);
+		} catch (Exception e) {
+			return null;
+		}
+	}
+
 }

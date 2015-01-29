@@ -24,18 +24,24 @@
 
 package com.kscs.util.plugins.xjc;
 
-import com.sun.tools.xjc.BadCommandLineException;
-import com.sun.tools.xjc.Options;
-import com.sun.tools.xjc.Plugin;
-import com.sun.tools.xjc.outline.ClassOutline;
-import com.sun.tools.xjc.outline.Outline;
-import org.xml.sax.ErrorHandler;
-import org.xml.sax.SAXException;
-
+import javax.xml.xpath.XPath;
+import javax.xml.xpath.XPathFactory;
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
 import java.util.ResourceBundle;
 import java.util.logging.Logger;
+import com.sun.tools.xjc.BadCommandLineException;
+import com.sun.tools.xjc.Options;
+import com.sun.tools.xjc.Plugin;
+import com.sun.tools.xjc.model.Model;
+import com.sun.tools.xjc.outline.ClassOutline;
+import com.sun.tools.xjc.outline.Outline;
+import com.sun.xml.xsom.XSAttGroupDecl;
+import org.xml.sax.ErrorHandler;
+import org.xml.sax.InputSource;
+import org.xml.sax.SAXException;
 
 public class GroupInterfacePlugin extends Plugin {
 	private static final Logger LOGGER = Logger.getLogger(GroupInterfacePlugin.class.getName());
@@ -90,4 +96,22 @@ public class GroupInterfacePlugin extends Plugin {
 		return this.generator.getGroupInterfacesForClass(classOutline);
 	}
 
+	@Override
+	public void onActivated(final Options opts) throws BadCommandLineException {
+		final XPathFactory xPathFactory = XPathFactory.newInstance();
+		final XPath attGroupXPath = xPathFactory.newXPath();
+		final HashMap<String,String> attGroupQNamesByNamespaceUri = new HashMap<>();
+		for(final InputSource grammar : opts.getGrammars()) {
+
+		}
+	}
+
+	@Override
+	public void postProcessModel(final Model model, final ErrorHandler errorHandler) {
+		final Iterator<XSAttGroupDecl> iterator = model.schemaComponent.iterateAttGroupDecls();
+		while(iterator.hasNext()) {
+			final XSAttGroupDecl attGroupDecl = iterator.next();
+
+		}
+	}
 }
