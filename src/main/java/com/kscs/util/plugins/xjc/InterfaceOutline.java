@@ -27,22 +27,25 @@ import javax.xml.namespace.QName;
 import java.util.ArrayList;
 import java.util.List;
 import com.sun.codemodel.JDefinedClass;
+import com.sun.tools.xjc.outline.ClassOutline;
 import com.sun.tools.xjc.outline.FieldOutline;
 import com.sun.xml.xsom.XSDeclaration;
 
 /**
  * @author mirko 2014-05-29
  */
-public class InterfaceOutline<T extends XSDeclaration> implements TypeOutline {
-	private InterfaceOutline<T> superInterface = null;
+public class InterfaceOutline implements TypeOutline {
+	private TypeOutline superInterface = null;
 	private final JDefinedClass implClass;
+	private final ClassOutline classOutline;
 	private List<PropertyOutline> declaredFields = null;
-	private final T schemaComponent;
+	private final XSDeclaration schemaComponent;
 	private final QName name;
 
-	public InterfaceOutline(final T schemaComponent, final JDefinedClass implClass) {
+	public InterfaceOutline(final XSDeclaration schemaComponent, final JDefinedClass implClass, final ClassOutline classOutline) {
 		this.schemaComponent = schemaComponent;
 		this.implClass = implClass;
+		this.classOutline = classOutline;
 		this.name = new QName(schemaComponent.getTargetNamespace(), schemaComponent.getName());
 	}
 
@@ -59,7 +62,7 @@ public class InterfaceOutline<T extends XSDeclaration> implements TypeOutline {
 	}
 
 	@Override
-	public InterfaceOutline getSuperClass() {
+	public TypeOutline getSuperClass() {
 		return this.superInterface;
 	}
 
@@ -68,7 +71,7 @@ public class InterfaceOutline<T extends XSDeclaration> implements TypeOutline {
 		return this.implClass;
 	}
 
-	public T getSchemaComponent() {
+	public XSDeclaration getSchemaComponent() {
 		return this.schemaComponent;
 	}
 
@@ -76,9 +79,15 @@ public class InterfaceOutline<T extends XSDeclaration> implements TypeOutline {
 		return this.name;
 	}
 
-	void setSuperInterface(final InterfaceOutline superInterface) {
+	void setSuperInterface(final TypeOutline superInterface) {
 		this.superInterface = superInterface;
 	}
 
+	public TypeOutline getSuperInterface() {
+		return this.superInterface;
+	}
 
+	public ClassOutline getClassOutline() {
+		return this.classOutline;
+	}
 }

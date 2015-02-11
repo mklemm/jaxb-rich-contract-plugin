@@ -49,6 +49,7 @@ import com.sun.codemodel.JTryBlock;
 import com.sun.codemodel.JType;
 import com.sun.codemodel.JTypeVar;
 import com.sun.codemodel.JVar;
+import org.xml.sax.SAXException;
 
 import static com.kscs.util.plugins.xjc.PluginUtil.nullSafe;
 
@@ -340,12 +341,12 @@ public class BuilderGenerator {
 		return this.builderClass._extends(superClassBuilder.getDefinedBuilderClass().narrow(this.parentBuilderTypeParam));
 	}
 
-	protected void generateImplementsClause() {
+	protected void generateImplementsClause() throws SAXException {
 		if (this.classOutline instanceof DefinedClassOutline) {
 			final DefinedClassOutline definedClassOutline = (DefinedClassOutline) this.classOutline;
 			final GroupInterfacePlugin groupInterfacePlugin = this.apiConstructs.findPlugin(GroupInterfacePlugin.class);
 			if (groupInterfacePlugin != null) {
-				for (final InterfaceOutline<?> interfaceOutline : groupInterfacePlugin.getGroupInterfacesForClass(this.apiConstructs, definedClassOutline.getClassOutline())) {
+				for (final InterfaceOutline interfaceOutline : groupInterfacePlugin.getGroupInterfacesForClass(this.apiConstructs, definedClassOutline.getClassOutline())) {
 					this.builderClass._implements(PluginUtil.getInnerClass(interfaceOutline.getImplClass(), ApiConstructs.BUILDER_INTERFACE_NAME).narrow(this.parentBuilderTypeParam));
 				}
 			}
@@ -451,7 +452,7 @@ public class BuilderGenerator {
 						} else if (childBuilderOutline != null) {
 							final JClass childBuilderType = childBuilderOutline.getDefinedBuilderClass().narrow(this.builderType);
 							final JForEach forLoop = loop(body, fieldRef, elementType, newField, childBuilderType);
-							forLoop.body().invoke(newField, "add").arg(nullSafe(fieldRef, generateRuntimeTypeExpression(childBuilderType, forLoop.var(), null)));
+							forLoop.body().invoke(newField, "add").arg(nullSafe(fieldRef, generateRuntimeTypeExpression(childBuilderType, forLoop.var(), null, null)));
 						} else if (this.apiConstructs.cloneableInterface.isAssignableFrom(elementType)) {
 							final JForEach forLoop = loop(body, fieldRef, elementType, newField, elementType);
 							forLoop.body().invoke(newField, "add").arg(nullSafe(forLoop.var(), this.apiConstructs.castOnDemand(elementType, forLoop.var().invoke("clone"))));
@@ -466,7 +467,7 @@ public class BuilderGenerator {
 							body.assign(newField, nullSafe(fieldRef, JExpr._new(childBuilderType).arg(JExpr._this()).arg(fieldRef).arg(JExpr.TRUE)));
 						} else if (childBuilderOutline != null) {
 							final JClass childBuilderType = childBuilderOutline.getDefinedBuilderClass().narrow(this.builderType);
-							body.assign(newField, nullSafe(fieldRef, generateRuntimeTypeExpression(childBuilderType, fieldRef, null)));
+							body.assign(newField, nullSafe(fieldRef, generateRuntimeTypeExpression(childBuilderType, fieldRef, null, null)));
 						} else if (this.apiConstructs.cloneableInterface.isAssignableFrom(fieldType)) {
 							body.assign(newField, nullSafe(fieldRef, this.apiConstructs.castOnDemand(fieldType, fieldRef.invoke("clone"))));
 						} else {
@@ -489,11 +490,11 @@ public class BuilderGenerator {
 		}
 	}
 
-	private JInvocation generateRuntimeTypeExpression(final JClass childBuilderType, final JExpression instanceVar, final JVar clonePathVar) {
+	private JInvocation generateRuntimeTypeExpression(final JClass childBuilderType, final JExpression instanceVar, final JVar clonePathVar, final JVar treeUseVar) {
 		final JInvocation getConstructorInvocation = this.apiConstructs.builderUtilitiesClass.staticInvoke(ApiConstructs.GET_BUILDER)
 				.arg(childBuilderType.dotclass()).arg(instanceVar).arg(JExpr._this()).arg(instanceVar).arg(JExpr.TRUE);
 		if (clonePathVar != null) {
-			getConstructorInvocation.arg(clonePathVar);
+			getConstructorInvocation.arg(clonePathVar).arg(treeUseVar);
 		}
 		return getConstructorInvocation;
 	}
@@ -559,7 +560,7 @@ public class BuilderGenerator {
 							} else if (childBuilderOutline != null) {
 								final JClass childBuilderType = childBuilderOutline.getDefinedBuilderClass().narrow(this.builderType);
 								final JForEach forLoop = loop(currentBlock, fieldRef, elementType, newField, childBuilderType);
-								forLoop.body().invoke(newField, "add").arg(nullSafe(forLoop.var(), generateRuntimeTypeExpression(childBuilderType, forLoop.var(), fieldPathVar)));
+								forLoop.body().invoke(newField, "add").arg(nullSafe(forLoop.var(), generateRuntimeTypeExpression(childBuilderType, forLoop.var(), fieldPathVar, cloneGenerator.getIncludeParam())));
 							} else if (this.apiConstructs.partialCopyableInterface.isAssignableFrom(elementType)) {
 								final JForEach forLoop = loop(currentBlock, fieldRef, elementType, newField, elementType);
 								forLoop.body().invoke(newField, "add").arg(nullSafe(forLoop.var(), this.apiConstructs.castOnDemand(elementType, forLoop.var().invoke("clone").arg(fieldPathVar).arg(cloneGenerator.getIncludeParam()))));
@@ -577,7 +578,7 @@ public class BuilderGenerator {
 								currentBlock.assign(newField, nullSafe(fieldRef, JExpr._new(childBuilderType).arg(JExpr._this()).arg(fieldRef).arg(JExpr.TRUE).arg(fieldPathVar).arg(cloneGenerator.getIncludeParam())));
 							} else if (childBuilderOutline != null) {
 								final JClass childBuilderType = childBuilderOutline.getDefinedBuilderClass().narrow(this.builderType);
-								currentBlock.assign(newField, nullSafe(fieldRef, generateRuntimeTypeExpression(childBuilderType, fieldRef, fieldPathVar)));
+								currentBlock.assign(newField, nullSafe(fieldRef, generateRuntimeTypeExpression(childBuilderType, fieldRef, fieldPathVar, cloneGenerator.getIncludeParam())));
 							} else if (this.apiConstructs.partialCopyableInterface.isAssignableFrom(fieldType)) {
 								currentBlock.assign(newField, nullSafe(fieldRef, this.apiConstructs.castOnDemand(fieldType, fieldRef.invoke("clone").arg(fieldPathVar).arg(cloneGenerator.getIncludeParam()))));
 							} else if (this.apiConstructs.cloneableInterface.isAssignableFrom(fieldType)) {
@@ -662,7 +663,7 @@ public class BuilderGenerator {
 							} else if (childBuilderOutline != null) {
 								final JClass childBuilderType = childBuilderOutline.getDefinedBuilderClass().narrow(this.builderType);
 								final JForEach forLoop = loop(currentBlock, fieldRef, elementType, newField, childBuilderType);
-								forLoop.body().invoke(newField, "add").arg(nullSafe(forLoop.var(), generateRuntimeTypeExpression(childBuilderType, forLoop.var(), fieldPathVar)));
+								forLoop.body().invoke(newField, "add").arg(nullSafe(forLoop.var(), generateRuntimeTypeExpression(childBuilderType, forLoop.var(), fieldPathVar, cloneGenerator.getIncludeParam())));
 							} else if (this.apiConstructs.partialCopyableInterface.isAssignableFrom(elementType)) {
 								final JForEach forLoop = loop(currentBlock, fieldRef, elementType, newField, elementType);
 								forLoop.body().invoke(newField, "add").arg(nullSafe(forLoop.var(), this.apiConstructs.castOnDemand(elementType, forLoop.var().invoke("clone").arg(fieldPathVar).arg(cloneGenerator.getIncludeParam()))));
@@ -680,7 +681,7 @@ public class BuilderGenerator {
 								currentBlock.assign(newField, nullSafe(fieldRef, JExpr._new(childBuilderType).arg(JExpr._this()).arg(fieldRef).arg(JExpr.TRUE).arg(fieldPathVar).arg(cloneGenerator.getIncludeParam())));
 							} else if (childBuilderOutline != null) {
 								final JClass childBuilderType = childBuilderOutline.getDefinedBuilderClass().narrow(this.builderType);
-								currentBlock.assign(newField, nullSafe(fieldRef, generateRuntimeTypeExpression(childBuilderType, fieldRef, fieldPathVar)));
+								currentBlock.assign(newField, nullSafe(fieldRef, generateRuntimeTypeExpression(childBuilderType, fieldRef, fieldPathVar, cloneGenerator.getIncludeParam())));
 							} else if (this.apiConstructs.partialCopyableInterface.isAssignableFrom(fieldType)) {
 								currentBlock.assign(newField, nullSafe(fieldRef, this.apiConstructs.castOnDemand(fieldType, fieldRef.invoke("clone").arg(fieldPathVar).arg(cloneGenerator.getIncludeParam()))));
 							} else if (this.apiConstructs.cloneableInterface.isAssignableFrom(fieldType)) {
@@ -716,7 +717,7 @@ public class BuilderGenerator {
 		return false;
 	}
 
-	public void buildProperties() {
+	public void buildProperties() throws SAXException {
 		final TypeOutline superClass = this.classOutline.getSuperClass();
 
 		final JMethod initMethod;
@@ -740,8 +741,6 @@ public class BuilderGenerator {
 					generateBuilderMember(fieldOutline, initBody, productParam);
 				}
 			}
-		} else {
-			BuilderGenerator.LOGGER.warning("Interface " + this.classOutline.getImplClass().name() + " has no implementation.");
 		}
 
 		if (superClass != null) {

@@ -24,38 +24,44 @@
 
 package com.kscs.util.plugins.xjc;
 
-import com.sun.codemodel.*;
-import com.sun.tools.xjc.BadCommandLineException;
+import java.util.HashMap;
+import java.util.Map;
+import com.kscs.util.plugins.xjc.common.AbstractPlugin;
+import com.kscs.util.plugins.xjc.common.Setter;
+import com.sun.codemodel.JBlock;
+import com.sun.codemodel.JCatchBlock;
+import com.sun.codemodel.JClass;
+import com.sun.codemodel.JDefinedClass;
+import com.sun.codemodel.JExpr;
+import com.sun.codemodel.JFieldRef;
+import com.sun.codemodel.JFieldVar;
+import com.sun.codemodel.JForEach;
+import com.sun.codemodel.JMethod;
+import com.sun.codemodel.JMod;
+import com.sun.codemodel.JTryBlock;
+import com.sun.codemodel.JVar;
 import com.sun.tools.xjc.Options;
-import com.sun.tools.xjc.Plugin;
 import com.sun.tools.xjc.outline.ClassOutline;
 import com.sun.tools.xjc.outline.FieldOutline;
 import com.sun.tools.xjc.outline.Outline;
 import org.xml.sax.ErrorHandler;
 import org.xml.sax.SAXException;
 
-import java.io.IOException;
-import java.text.MessageFormat;
-import java.util.ResourceBundle;
-
 import static com.kscs.util.plugins.xjc.PluginUtil.nullSafe;
 
 /**
  * XJC Plugin to generate Object.clone() implementation method
  */
-public class DeepClonePlugin extends Plugin {
+public class DeepClonePlugin extends AbstractPlugin {
 	private boolean throwCloneNotSupported = false;
-
-	private final ResourceBundle resources;
-
-	public DeepClonePlugin() {
-		this.resources = ResourceBundle.getBundle(DeepClonePlugin.class.getName());
-	}
-
-	private String getMessage(final String key, final Object... params) {
-		return MessageFormat.format(this.resources.getString(key), params);
-	}
-
+	private final Map<String,Setter<String>> setters = new HashMap<String,Setter<String>>() {{
+		put("clone-throws", new Setter<String>() {
+			@Override
+			public void set(final String val) {
+				DeepClonePlugin.this.throwCloneNotSupported = parseBoolean(val);
+			}
+		});
+	}};
 
 	public boolean isThrowCloneNotSupported() {
 		return this.throwCloneNotSupported;
@@ -67,18 +73,14 @@ public class DeepClonePlugin extends Plugin {
 	}
 
 	@Override
-	public int parseArgument(final Options opt, final String[] args, final int i) throws BadCommandLineException, IOException {
-		PluginUtil.Arg<Boolean> arg = PluginUtil.parseBooleanArgument("clone-throws", this.throwCloneNotSupported, opt, args, i);
-		this.throwCloneNotSupported = arg.getValue();
-		return arg.getArgsParsed();
+	protected Map<String, Setter<String>> getSetters() {
+		return this.setters;
 	}
 
 	@Override
-	public String getUsage() {
-		return new PluginUsageBuilder(this.resources, "usage")
-				.addMain("clone")
-				.addOption("clone-throws", this.throwCloneNotSupported)
-				.build();
+	protected PluginUsageBuilder buildUsage(final PluginUsageBuilder pluginUsageBuilder) {
+		return pluginUsageBuilder.addMain("clone")
+						.addOption("clone-throws", this.throwCloneNotSupported);
 	}
 
 	@Override

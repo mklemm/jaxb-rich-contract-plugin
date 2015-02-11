@@ -21,36 +21,35 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package com.kscs.util.jaxb;
 
-import java.lang.reflect.Constructor;
-import java.lang.reflect.InvocationTargetException;
+package com.kscs.util.plugins.xjc;
+
+import java.util.List;
+import com.sun.codemodel.JClass;
 
 /**
- * Retrieves a dependent builder instance.
- * @author mirko 2014-04-02
+ * @author Mirko Klemm 2015-02-03
  */
-@SuppressWarnings("unchecked")
-public final class BuilderUtilities {
-	public static <T> T getBuilder(final Class<T> declaredBuilderType, final Object instance, final Object... args) {
-		for(final Class<?> innerClass : instance.getClass().getDeclaredClasses()) {
-			if("Builder".equals(innerClass.getSimpleName())) {
-				for(final Constructor<?> constructor : innerClass.getConstructors()) {
-					if(constructor.getParameterTypes().length == args.length) {
-						try {
-							return (T) constructor.newInstance(args);
-						} catch (final InstantiationException e) {
-							throw new RuntimeException(e);
-						} catch (final IllegalAccessException e) {
-							throw new RuntimeException(e);
-						} catch (final InvocationTargetException e) {
-							throw new RuntimeException(e);
-						}
-					}
-				}
-			}
-		}
+public class ReferencedInterfaceOutline implements TypeOutline {
+	private final JClass implClass;
+
+	public ReferencedInterfaceOutline(final JClass implClass) {
+		this.implClass = implClass;
+
+	}
+
+	@Override
+	public List<PropertyOutline> getDeclaredFields() {
 		return null;
 	}
 
+	@Override
+	public TypeOutline getSuperClass() {
+		return null;
+	}
+
+	@Override
+	public JClass getImplClass() {
+		return this.implClass;
+	}
 }

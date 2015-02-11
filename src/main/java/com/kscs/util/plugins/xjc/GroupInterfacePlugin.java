@@ -24,9 +24,9 @@
 
 package com.kscs.util.plugins.xjc;
 
-import javax.xml.namespace.NamespaceContext;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.transform.Transformer;
 import javax.xml.transform.TransformerException;
 import javax.xml.transform.TransformerFactory;
@@ -36,21 +36,22 @@ import javax.xml.xpath.XPath;
 import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathExpression;
 import javax.xml.xpath.XPathFactory;
-import java.io.IOException;
 import java.io.Reader;
 import java.io.StringWriter;
+import java.net.URL;
 import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.ResourceBundle;
-import java.util.logging.Logger;
+import com.kscs.util.plugins.xjc.common.AbstractPlugin;
+import com.kscs.util.plugins.xjc.common.EpisodeBuilder;
+import com.kscs.util.plugins.xjc.common.Namespaces;
+import com.kscs.util.plugins.xjc.common.Setter;
 import com.sun.tools.xjc.BadCommandLineException;
 import com.sun.tools.xjc.Options;
-import com.sun.tools.xjc.Plugin;
 import com.sun.tools.xjc.outline.ClassOutline;
 import com.sun.tools.xjc.outline.Outline;
 import org.w3c.dom.Document;
@@ -60,26 +61,73 @@ import org.xml.sax.ErrorHandler;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 
-public class GroupInterfacePlugin extends Plugin {
-	private static final Logger LOGGER = Logger.getLogger(GroupInterfacePlugin.class.getName());
+/**
+ * Generates interface declarations from &lt;group&gt; and &lt;attributeGroup&gt;
+ * XSD declarations, and makes classes generated from complexTypes that use
+ * these declarations implement the generated interface.
+ */
+public class GroupInterfacePlugin extends AbstractPlugin {
 	private static final ResourceBundle RESOURCE_BUNDLE = ResourceBundle.getBundle(GroupInterfacePlugin.class.getName());
-	public static final String XS_NS = "http://www.w3.org/2001/XMLSchema";
-	public static final String XML_NS = "http://www.w3.org/XML/1998/namespace";
+	private static final XPathFactory X_PATH_FACTORY = XPathFactory.newInstance();
 	private boolean declareSetters = true;
 	private boolean declareBuilderInterface = true;
+	private String upstreamEpisodeFile = "/META-INF/jaxb-interfaces.episode";
+	private String downstreamEpisodeFile = "/META-INF/jaxb-interfaces.episode";
 	private GroupInterfaceGenerator generator = null;
+	private final Map<String,Setter<String>> setters = new HashMap<String,Setter<String>>(){{
+		put("declare-setters", new Setter<String>() {
+			@Override
+			public void set(final String val) {
+				GroupInterfacePlugin.this.declareSetters = parseBoolean(val);
+			}
+		});
+		put("declare-builder-interface", new Setter<String>() {
+			@Override
+			public void set(final String val) {
+				GroupInterfacePlugin.this.declareBuilderInterface = parseBoolean(val);
+			}
+		});
+		put("upstream-episode-file", new Setter<String>() {
+			@Override
+			public void set(final String val) {
+				GroupInterfacePlugin.this.upstreamEpisodeFile = val;
+			}
+		});
+		put("downstream-episode-file", new Setter<String>() {
+			@Override
+			public void set(final String val) {
+				GroupInterfacePlugin.this.downstreamEpisodeFile = val;
+			}
+		});
+	}};
+	public static final TransformerFactory TRANSFORMER_FACTORY;
+	private static final DocumentBuilderFactory DOCUMENT_BUILDER_FACTORY;
+	private static final DocumentBuilder DOCUMENT_BUILDER;
 
-
+	static {
+		try {
+			TRANSFORMER_FACTORY = TransformerFactory.newInstance();
+			DOCUMENT_BUILDER_FACTORY = DocumentBuilderFactory.newInstance();
+			GroupInterfacePlugin.DOCUMENT_BUILDER_FACTORY.setNamespaceAware(true);
+			DOCUMENT_BUILDER = GroupInterfacePlugin.DOCUMENT_BUILDER_FACTORY.newDocumentBuilder();
+		} catch (ParserConfigurationException e) {
+			throw new RuntimeException(e);
+		}
+	}
 
 	@Override
-	public int parseArgument(final Options opt, final String[] args, final int i) throws BadCommandLineException, IOException {
-		PluginUtil.Arg<Boolean> arg = PluginUtil.parseBooleanArgument("declare-setters", this.declareSetters, opt, args, i);
-		this.declareSetters = arg.getValue();
-		if(arg.getArgsParsed() == 0) {
-			arg = PluginUtil.parseBooleanArgument("declare-builder-interface", this.declareBuilderInterface, opt, args, i);
-			this.declareBuilderInterface = arg.getValue();
-		}
-		return arg.getArgsParsed();
+	public List<String> getCustomizationURIs() {
+		return Collections.singletonList(Namespaces.KSCS_BINDINGS_NS);
+	}
+
+	@Override
+	public boolean isCustomizationTagName(final String nsUri, final String localName) {
+		return Namespaces.KSCS_BINDINGS_NS.equals(nsUri) && "interface".equals(localName);
+	}
+
+	@Override
+	protected Map<String, Setter<String>> getSetters() {
+		return this.setters;
 	}
 
 	@Override
@@ -88,41 +136,57 @@ public class GroupInterfacePlugin extends Plugin {
 	}
 
 	@Override
-	public String getUsage() {
-		return new PluginUsageBuilder(GroupInterfacePlugin.RESOURCE_BUNDLE, "usage")
+	public PluginUsageBuilder buildUsage(final PluginUsageBuilder pluginUsageBuilder) {
+		return pluginUsageBuilder
 				.addMain("group-contract")
-				.addOption("declare-setters", this.declareSetters).build();
+				.addOption("declare-setters", this.declareSetters)
+				.addOption("declare-builder-interface", this.declareBuilderInterface);
 	}
 
 	@Override
 	public boolean run(final Outline outline, final Options opt, final ErrorHandler errorHandler)
 			throws SAXException {
-		if(this.generator == null) {
-			this.generator = new GroupInterfaceGenerator(new ApiConstructs(outline, opt, errorHandler), this.declareSetters, this.declareBuilderInterface);
-			this.generator.generateGroupInterfaceModel();
-		}
+		generate(new ApiConstructs(outline, opt, errorHandler));
 		return true;
 	}
 
-	public List<InterfaceOutline<?>> getGroupInterfacesForClass(final ApiConstructs apiConstructs, final ClassOutline classOutline) {
-		if(this.generator == null) {
-			this.generator = new GroupInterfaceGenerator(apiConstructs, this.declareSetters, this.declareBuilderInterface);
-			this.generator.generateGroupInterfaceModel();
-		}
+	public List<InterfaceOutline> getGroupInterfacesForClass(final ApiConstructs apiConstructs, final ClassOutline classOutline) throws SAXException {
+		generate(apiConstructs);
 		return this.generator.getGroupInterfacesForClass(classOutline);
+	}
+
+	private void generate(final ApiConstructs apiConstructs) throws SAXException {
+		if(this.generator == null) {
+			final URL interfaceEpisodeURL = getClass().getResource(this.upstreamEpisodeFile);
+			final EpisodeBuilder episodeBuilder = new EpisodeBuilder(apiConstructs, this.downstreamEpisodeFile);
+			this.generator = new GroupInterfaceGenerator(apiConstructs, interfaceEpisodeURL, episodeBuilder, this.declareSetters, this.declareBuilderInterface);
+			this.generator.generateGroupInterfaceModel();
+			episodeBuilder.build();
+		}
 	}
 
 	@Override
 	public void onActivated(final Options opts) throws BadCommandLineException {
+		generateDummyGroupUsages(opts);
+	}
+
+	/**
+	 * Generates dummy complexTypes that implement the interface generated from group decls.
+	 * These complexTypes will be transformed into classes by the default code generator.
+	 * Later, this plugin will transform the classes into interface declarations.
+	 * This approach avoids tedious re-implementation of the property generation code,
+	 * with all the effects of settings, options, and customizations, in this plugin.
+	 * @param opts
+	 * @throws BadCommandLineException
+	 */
+	private static void generateDummyGroupUsages(final Options opts) throws BadCommandLineException {
 		try {
-			final TransformerFactory transformerFactory = TransformerFactory.newInstance();
-			final Transformer transformer = transformerFactory.newTransformer();
-			final XPathFactory xPathFactory = XPathFactory.newInstance();
-			final DocumentBuilderFactory documentBuilderFactory = DocumentBuilderFactory.newInstance();
-			documentBuilderFactory.setNamespaceAware(true);
-			final DocumentBuilder documentBuilder = documentBuilderFactory.newDocumentBuilder();
-			final XPath xPath = xPathFactory.newXPath();
-			final NamespaceContext namespaceContext = new MappingNamespaceContext().add("xs", GroupInterfacePlugin.XS_NS);
+			final Transformer transformer = GroupInterfacePlugin.TRANSFORMER_FACTORY.newTransformer();
+			final XPath xPath = GroupInterfacePlugin.X_PATH_FACTORY.newXPath();
+			final MappingNamespaceContext namespaceContext = new MappingNamespaceContext()
+					.add("xs", Namespaces.XS_NS)
+					.add("kscs", Namespaces.KSCS_BINDINGS_NS)
+					.add("jxb", Namespaces.JAXB_NS);
 			xPath.setNamespaceContext(namespaceContext);
 			final XPathExpression attGroupExpression = xPath.compile("/xs:schema/xs:attributeGroup/@name");
 			final XPathExpression modelGroupExpression = xPath.compile("/xs:schema/xs:group/@name");
@@ -146,7 +210,7 @@ public class GroupInterfacePlugin extends Plugin {
 					currentGroups.modelGroupNames.add(modelGroupNodes.item(i).getNodeValue());
 				}
 
-				final InputSource newSchema = generateImplementationSchema(opts, transformer, documentBuilder, currentGroups, schemaCopy.getSystemId());
+				final InputSource newSchema = generateImplementationSchema(opts, transformer, GroupInterfacePlugin.DOCUMENT_BUILDER, currentGroups, schemaCopy.getSystemId());
 				if(newSchema != null) {
 					newGrammars.add(newSchema);
 				}
@@ -160,41 +224,43 @@ public class GroupInterfacePlugin extends Plugin {
 		}
 	}
 
-	private InputSource generateImplementationSchema(final Options opts,  final Transformer transformer, final DocumentBuilder documentBuilder, final Groups namespaceGroups, final String systemId) throws TransformerException {
+	private static InputSource generateImplementationSchema(final Options opts,  final Transformer transformer, final DocumentBuilder documentBuilder, final Groups namespaceGroups, final String systemId) throws TransformerException {
 			if(!namespaceGroups.attGroupNames.isEmpty() || !namespaceGroups.modelGroupNames.isEmpty()) {
 				final Document dummySchema = documentBuilder.newDocument();
 				dummySchema.setXmlVersion("1.0");
-				final String targetNamespacePrefix = GroupInterfacePlugin.XML_NS.equals(namespaceGroups.targetNamespace) ? "xml" : "tns";
-				final Element rootEl = dummySchema.createElementNS(GroupInterfacePlugin.XS_NS, "xs:schema");
+				// Treat "http://www.w3.org/XML/1998/namespace" namespace specially, because the ns prefix always has to be "xml" for this
+				// and only this namespace.
+				final String targetNamespacePrefix = Namespaces.XML_NS.equals(namespaceGroups.targetNamespace) ? "xml" : "tns";
+				final Element rootEl = dummySchema.createElementNS(Namespaces.XS_NS, "xs:schema");
 				rootEl.setAttribute("version", "1.0");
 				rootEl.setAttribute("targetNamespace", namespaceGroups.targetNamespace);
 				rootEl.setAttribute("elementFormDefault", "qualified");
 				rootEl.setAttribute("xmlns:"+targetNamespacePrefix, namespaceGroups.targetNamespace);
 				dummySchema.appendChild(rootEl);
 
-				final Element importEl = dummySchema.createElementNS(GroupInterfacePlugin.XS_NS, "xs:include");
+				final Element importEl = dummySchema.createElementNS(Namespaces.XS_NS, "xs:include");
 				importEl.setAttribute("schemaLocation", systemId);
 				rootEl.appendChild(importEl);
 
 				for (final String attGroupName : namespaceGroups.attGroupNames) {
-					final Element complexTypeEl = dummySchema.createElementNS(GroupInterfacePlugin.XS_NS, "xs:complexType");
-					complexTypeEl.setAttribute("name", "__" + attGroupName + "_XXXXXX");
+					final Element complexTypeEl = dummySchema.createElementNS(Namespaces.XS_NS, "xs:complexType");
+					complexTypeEl.setAttribute("name", attGroupName);
 					rootEl.appendChild(complexTypeEl);
 
-					final Element attGroupRefEl = dummySchema.createElementNS(GroupInterfacePlugin.XS_NS, "xs:attributeGroup");
+					final Element attGroupRefEl = dummySchema.createElementNS(Namespaces.XS_NS, "xs:attributeGroup");
 					attGroupRefEl.setAttribute("ref", targetNamespacePrefix +":" + attGroupName);
 					complexTypeEl.appendChild(attGroupRefEl);
 				}
 
 				for (final String modelGroupName : namespaceGroups.modelGroupNames) {
-					final Element complexTypeEl = dummySchema.createElementNS(GroupInterfacePlugin.XS_NS, "xs:complexType");
-					complexTypeEl.setAttribute("name", "__" + modelGroupName + "_XXXXXX");
+					final Element complexTypeEl = dummySchema.createElementNS(Namespaces.XS_NS, "xs:complexType");
+					complexTypeEl.setAttribute("name", modelGroupName);
 					rootEl.appendChild(complexTypeEl);
 
-					final Element sequenceEl = dummySchema.createElementNS(GroupInterfacePlugin.XS_NS, "xs:sequence");
+					final Element sequenceEl = dummySchema.createElementNS(Namespaces.XS_NS, "xs:sequence");
 					complexTypeEl.appendChild(sequenceEl);
 
-					final Element modelGroupRefEl = dummySchema.createElementNS(GroupInterfacePlugin.XS_NS, "xs:group");
+					final Element modelGroupRefEl = dummySchema.createElementNS(Namespaces.XS_NS, "xs:group");
 					modelGroupRefEl.setAttribute("ref", targetNamespacePrefix +":" + modelGroupName);
 					sequenceEl.appendChild(modelGroupRefEl);
 				}
@@ -216,45 +282,6 @@ public class GroupInterfacePlugin extends Plugin {
 			}
 	}
 
-	private static class MappingNamespaceContext implements NamespaceContext {
-		private final Map<String, List<String>> namespacesByUri = new HashMap<>();
-		private final HashMap<String, String> namespacesByPrefix = new HashMap<>();
-
-		public MappingNamespaceContext add(final String prefix, final String namespaceUri) {
-			putMapValue(this.namespacesByUri, namespaceUri, prefix);
-			this.namespacesByPrefix.put(prefix, namespaceUri);
-			return this;
-		}
-
-		@Override
-		public String getNamespaceURI(final String prefix) {
-			return this.namespacesByPrefix.get(prefix);
-		}
-
-		@Override
-		public String getPrefix(final String namespaceURI) {
-			return getPrefixes(namespaceURI).hasNext() ? (String) getPrefixes(namespaceURI).next() : null;
-		}
-
-		@Override
-		public Iterator getPrefixes(final String namespaceURI) {
-			return getMapValues(namespacesByUri, namespaceURI).iterator();
-		}
-
-		private static List<String> getMapValues(final Map<String, List<String>> map, final String key) {
-			final List<String> val = map.get(key);
-			return val == null ? Collections.<String>emptyList() : val;
-		}
-
-		private static void putMapValue(final Map<String, List<String>> map, final String key, final String value) {
-			List<String> values = map.get(key);
-			if (values == null) {
-				values = new ArrayList<>();
-				map.put(key, values);
-			}
-			values.add(value);
-		}
-	}
 
 	private static class Groups {
 		public final String targetNamespace;

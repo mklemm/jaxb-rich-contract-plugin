@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema version="1.0" xmlns:xs="http://www.w3.org/2001/XMLSchema"
+		   targetNamespace="http://www.kscs.com/util/jaxb/interface"
+		   elementFormDefault="qualified"
+		   xmlns:tns="http://www.kscs.com/util/jaxb/interface">
+	<xs:element name="interfaces">
+		<xs:complexType>
+			<xs:sequence>
+				<xs:element ref="tns:interface" maxOccurs="unbounded" minOccurs="0"/>
+			</xs:sequence>
+		</xs:complexType>
+	</xs:element>
+
+	<xs:element name="interface">
+		<xs:complexType>
+			<xs:sequence>
+				<xs:element ref="tns:schemaComponent"/>
+			</xs:sequence>
+			<xs:attribute name="name" type="xs:NCName" use="required"/>
+		</xs:complexType>
+	</xs:element>
+
+	<xs:element name="schemaComponent">
+		<xs:complexType>
+			<xs:attribute name="namespace" type="xs:anyURI" use="required"/>
+			<xs:attribute name="type" type="xs:NCName" use="required"/>
+			<xs:attribute name="name" type="xs:NCName" use="required"/>
+		</xs:complexType>
+	</xs:element>
+</xs:schema>

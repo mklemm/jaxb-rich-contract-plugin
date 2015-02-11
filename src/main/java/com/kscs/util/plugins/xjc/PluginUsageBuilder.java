@@ -69,6 +69,19 @@ public class PluginUsageBuilder {
 		return this;
 	}
 
+	public PluginUsageBuilder addOption(final String optionName, final String defaultValue) {
+		final String key = this.keyBase + "." + transformName(optionName);
+		this.writer.println();
+		this.writer.print("\t-");
+		this.writer.println(optionName + "=<string> ("+defaultValue+") :");
+		for (final String line : chopLines(70, this.resourceBundle.getString(key))) {
+			this.writer.print("\t\t");
+			this.writer.println(line);
+		}
+		this.writer.println();
+		return this;
+	}
+
 
 	private static String transformName(final String xmlName) {
 		final StringBuilder sb = new StringBuilder();

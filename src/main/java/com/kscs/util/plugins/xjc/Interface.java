@@ -21,36 +21,16 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package com.kscs.util.jaxb;
 
-import java.lang.reflect.Constructor;
-import java.lang.reflect.InvocationTargetException;
+package com.kscs.util.plugins.xjc;
+
+import com.sun.xml.txw2.TypedXmlWriter;
+import com.sun.xml.txw2.annotation.XmlAttribute;
 
 /**
- * Retrieves a dependent builder instance.
- * @author mirko 2014-04-02
+ * @author Mirko Klemm 2015-02-11
  */
-@SuppressWarnings("unchecked")
-public final class BuilderUtilities {
-	public static <T> T getBuilder(final Class<T> declaredBuilderType, final Object instance, final Object... args) {
-		for(final Class<?> innerClass : instance.getClass().getDeclaredClasses()) {
-			if("Builder".equals(innerClass.getSimpleName())) {
-				for(final Constructor<?> constructor : innerClass.getConstructors()) {
-					if(constructor.getParameterTypes().length == args.length) {
-						try {
-							return (T) constructor.newInstance(args);
-						} catch (final InstantiationException e) {
-							throw new RuntimeException(e);
-						} catch (final IllegalAccessException e) {
-							throw new RuntimeException(e);
-						} catch (final InvocationTargetException e) {
-							throw new RuntimeException(e);
-						}
-					}
-				}
-			}
-		}
-		return null;
-	}
-
+public interface Interface extends TypedXmlWriter {
+	@XmlAttribute
+	void ref(String className);
 }

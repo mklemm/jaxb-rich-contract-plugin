@@ -24,6 +24,7 @@
 
 package com.kscs.util.plugins.xjc;
 
+import javax.xml.namespace.QName;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -48,7 +49,9 @@ import com.sun.codemodel.JExpression;
 import com.sun.codemodel.JFieldRef;
 import com.sun.codemodel.JForEach;
 import com.sun.codemodel.JInvocation;
+import com.sun.codemodel.JPackage;
 import com.sun.codemodel.JType;
+import com.sun.codemodel.fmt.JStaticJavaFile;
 import com.sun.tools.xjc.Options;
 import com.sun.tools.xjc.Plugin;
 import com.sun.tools.xjc.outline.ClassOutline;
@@ -78,32 +81,32 @@ public class ApiConstructs {
 	public static final String COPY_ONLY_METHOD_NAME = "copyOnly";
 
 
-	final JCodeModel codeModel;
-	final JClass arrayListClass;
-	final JClass listClass;
-	final JClass collectionClass;
-	final JClass collectionsClass;
-	final JClass arraysClass;
-	final Options opt;
-	final JClass cloneableInterface;
-	final Outline outline;
-	final ErrorHandler errorHandler;
-	final Map<String, ClassOutline> classes;
-	final Map<String, EnumOutline> enums;
-	final JClass partialCopyableInterface;
-	final JClass copyableInterface;
-	final JClass builderUtilitiesClass;
-	final JClass stringClass;
-	final JClass voidClass;
-	final JClass transformerPathClass;
-	final JClass cloneGraphClass;
-	final JExpression excludeConst;
-	final JExpression includeConst;
-	final String cloneMethod;
-	final String copyMethod;
-	final String copyExceptMethod;
-	final String copyOnlyMethod;
-
+	public final JCodeModel codeModel;
+	public final JClass arrayListClass;
+	public final JClass listClass;
+	public final JClass collectionClass;
+	public final JClass collectionsClass;
+	public final JClass arraysClass;
+	public final Options opt;
+	public final JClass cloneableInterface;
+	public final Outline outline;
+	public final ErrorHandler errorHandler;
+	public final Map<String, ClassOutline> classes;
+	public final Map<QName, ClassOutline> classesBySchemaComponent;
+	public final Map<String, EnumOutline> enums;
+	public final JClass partialCopyableInterface;
+	public final JClass copyableInterface;
+	public final JClass builderUtilitiesClass;
+	public final JClass stringClass;
+	public final JClass voidClass;
+	public final JClass transformerPathClass;
+	public final JClass cloneGraphClass;
+	public final JExpression excludeConst;
+	public final JExpression includeConst;
+	public final String cloneMethod;
+	public final String copyMethod;
+	public final String copyExceptMethod;
+	public final String copyOnlyMethod;
 
 	ApiConstructs(final Outline outline, final Options opt, final ErrorHandler errorHandler) {
 		this.outline = outline;
@@ -118,17 +121,19 @@ public class ApiConstructs {
 		this.cloneableInterface = this.codeModel.ref(Cloneable.class);
 		this.partialCopyableInterface = this.codeModel.ref(PartialCopyable.class);
 		this.copyableInterface = this.codeModel.ref(Copyable.class);
-		this.classes = new HashMap<String, ClassOutline>(outline.getClasses().size());
-		this.enums = new HashMap<String, EnumOutline>(outline.getEnums().size());
+		this.classes = new HashMap<>(outline.getClasses().size());
+		this.classesBySchemaComponent = new HashMap<>(outline.getClasses().size());
+		this.enums = new HashMap<>(outline.getEnums().size());
 		this.builderUtilitiesClass = this.codeModel.ref(BuilderUtilities.class);
 		this.cloneGraphClass = this.codeModel.ref(PropertyTree.class);
 		this.transformerPathClass = this.codeModel.ref(TransformerPath.class);
 		this.stringClass = this.codeModel.ref(String.class);
 		this.voidClass = this.codeModel.ref(Void.class);
-		for(final ClassOutline classOutline : this.outline.getClasses()) {
+		for (final ClassOutline classOutline : this.outline.getClasses()) {
 			this.classes.put(classOutline.implClass.fullName(), classOutline);
+			this.classesBySchemaComponent.put(classOutline.target.getTypeName(), classOutline);
 		}
-		for(final EnumOutline classOutline : this.outline.getEnums()) {
+		for (final EnumOutline classOutline : this.outline.getEnums()) {
 			this.enums.put(classOutline.clazz.fullName(), classOutline);
 		}
 		this.excludeConst = this.codeModel.ref(PropertyTreeUse.class).staticRef("EXCLUDE");
@@ -148,11 +153,21 @@ public class ApiConstructs {
 	}
 
 	public boolean hasPlugin(final Class<? extends Plugin> pluginClass) {
-		return PluginUtil.hasPlugin(this.opt, pluginClass);
+		for (final Plugin plugin : this.opt.activePlugins) {
+			if (pluginClass.isInstance(plugin)) {
+				return true;
+			}
+		}
+		return false;
 	}
 
 	public <P extends Plugin> P findPlugin(final Class<P> pluginClass) {
-		return PluginUtil.findPlugin(this.opt, pluginClass);
+		for (final Plugin plugin : this.opt.activePlugins) {
+			if (pluginClass.isInstance(plugin)) {
+				return (P) plugin;
+			}
+		}
+		return null;
 	}
 
 	public boolean canInstantiate(final JType type) {
@@ -167,24 +182,28 @@ public class ApiConstructs {
 		return this.classes.get(typeSpec.fullName());
 	}
 
+	public ClassOutline getClassOutline(final String fullName) {
+		return this.classes.get(fullName);
+	}
+
 	public EnumOutline getEnumOutline(final JType typeSpec) {
 		return this.enums.get(typeSpec.fullName());
 	}
 
 	public boolean cloneThrows(final JType cloneableType, final boolean cloneThrows) {
 		try {
-			if("java.lang.Object".equals(cloneableType.fullName())) {
+			if ("java.lang.Object".equals(cloneableType.fullName())) {
 				return false;
 			} else if (getClassOutline(cloneableType) != null) {
 				return cloneThrows;
-			} else if(cloneableType.isReference()) {
+			} else if (cloneableType.isReference()) {
 				final Class<?> runtimeClass = Class.forName(cloneableType.fullName());
 				final Method cloneMethod = runtimeClass.getMethod("clone");
 				return cloneMethod.getExceptionTypes() != null && cloneMethod.getExceptionTypes().length > 0 && cloneMethod.getExceptionTypes()[0].equals(CloneNotSupportedException.class);
 			} else {
 				return false;
 			}
-		} catch(final ClassNotFoundException cnfx) {
+		} catch (final ClassNotFoundException cnfx) {
 			return false;
 		} catch (final NoSuchMethodException e) {
 			return false;
@@ -220,13 +239,19 @@ public class ApiConstructs {
 
 	}
 
-	protected JClass getBuilderClass(final Class<?> cls) {
+	public JClass getBuilderClass(final Class<?> cls) {
 		try {
-			final Class<?> builderClass = Class.forName(cls.getName()+"$"+ ApiConstructs.BUILDER_CLASS_NAME);
+			final Class<?> builderClass = Class.forName(cls.getName() + "$" + ApiConstructs.BUILDER_CLASS_NAME);
 			return this.codeModel.ref(builderClass);
 		} catch (Exception e) {
 			return null;
 		}
 	}
 
+	public void writeSourceFile(final Class<?> classToBeWritten) {
+		final String resourcePath = "/" + classToBeWritten.getName().replace('.', '/') + ".java";
+		final JPackage jPackage = this.outline.getCodeModel()._package(classToBeWritten.getPackage().getName());
+		final JStaticJavaFile javaFile = new JStaticJavaFile(jPackage, classToBeWritten.getSimpleName(), ApiConstructs.class.getResource(resourcePath), null);
+		jPackage.addResourceFile(javaFile);
+	}
 }

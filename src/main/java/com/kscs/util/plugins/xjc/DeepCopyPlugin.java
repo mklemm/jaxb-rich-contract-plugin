@@ -24,43 +24,79 @@
 
 package com.kscs.util.plugins.xjc;
 
-import com.kscs.util.jaxb.*;
-import com.sun.codemodel.*;
-import com.sun.tools.xjc.BadCommandLineException;
+import java.util.HashMap;
+import java.util.Map;
+import com.kscs.util.jaxb.Copyable;
+import com.kscs.util.jaxb.PartialCopyable;
+import com.kscs.util.jaxb.PropertyInfo;
+import com.kscs.util.jaxb.PropertyTransformer;
+import com.kscs.util.jaxb.PropertyTree;
+import com.kscs.util.jaxb.PropertyTreeUse;
+import com.kscs.util.jaxb.Selector;
+import com.kscs.util.jaxb.Transformer;
+import com.kscs.util.jaxb.TransformerPath;
+import com.kscs.util.plugins.xjc.common.AbstractPlugin;
+import com.kscs.util.plugins.xjc.common.Setter;
+import com.sun.codemodel.JBlock;
+import com.sun.codemodel.JCatchBlock;
+import com.sun.codemodel.JClass;
+import com.sun.codemodel.JDefinedClass;
+import com.sun.codemodel.JDocComment;
+import com.sun.codemodel.JExpr;
+import com.sun.codemodel.JExpression;
+import com.sun.codemodel.JFieldRef;
+import com.sun.codemodel.JFieldVar;
+import com.sun.codemodel.JForEach;
+import com.sun.codemodel.JInvocation;
+import com.sun.codemodel.JMethod;
+import com.sun.codemodel.JMod;
+import com.sun.codemodel.JTryBlock;
+import com.sun.codemodel.JVar;
 import com.sun.tools.xjc.Options;
-import com.sun.tools.xjc.Plugin;
 import com.sun.tools.xjc.outline.ClassOutline;
 import com.sun.tools.xjc.outline.FieldOutline;
 import com.sun.tools.xjc.outline.Outline;
 import org.xml.sax.ErrorHandler;
 import org.xml.sax.SAXException;
 
-import java.io.IOException;
-import java.text.MessageFormat;
-import java.util.ResourceBundle;
-
 import static com.kscs.util.plugins.xjc.PluginUtil.nullSafe;
 
 /**
  * XJC Plugin to generate copy and partial copy methods
  */
-public class DeepCopyPlugin extends Plugin {
+public class DeepCopyPlugin extends AbstractPlugin {
 	boolean generatePartialCloneMethod = true;
-	boolean generateTransformer = true;
+	boolean generateTransformer = false;
 	private boolean generateTools = true;
 	private boolean generateConstructor = true;
 	private boolean narrow = false;
 
-	private final ResourceBundle resources;
-
-	public DeepCopyPlugin() {
-		this.resources = ResourceBundle.getBundle(DeepCopyPlugin.class.getName());
-	}
-
-	private String getMessage(final String key, final Object... params) {
-		return MessageFormat.format(this.resources.getString(key), params);
-	}
-
+	private final Map<String,Setter<String>> setters = new HashMap<String,Setter<String>>(){{
+		put("partial", new Setter<String>() {
+			@Override
+			public void set(final String val) {
+				DeepCopyPlugin.this.generatePartialCloneMethod = parseBoolean(val);
+			}
+		});
+		put("generate-tools", new Setter<String>() {
+			@Override
+			public void set(final String val) {
+				DeepCopyPlugin.this.generateTools = parseBoolean(val);
+			}
+		});
+		put("constructor", new Setter<String>() {
+			@Override
+			public void set(final String val) {
+				DeepCopyPlugin.this.generateConstructor = parseBoolean(val);
+			}
+		});
+		put("narrow", new Setter<String>() {
+			@Override
+			public void set(final String val) {
+				DeepCopyPlugin.this.narrow = parseBoolean(val);
+			}
+		});
+	}};
 
 	@Override
 	public String getOptionName() {
@@ -68,47 +104,33 @@ public class DeepCopyPlugin extends Plugin {
 	}
 
 	@Override
-	public int parseArgument(final Options opt, final String[] args, final int i) throws BadCommandLineException, IOException {
-		PluginUtil.Arg<Boolean> arg = PluginUtil.parseBooleanArgument("copy-partial", this.generatePartialCloneMethod, opt, args, i);
-		this.generatePartialCloneMethod = arg.getValue();
-		if (arg.getArgsParsed() == 0) {
-			arg = PluginUtil.parseBooleanArgument("copy-generate-tools", this.generateTools, opt, args, i);
-			this.generateTools = arg.getValue();
-		}
-		if (arg.getArgsParsed() == 0) {
-			arg = PluginUtil.parseBooleanArgument("copy-constructor", this.generateConstructor, opt, args, i);
-			this.generateConstructor = arg.getValue();
-		}
-		if (arg.getArgsParsed() == 0) {
-			arg = PluginUtil.parseBooleanArgument("copy-narrow", this.narrow, opt, args, i);
-			this.narrow = arg.getValue();
-		}
-		return arg.getArgsParsed();
+	protected Map<String, Setter<String>> getSetters() {
+		return this.setters;
 	}
 
 	@Override
-	public String getUsage() {
-		return new PluginUsageBuilder(this.resources, "usage")
-				.addMain("copy")
-				.addOption("copy-partial", this.generatePartialCloneMethod)
-				.addOption("copy-constructor", this.generateConstructor)
-				.addOption("copy-generate-tools", this.generateTools)
-				.addOption("copy-narrow", this.narrow)
-				.build();
+	protected PluginUsageBuilder buildUsage(final PluginUsageBuilder pluginUsageBuilder) {
+		return pluginUsageBuilder.addMain("copy")
+						.addOption("partial", this.generatePartialCloneMethod)
+						.addOption("constructor", this.generateConstructor)
+						.addOption("generate-tools", this.generateTools)
+						.addOption("narrow", this.narrow);
 	}
 
 	@Override
 	public boolean run(final Outline outline, final Options opt, final ErrorHandler errorHandler) throws SAXException {
 		final ApiConstructs apiConstructs = new ApiConstructs(outline, opt, errorHandler);
 
+		if(this.generateTools) {
+			apiConstructs.writeSourceFile(Copyable.class);
+		}
 
 		if (this.generateTransformer) {
 			if (this.generateTools) {
-				PluginUtil.writeSourceFile(getClass(), opt.targetDir, Copyable.class.getName());
-				PluginUtil.writeSourceFile(getClass(), opt.targetDir, PropertyTransformer.class.getName());
-				PluginUtil.writeSourceFile(getClass(), opt.targetDir, PropertyInfo.class.getName());
-				PluginUtil.writeSourceFile(getClass(), opt.targetDir, TransformerPath.class.getName());
-				PluginUtil.writeSourceFile(getClass(), opt.targetDir, Transformer.class.getName());
+				apiConstructs.writeSourceFile(PropertyInfo.class);
+				apiConstructs.writeSourceFile(PropertyTransformer.class);
+				apiConstructs.writeSourceFile(TransformerPath.class);
+				apiConstructs.writeSourceFile(Transformer.class);
 			}
 			final SelectorGenerator selectorGenerator = new SelectorGenerator(apiConstructs, Transformer.class, "Transformer", "Transform", "propertyTransformer", apiConstructs.codeModel.ref(PropertyTransformer.class), apiConstructs.transformerPathClass);
 			selectorGenerator.generateMetaFields();
@@ -116,10 +138,10 @@ public class DeepCopyPlugin extends Plugin {
 
 		if (this.generatePartialCloneMethod) {
 			if (this.generateTools) {
-				PluginUtil.writeSourceFile(getClass(), opt.targetDir, PropertyTreeUse.class.getName());
-				PluginUtil.writeSourceFile(getClass(), opt.targetDir, PartialCopyable.class.getName());
-				PluginUtil.writeSourceFile(getClass(), opt.targetDir, PropertyTree.class.getName());
-				PluginUtil.writeSourceFile(getClass(), opt.targetDir, Selector.class.getName());
+				apiConstructs.writeSourceFile(PropertyTreeUse.class);
+				apiConstructs.writeSourceFile(PartialCopyable.class);
+				apiConstructs.writeSourceFile(PropertyTree.class);
+				apiConstructs.writeSourceFile(Selector.class);
 			}
 			final SelectorGenerator selectorGenerator = new SelectorGenerator(apiConstructs, Selector.class, "Selector", "Select", null, null, apiConstructs.cloneGraphClass);
 			selectorGenerator.generateMetaFields();
