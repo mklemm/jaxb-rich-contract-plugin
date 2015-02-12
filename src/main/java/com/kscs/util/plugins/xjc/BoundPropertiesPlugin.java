@@ -29,13 +29,16 @@ import java.beans.PropertyVetoException;
 import java.beans.VetoableChangeListener;
 import java.beans.VetoableChangeSupport;
 import java.util.ArrayList;
-import java.util.ResourceBundle;
+import java.util.HashMap;
+import java.util.Map;
 import com.kscs.util.jaxb.BoundList;
 import com.kscs.util.jaxb.BoundListProxy;
 import com.kscs.util.jaxb.CollectionChangeEvent;
 import com.kscs.util.jaxb.CollectionChangeEventType;
 import com.kscs.util.jaxb.CollectionChangeListener;
 import com.kscs.util.jaxb.VetoableCollectionChangeListener;
+import com.kscs.util.plugins.xjc.common.AbstractPlugin;
+import com.kscs.util.plugins.xjc.common.Setter;
 import com.sun.codemodel.JBlock;
 import com.sun.codemodel.JCatchBlock;
 import com.sun.codemodel.JClass;
@@ -50,9 +53,7 @@ import com.sun.codemodel.JMod;
 import com.sun.codemodel.JTryBlock;
 import com.sun.codemodel.JType;
 import com.sun.codemodel.JVar;
-import com.sun.tools.xjc.BadCommandLineException;
 import com.sun.tools.xjc.Options;
-import com.sun.tools.xjc.Plugin;
 import com.sun.tools.xjc.outline.ClassOutline;
 import com.sun.tools.xjc.outline.FieldOutline;
 import com.sun.tools.xjc.outline.Outline;
@@ -62,14 +63,39 @@ import org.xml.sax.SAXException;
 /**
  * XJC Plugin generated conatrained and bound JavaBeans properties
  */
-public class BoundPropertiesPlugin extends Plugin {
-	public static final String BOOLEAN_OPTION_ERROR_MSG = " option must be either (\"true\",\"on\",\"y\",\"yes\") or (\"false\", \"off\", \"n\",\"no\").";
-
+public class BoundPropertiesPlugin extends AbstractPlugin {
 
 	private boolean constrained = true;
 	private boolean bound = true;
 	private boolean setterThrows = false;
 	private boolean generateTools = true;
+
+	private final Map<String,Setter<String>> setters = new HashMap<String,Setter<String>>() {{
+		put("constrained", new Setter<String>() {
+			@Override
+			public void set(final String val) {
+				BoundPropertiesPlugin.this.constrained = parseBoolean(val);
+			}
+		});
+		put("bound", new Setter<String>() {
+			@Override
+			public void set(final String val) {
+				BoundPropertiesPlugin.this.bound = parseBoolean(val);
+			}
+		});
+		put("generate-tools", new Setter<String>() {
+			@Override
+			public void set(final String val) {
+				BoundPropertiesPlugin.this.generateTools = parseBoolean(val);
+			}
+		});
+		put("setter-throws", new Setter<String>() {
+			@Override
+			public void set(final String val) {
+				BoundPropertiesPlugin.this.setterThrows = parseBoolean(val);
+			}
+		});
+	}};
 
 	@Override
 	public String getOptionName() {
@@ -77,65 +103,17 @@ public class BoundPropertiesPlugin extends Plugin {
 	}
 
 	@Override
-	public int parseArgument(final Options opt, final String[] args, final int i) throws BadCommandLineException {
-		final String arg = args[i].toLowerCase();
-		if (arg.startsWith("-constrained=")) {
-			final boolean argConstrained = isTrue(arg);
-			final boolean argNotConstrained = isFalse(arg);
-			if (!argConstrained && !argNotConstrained) {
-				throw new BadCommandLineException("-constrained" + BoundPropertiesPlugin.BOOLEAN_OPTION_ERROR_MSG);
-			} else {
-				this.constrained = argConstrained;
-			}
-			return 1;
-		} else if (arg.startsWith("-bound=")) {
-			final boolean argBound = isTrue(arg);
-			final boolean argNotBound = isFalse(arg);
-			if (!argBound && !argNotBound) {
-				throw new BadCommandLineException("-bound" + BoundPropertiesPlugin.BOOLEAN_OPTION_ERROR_MSG);
-			} else {
-				this.bound = argBound;
-			}
-			return 1;
-		} else if (arg.startsWith("-setter-throws=")) {
-			final boolean argSetterThrows = isTrue(arg);
-			final boolean argNoSetterThrows = isFalse(arg);
-			if (!argSetterThrows && !argNoSetterThrows) {
-				throw new BadCommandLineException("-setter-throws" + BoundPropertiesPlugin.BOOLEAN_OPTION_ERROR_MSG);
-			} else {
-				this.setterThrows = argSetterThrows;
-			}
-			return 1;
-		} else if (arg.startsWith("-constrained-properties-generate-tools=")) {
-			final boolean argGenerateTools = isTrue(arg);
-			final boolean argNoGenerateTools = isFalse(arg);
-			if (!argGenerateTools && !argNoGenerateTools) {
-				throw new BadCommandLineException("-constrained-properties-generate-tools" + BoundPropertiesPlugin.BOOLEAN_OPTION_ERROR_MSG);
-			} else {
-				this.generateTools = argGenerateTools;
-			}
-			return 1;
-		}
-		return 0;
-	}
-
-
-	private boolean isTrue(final String arg) {
-		return arg.endsWith("y") || arg.endsWith("true") || arg.endsWith("on") || arg.endsWith("yes");
-	}
-
-	private boolean isFalse(final String arg) {
-		return arg.endsWith("n") || arg.endsWith("false") || arg.endsWith("off") || arg.endsWith("no");
+	protected Map<String, Setter<String>> getSetters() {
+		return this.setters;
 	}
 
 	@Override
-	public String getUsage() {
-		return new PluginUsageBuilder(ResourceBundle.getBundle(BoundPropertiesPlugin.class.getName()), "usage").addMain("constrained-properties")
+	public PluginUsageBuilder buildUsage(final PluginUsageBuilder pluginUsageBuilder) {
+		return pluginUsageBuilder.addMain("constrained-properties")
 				.addOption("constrained", this.constrained)
 				.addOption("bound", this.bound)
 				.addOption("setter-throws", this.setterThrows)
-				.addOption("constrained-properties-generate-tools", this.generateTools)
-				.build();
+				.addOption("constrained-properties-generate-tools", this.generateTools);
 	}
 
 	@Override
