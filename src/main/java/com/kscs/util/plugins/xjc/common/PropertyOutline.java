@@ -22,7 +22,7 @@
  * THE SOFTWARE.
  */
 
-package com.kscs.util.plugins.xjc;
+package com.kscs.util.plugins.xjc.common;
 
 import com.sun.codemodel.JFieldVar;
 import com.sun.codemodel.JType;
@@ -30,7 +30,7 @@ import com.sun.codemodel.JType;
 /**
  * @author Mirko Klemm 2015-01-28
  */
-interface PropertyOutline {
+public interface PropertyOutline {
 	String getBaseName();
 	String getFieldName();
 	JType getRawType();

@@ -38,6 +38,7 @@ import com.kscs.util.jaxb.CollectionChangeEventType;
 import com.kscs.util.jaxb.CollectionChangeListener;
 import com.kscs.util.jaxb.VetoableCollectionChangeListener;
 import com.kscs.util.plugins.xjc.common.AbstractPlugin;
+import com.kscs.util.plugins.xjc.common.PluginUsageBuilder;
 import com.kscs.util.plugins.xjc.common.Setter;
 import com.sun.codemodel.JBlock;
 import com.sun.codemodel.JCatchBlock;

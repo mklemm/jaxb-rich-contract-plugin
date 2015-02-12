@@ -21,7 +21,7 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package com.kscs.util.plugins.xjc;
+package com.kscs.util.plugins.xjc.common;
 
 import java.io.PrintWriter;
 import java.io.StringWriter;

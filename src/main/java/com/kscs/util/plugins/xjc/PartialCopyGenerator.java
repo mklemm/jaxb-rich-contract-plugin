@@ -27,7 +27,7 @@ import com.kscs.util.jaxb.PropertyTree;
 import com.kscs.util.jaxb.PropertyTreeUse;
 import com.sun.codemodel.*;
 
-import static com.kscs.util.plugins.xjc.PluginUtil.nullSafe;
+import static com.kscs.util.plugins.xjc.common.PluginUtil.nullSafe;
 
 /**
  * @author mirko 2014-06-04

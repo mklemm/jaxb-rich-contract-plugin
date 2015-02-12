@@ -30,10 +30,12 @@ import java.util.ResourceBundle;
 import java.util.logging.Logger;
 import com.kscs.util.jaxb.PropertyTree;
 import com.kscs.util.jaxb.PropertyTreeUse;
+import com.kscs.util.plugins.xjc.common.PluginUtil;
+import com.kscs.util.plugins.xjc.common.PropertyOutline;
 import com.sun.codemodel.*;
 import org.xml.sax.SAXException;
 
-import static com.kscs.util.plugins.xjc.PluginUtil.nullSafe;
+import static com.kscs.util.plugins.xjc.common.PluginUtil.nullSafe;
 
 /**
  * Helper class to generate fluent builder classes in two steps

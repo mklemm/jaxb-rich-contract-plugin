@@ -28,7 +28,6 @@ import java.io.IOException;
 import java.text.MessageFormat;
 import java.util.Map;
 import java.util.ResourceBundle;
-import com.kscs.util.plugins.xjc.PluginUsageBuilder;
 import com.sun.tools.xjc.BadCommandLineException;
 import com.sun.tools.xjc.Options;
 import com.sun.tools.xjc.Plugin;

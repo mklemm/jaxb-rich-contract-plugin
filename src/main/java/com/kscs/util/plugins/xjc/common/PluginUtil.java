@@ -22,9 +22,10 @@
  * THE SOFTWARE.
  */
 
-package com.kscs.util.plugins.xjc;
+package com.kscs.util.plugins.xjc.common;
 
 import java.util.Iterator;
+import com.kscs.util.plugins.xjc.ApiConstructs;
 import com.sun.codemodel.JClass;
 import com.sun.codemodel.JDefinedClass;
 import com.sun.codemodel.JExpr;

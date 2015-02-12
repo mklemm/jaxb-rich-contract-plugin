@@ -34,6 +34,8 @@ import com.kscs.util.jaxb.PropertyTreeUse;
 import com.kscs.util.jaxb.Selector;
 import com.kscs.util.jaxb.TransformerPath;
 import com.kscs.util.plugins.xjc.common.AbstractPlugin;
+import com.kscs.util.plugins.xjc.common.PluginUsageBuilder;
+import com.kscs.util.plugins.xjc.common.PluginUtil;
 import com.kscs.util.plugins.xjc.common.Setter;
 import com.sun.codemodel.JBlock;
 import com.sun.codemodel.JCatchBlock;
@@ -57,7 +59,7 @@ import com.sun.tools.xjc.outline.Outline;
 import org.xml.sax.ErrorHandler;
 import org.xml.sax.SAXException;
 
-import static com.kscs.util.plugins.xjc.PluginUtil.nullSafe;
+import static com.kscs.util.plugins.xjc.common.PluginUtil.nullSafe;
 
 /**
  * XJC Plugin to generate copy and partial copy methods

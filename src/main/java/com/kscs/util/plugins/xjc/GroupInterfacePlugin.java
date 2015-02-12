@@ -49,6 +49,7 @@ import java.util.ResourceBundle;
 import com.kscs.util.plugins.xjc.common.AbstractPlugin;
 import com.kscs.util.plugins.xjc.common.EpisodeBuilder;
 import com.kscs.util.plugins.xjc.common.Namespaces;
+import com.kscs.util.plugins.xjc.common.PluginUsageBuilder;
 import com.kscs.util.plugins.xjc.common.Setter;
 import com.sun.tools.xjc.BadCommandLineException;
 import com.sun.tools.xjc.Options;

@@ -27,6 +27,8 @@ package com.kscs.util.plugins.xjc;
 import java.util.HashMap;
 import java.util.Map;
 import com.kscs.util.plugins.xjc.common.AbstractPlugin;
+import com.kscs.util.plugins.xjc.common.PluginUsageBuilder;
+import com.kscs.util.plugins.xjc.common.PluginUtil;
 import com.kscs.util.plugins.xjc.common.Setter;
 import com.sun.codemodel.JBlock;
 import com.sun.codemodel.JCatchBlock;
@@ -47,7 +49,7 @@ import com.sun.tools.xjc.outline.Outline;
 import org.xml.sax.ErrorHandler;
 import org.xml.sax.SAXException;
 
-import static com.kscs.util.plugins.xjc.PluginUtil.nullSafe;
+import static com.kscs.util.plugins.xjc.common.PluginUtil.nullSafe;
 
 /**
  * XJC Plugin to generate Object.clone() implementation method
