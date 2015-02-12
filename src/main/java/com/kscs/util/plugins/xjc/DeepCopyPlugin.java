@@ -29,11 +29,9 @@ import java.util.Map;
 import com.kscs.util.jaxb.Copyable;
 import com.kscs.util.jaxb.PartialCopyable;
 import com.kscs.util.jaxb.PropertyInfo;
-import com.kscs.util.jaxb.PropertyTransformer;
 import com.kscs.util.jaxb.PropertyTree;
 import com.kscs.util.jaxb.PropertyTreeUse;
 import com.kscs.util.jaxb.Selector;
-import com.kscs.util.jaxb.Transformer;
 import com.kscs.util.jaxb.TransformerPath;
 import com.kscs.util.plugins.xjc.common.AbstractPlugin;
 import com.kscs.util.plugins.xjc.common.Setter;
@@ -65,8 +63,7 @@ import static com.kscs.util.plugins.xjc.PluginUtil.nullSafe;
  * XJC Plugin to generate copy and partial copy methods
  */
 public class DeepCopyPlugin extends AbstractPlugin {
-	boolean generatePartialCloneMethod = true;
-	boolean generateTransformer = false;
+	private boolean generatePartialCloneMethod = true;
 	private boolean generateTools = true;
 	private boolean generateConstructor = true;
 	private boolean narrow = false;
@@ -123,17 +120,6 @@ public class DeepCopyPlugin extends AbstractPlugin {
 
 		if(this.generateTools) {
 			apiConstructs.writeSourceFile(Copyable.class);
-		}
-
-		if (this.generateTransformer) {
-			if (this.generateTools) {
-				apiConstructs.writeSourceFile(PropertyInfo.class);
-				apiConstructs.writeSourceFile(PropertyTransformer.class);
-				apiConstructs.writeSourceFile(TransformerPath.class);
-				apiConstructs.writeSourceFile(Transformer.class);
-			}
-			final SelectorGenerator selectorGenerator = new SelectorGenerator(apiConstructs, Transformer.class, "Transformer", "Transform", "propertyTransformer", apiConstructs.codeModel.ref(PropertyTransformer.class), apiConstructs.transformerPathClass);
-			selectorGenerator.generateMetaFields();
 		}
 
 		if (this.generatePartialCloneMethod) {

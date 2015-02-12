@@ -31,17 +31,11 @@ import java.io.StringReader;
 /**
  * @author Mirko Klemm 2015-01-29
  */
-public class ResettableStringReader extends Reader {
+class ResettableStringReader extends Reader {
 	private StringReader stringReader;
 	private final String s;
 
 	public ResettableStringReader(final String s) {
-		this.s = s;
-		this.stringReader = new StringReader(s);
-	}
-
-	public ResettableStringReader(final Object lock, final String s) {
-		super(lock);
 		this.s = s;
 		this.stringReader = new StringReader(s);
 	}

@@ -95,7 +95,7 @@ public class FluentBuilderPlugin extends AbstractPlugin {
 
 	@Override
 	public boolean run(final Outline outline, final Options opt, final ErrorHandler errorHandler) throws SAXException {
-		final Map<String, BuilderOutline> builderClasses = new LinkedHashMap<String, BuilderOutline>(outline.getClasses().size());
+		final Map<String, BuilderOutline> builderClasses = new LinkedHashMap<>(outline.getClasses().size());
 		final ApiConstructs apiConstructs = new ApiConstructs(outline, opt, errorHandler);
 
 		if (this.generateTools) {

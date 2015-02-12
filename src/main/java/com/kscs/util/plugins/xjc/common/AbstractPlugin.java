@@ -38,13 +38,13 @@ import com.sun.tools.xjc.Plugin;
  */
 public abstract class AbstractPlugin extends Plugin {
 	private static final ResourceBundle BASE_RESOURCE_BUNDLE = ResourceBundle.getBundle(AbstractPlugin.class.getName());
-	protected final ResourceBundle resourceBundle;
+	private final ResourceBundle resourceBundle;
 
 	protected AbstractPlugin() {
 		this.resourceBundle = ResourceBundle.getBundle(getClass().getName());
 	}
 
-	public static Boolean parseBoolean(final String arg) {
+	protected static Boolean parseBoolean(final String arg) {
 		final boolean argTrue = isTrue(arg);
 		final boolean argFalse = isFalse(arg);
 		if (!argTrue && !argFalse) {
@@ -96,7 +96,7 @@ public abstract class AbstractPlugin extends Plugin {
 
 	@Override
 	public String getUsage() {
-		final PluginUsageBuilder pluginUsageBuilder = new PluginUsageBuilder(this.resourceBundle, "usage");
+		final PluginUsageBuilder pluginUsageBuilder = new PluginUsageBuilder(this.resourceBundle);
 		return buildUsage(pluginUsageBuilder).build();
 	}
 

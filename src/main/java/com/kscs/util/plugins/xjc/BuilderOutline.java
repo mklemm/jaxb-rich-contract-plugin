@@ -34,7 +34,7 @@ public class BuilderOutline {
 	private final JClass definedBuilderClass;
 	private final TypeOutline classOutline;
 
-	protected BuilderOutline(final TypeOutline classOutline, final JClass definedBuilderClass)  {
+	BuilderOutline(final TypeOutline classOutline, final JClass definedBuilderClass)  {
 		this.classOutline = classOutline;
 		this.definedBuilderClass = definedBuilderClass;
 	}

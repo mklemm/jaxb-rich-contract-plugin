@@ -70,8 +70,8 @@ import org.xml.sax.SAXParseException;
 /**
  * @author mirko 2014-05-29
  */
-public class GroupInterfaceGenerator {
-	public static final XSFunction<Boolean> IS_FIXED_FUNC = new AbstractXSFunction<Boolean>() {
+class GroupInterfaceGenerator {
+	private static final XSFunction<Boolean> IS_FIXED_FUNC = new AbstractXSFunction<Boolean>() {
 
 		@Override
 		public Boolean attributeDecl(final XSAttributeDecl decl) {
@@ -88,25 +88,25 @@ public class GroupInterfaceGenerator {
 			return decl.getFixedValue() != null;
 		}
 	};
-	public final XSFunction<String> nameFunc = new AbstractXSFunction<String>() {
+	private final XSFunction<String> nameFunc = new AbstractXSFunction<String>() {
 
 		@Override
 		public String attributeDecl(final XSAttributeDecl decl) {
 			final String customName = getCustomPropertyName(decl);
-			return customName == null ? apiConstructs.outline.getModel().getNameConverter().toPropertyName(decl.getName()) : customName;
+			return customName == null ? GroupInterfaceGenerator.this.apiConstructs.outline.getModel().getNameConverter().toPropertyName(decl.getName()) : customName;
 		}
 
 		@Override
 		public String attributeUse(final XSAttributeUse use) {
 			String customName = getCustomPropertyName(use);
 			customName = customName == null ? getCustomPropertyName(use.getDecl()) : customName;
-			return customName == null ? apiConstructs.outline.getModel().getNameConverter().toPropertyName(use.getDecl().getName()) : customName;
+			return customName == null ? GroupInterfaceGenerator.this.apiConstructs.outline.getModel().getNameConverter().toPropertyName(use.getDecl().getName()) : customName;
 		}
 
 		@Override
 		public String elementDecl(final XSElementDecl decl) {
 			final String customName = getCustomPropertyName(decl);
-			return customName == null ? apiConstructs.outline.getModel().getNameConverter().toPropertyName(decl.getName()) : customName;
+			return customName == null ? GroupInterfaceGenerator.this.apiConstructs.outline.getModel().getNameConverter().toPropertyName(decl.getName()) : customName;
 		}
 
 		private String getCustomPropertyName(final XSComponent component) {
@@ -286,7 +286,7 @@ public class GroupInterfaceGenerator {
 		return interfacesForClass == null ? Collections.<InterfaceOutline>emptyList() : interfacesForClass;
 	}
 
-	public void putGroupInterfaceForClass(final ClassOutline classOutline, final InterfaceOutline groupInterface) {
+	void putGroupInterfaceForClass(final ClassOutline classOutline, final InterfaceOutline groupInterface) {
 		List<InterfaceOutline> interfacesForClass = this.interfacesByClass.get(classOutline.implClass.fullName());
 		if (interfacesForClass == null) {
 			interfacesForClass = new ArrayList<>();
@@ -531,7 +531,7 @@ public class GroupInterfaceGenerator {
 		return getReferencedInterfaces().get(schemaComponent);
 	}
 
-	public Map<QName, ReferencedInterfaceOutline> getReferencedInterfaces() {
+	Map<QName, ReferencedInterfaceOutline> getReferencedInterfaces() {
 		if (this.referencedInterfaces == null) {
 			if (this.upstreamEpisode != null) {
 				this.referencedInterfaces = loadInterfaceEpisode(this.apiConstructs, this.upstreamEpisode);

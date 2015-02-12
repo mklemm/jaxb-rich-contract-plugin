@@ -113,7 +113,7 @@ public class BoundPropertiesPlugin extends AbstractPlugin {
 				.addOption("constrained", this.constrained)
 				.addOption("bound", this.bound)
 				.addOption("setter-throws", this.setterThrows)
-				.addOption("constrained-properties-generate-tools", this.generateTools);
+				.addOption("generate-tools", this.generateTools);
 	}
 
 	@Override

@@ -43,7 +43,7 @@ public class ReferencedClassOutline implements TypeOutline {
 	public ReferencedClassOutline(final JCodeModel codeModel, final Class<?> referencedClass) {
 		this.codeModel = codeModel;
 		this.referencedClass = referencedClass;
-		this.declaredFields = new ArrayList<PropertyOutline>(referencedClass.getDeclaredFields().length);
+		this.declaredFields = new ArrayList<>(referencedClass.getDeclaredFields().length);
 		for(final Field field : referencedClass.getDeclaredFields()) {
 			this.declaredFields.add(new ReferencedPropertyOutline(codeModel, field));
 		}

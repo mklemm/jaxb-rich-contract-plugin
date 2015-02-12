@@ -101,7 +101,7 @@ public class ReferencedPropertyOutline implements PropertyOutline {
 		} catch (final NoSuchMethodException e) {
 			try {
 				method = this.field.getDeclaringClass().getMethod("is" + getBaseName());
-			} catch (NoSuchMethodException nsme) {
+			} catch (final NoSuchMethodException nsme) {
 				method = null;
 			}
 		}

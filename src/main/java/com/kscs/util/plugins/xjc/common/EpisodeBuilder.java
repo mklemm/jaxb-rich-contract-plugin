@@ -105,7 +105,7 @@ public class EpisodeBuilder {
 		final Map<XSSchema, PerSchemaOutlineAdaptors> perSchema = new LinkedHashMap<>();
 		boolean hasComponentInNoNamespace = false;
 
-		for (final OutlineAdaptor oa : outlines) {
+		for (final OutlineAdaptor oa : this.outlines) {
 			final XSComponent sc = oa.schemaComponent;
 
 			if (sc != null && (sc instanceof XSDeclaration)) {

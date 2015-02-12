@@ -30,7 +30,7 @@ import com.sun.codemodel.JType;
 /**
  * @author Mirko Klemm 2015-01-28
  */
-public interface PropertyOutline {
+interface PropertyOutline {
 	String getBaseName();
 	String getFieldName();
 	JType getRawType();

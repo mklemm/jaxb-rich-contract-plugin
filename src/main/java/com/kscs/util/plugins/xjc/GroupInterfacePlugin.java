@@ -110,7 +110,7 @@ public class GroupInterfacePlugin extends AbstractPlugin {
 			DOCUMENT_BUILDER_FACTORY = DocumentBuilderFactory.newInstance();
 			GroupInterfacePlugin.DOCUMENT_BUILDER_FACTORY.setNamespaceAware(true);
 			DOCUMENT_BUILDER = GroupInterfacePlugin.DOCUMENT_BUILDER_FACTORY.newDocumentBuilder();
-		} catch (ParserConfigurationException e) {
+		} catch (final ParserConfigurationException e) {
 			throw new RuntimeException(e);
 		}
 	}
@@ -176,7 +176,7 @@ public class GroupInterfacePlugin extends AbstractPlugin {
 	 * Later, this plugin will transform the classes into interface declarations.
 	 * This approach avoids tedious re-implementation of the property generation code,
 	 * with all the effects of settings, options, and customizations, in this plugin.
-	 * @param opts
+	 * @param opts Options given to XJC
 	 * @throws BadCommandLineException
 	 */
 	private static void generateDummyGroupUsages(final Options opts) throws BadCommandLineException {
@@ -210,7 +210,7 @@ public class GroupInterfacePlugin extends AbstractPlugin {
 					currentGroups.modelGroupNames.add(modelGroupNodes.item(i).getNodeValue());
 				}
 
-				final InputSource newSchema = generateImplementationSchema(opts, transformer, GroupInterfacePlugin.DOCUMENT_BUILDER, currentGroups, schemaCopy.getSystemId());
+				final InputSource newSchema = generateImplementationSchema(opts, transformer, currentGroups, schemaCopy.getSystemId());
 				if(newSchema != null) {
 					newGrammars.add(newSchema);
 				}
@@ -224,9 +224,9 @@ public class GroupInterfacePlugin extends AbstractPlugin {
 		}
 	}
 
-	private static InputSource generateImplementationSchema(final Options opts,  final Transformer transformer, final DocumentBuilder documentBuilder, final Groups namespaceGroups, final String systemId) throws TransformerException {
+	private static InputSource generateImplementationSchema(final Options opts, final Transformer transformer, final Groups namespaceGroups, final String systemId) throws TransformerException {
 			if(!namespaceGroups.attGroupNames.isEmpty() || !namespaceGroups.modelGroupNames.isEmpty()) {
-				final Document dummySchema = documentBuilder.newDocument();
+				final Document dummySchema = GroupInterfacePlugin.DOCUMENT_BUILDER.newDocument();
 				dummySchema.setXmlVersion("1.0");
 				// Treat "http://www.w3.org/XML/1998/namespace" namespace specially, because the ns prefix always has to be "xml" for this
 				// and only this namespace.

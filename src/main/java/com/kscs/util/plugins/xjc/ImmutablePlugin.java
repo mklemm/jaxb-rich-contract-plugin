@@ -55,7 +55,7 @@ public class ImmutablePlugin extends Plugin {
 
 	@Override
 	public String getUsage() {
-		return new PluginUsageBuilder(ResourceBundle.getBundle(ImmutablePlugin.class.getName()), "usage").addMain("immutable").build();
+		return new PluginUsageBuilder(ResourceBundle.getBundle(ImmutablePlugin.class.getName())).addMain("immutable").build();
 	}
 
 	@Override
@@ -90,13 +90,13 @@ public class ImmutablePlugin extends Plugin {
 		return true;
 	}
 
-	public String getImmutableFieldName(final FieldOutline fieldVar) {
+	String getImmutableFieldName(final FieldOutline fieldVar) {
 		return fieldVar.getPropertyInfo().getName(false) + "_RO";
 	}
-	public String getImmutableFieldName(final PropertyOutline fieldVar) {
+	String getImmutableFieldName(final PropertyOutline fieldVar) {
 		return fieldVar.getFieldName() + "_RO";
 	}
-	public String getImmutableFieldName(final JFieldVar fieldVar) {
+	String getImmutableFieldName(final JFieldVar fieldVar) {
 		return fieldVar.name() + "_RO";
 	}
 

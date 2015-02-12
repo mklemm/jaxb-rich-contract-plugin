@@ -23,32 +23,42 @@
  */
 package com.kscs.util.plugins.xjc;
 
-import com.sun.codemodel.*;
-import com.sun.tools.xjc.outline.ClassOutline;
-import com.sun.tools.xjc.outline.FieldOutline;
-
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.logging.Logger;
+import com.sun.codemodel.JClass;
+import com.sun.codemodel.JClassAlreadyExistsException;
+import com.sun.codemodel.JDefinedClass;
+import com.sun.codemodel.JExpr;
+import com.sun.codemodel.JFieldRef;
+import com.sun.codemodel.JFieldVar;
+import com.sun.codemodel.JMethod;
+import com.sun.codemodel.JMod;
+import com.sun.codemodel.JOp;
+import com.sun.codemodel.JType;
+import com.sun.codemodel.JTypeVar;
+import com.sun.codemodel.JVar;
+import com.sun.tools.xjc.outline.ClassOutline;
+import com.sun.tools.xjc.outline.FieldOutline;
 
 /**
  * Generates Property Tree builder structures
  */
-public class SelectorGenerator {
+class SelectorGenerator {
 
 	private static final Logger LOGGER = Logger.getLogger(SelectorGenerator.class.getName());
 
-	protected final Class<?> selectorBaseClass;
-	protected final String selectorClassName ;
-	protected final String rootSelectorClassName;
-	protected final String selectorParamName ;
-	protected final JType selectorParamType;
-	protected final JClass propertyPathClass;
+	final Class<?> selectorBaseClass;
+	private final String selectorClassName ;
+	private final String rootSelectorClassName;
+	final String selectorParamName ;
+	private final JType selectorParamType;
+	private final JClass propertyPathClass;
 
 
 	private final ApiConstructs apiConstructs;
-	private final Map<String, MetaInfoOutline> infoClasses = new LinkedHashMap<String, MetaInfoOutline>();
+	private final Map<String, MetaInfoOutline> infoClasses = new LinkedHashMap<>();
 
 	public SelectorGenerator(final ApiConstructs apiConstructs, final Class<?> selectorBaseClass, final String selectorClassName, final String rootSelectorClassName, final String selectorParamName, final JType selectorParamType, final JClass propertyPathClass) {
 		this.apiConstructs = apiConstructs;
@@ -112,7 +122,7 @@ public class SelectorGenerator {
 
 
 			return new MetaInfoOutline(this, classOutline, selectorClass, rootTypeParam, parentTypeParam, buildChildrenMethod, productMapVar);
-		} catch (JClassAlreadyExistsException e) {
+		} catch (final JClassAlreadyExistsException e) {
 			SelectorGenerator.LOGGER.warning("Attempt to generate already existing class");
 			return null;
 		}

@@ -35,21 +35,23 @@ import java.util.ResourceBundle;
  * @author mirko 2014-04-03
  */
 public class PluginUsageBuilder {
+	private static final int MAX_LINE_LENGTH = 80;
+	private static final int INDENT_MAX_LINE_LENGTH = 70;
 	private final StringWriter stringWriter = new StringWriter();
 	private final PrintWriter writer = new PrintWriter(this.stringWriter);
 	private final ResourceBundle resourceBundle;
 	private final String keyBase;
 
-	public PluginUsageBuilder(final ResourceBundle resourceBundle, final String keyBase) {
+	public PluginUsageBuilder(final ResourceBundle resourceBundle) {
 		this.resourceBundle = resourceBundle;
-		this.keyBase = keyBase;
+		this.keyBase = "usage";
 	}
 
 	public PluginUsageBuilder addMain(final String optionName) {
 		this.writer.print(this.resourceBundle.getString(this.keyBase + ".usage"));
 		this.writer.println(": -X" + optionName);
 		this.writer.println();
-		for (final String line : chopLines(80, this.resourceBundle.getString(this.keyBase))) {
+		for (final String line : chopLines(PluginUsageBuilder.MAX_LINE_LENGTH, this.resourceBundle.getString(this.keyBase))) {
 			this.writer.println(line);
 		}
 		this.writer.println("\n"+this.resourceBundle.getString(this.keyBase + ".options") + ":");
@@ -61,20 +63,7 @@ public class PluginUsageBuilder {
 		this.writer.println();
 		this.writer.print("\t-");
 		this.writer.println(optionName + "={y|n} ("+(defaultValue ? "y" : "n")+") :");
-		for (final String line : chopLines(70, this.resourceBundle.getString(key))) {
-			this.writer.print("\t\t");
-			this.writer.println(line);
-		}
-		this.writer.println();
-		return this;
-	}
-
-	public PluginUsageBuilder addOption(final String optionName, final String defaultValue) {
-		final String key = this.keyBase + "." + transformName(optionName);
-		this.writer.println();
-		this.writer.print("\t-");
-		this.writer.println(optionName + "=<string> ("+defaultValue+") :");
-		for (final String line : chopLines(70, this.resourceBundle.getString(key))) {
+		for (final String line : chopLines(PluginUsageBuilder.INDENT_MAX_LINE_LENGTH, this.resourceBundle.getString(key))) {
 			this.writer.print("\t\t");
 			this.writer.println(line);
 		}
@@ -99,7 +88,7 @@ public class PluginUsageBuilder {
 
 	private static List<String> chopLines(final int maxLineLength, final String input) {
 		final String[] words = input.split(" ");
-		final List<String> result = new ArrayList<String>();
+		final List<String> result = new ArrayList<>();
 		StringBuilder sb = null;
 		for (final String word : words) {
 			if (word.length() > 0) {

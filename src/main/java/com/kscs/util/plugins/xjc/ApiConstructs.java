@@ -71,35 +71,35 @@ public class ApiConstructs {
 	public static final String PRODUCT_INSTANCE_NAME = "product";
 	public static final String ADD_METHOD_PREFIX = "add";
 	public static final String WITH_METHOD_PREFIX = "with";
-	public static final String AS_LIST = "asList";
-	public static final String UNMODIFIABLE_LIST = "unmodifiableList";
+	private static final String AS_LIST = "asList";
+	private static final String UNMODIFIABLE_LIST = "unmodifiableList";
 	public static final String ADD_ALL = "addAll";
 	public static final String GET_BUILDER = "getBuilder";
-	public static final String CLONE_METHOD_NAME = "clone";
-	public static final String COPY_METHOD_NAME = "createCopy";
-	public static final String COPY_EXCEPT_METHOD_NAME = "copyExcept";
-	public static final String COPY_ONLY_METHOD_NAME = "copyOnly";
+	private static final String CLONE_METHOD_NAME = "clone";
+	private static final String COPY_METHOD_NAME = "createCopy";
+	private static final String COPY_EXCEPT_METHOD_NAME = "copyExcept";
+	private static final String COPY_ONLY_METHOD_NAME = "copyOnly";
 
 
 	public final JCodeModel codeModel;
 	public final JClass arrayListClass;
 	public final JClass listClass;
 	public final JClass collectionClass;
-	public final JClass collectionsClass;
-	public final JClass arraysClass;
+	private final JClass collectionsClass;
+	private final JClass arraysClass;
 	public final Options opt;
 	public final JClass cloneableInterface;
 	public final Outline outline;
 	public final ErrorHandler errorHandler;
-	public final Map<String, ClassOutline> classes;
+	private final Map<String, ClassOutline> classes;
 	public final Map<QName, ClassOutline> classesBySchemaComponent;
-	public final Map<String, EnumOutline> enums;
+	private final Map<String, EnumOutline> enums;
 	public final JClass partialCopyableInterface;
 	public final JClass copyableInterface;
 	public final JClass builderUtilitiesClass;
 	public final JClass stringClass;
 	public final JClass voidClass;
-	public final JClass transformerPathClass;
+	private final JClass transformerPathClass;
 	public final JClass cloneGraphClass;
 	public final JExpression excludeConst;
 	public final JExpression includeConst;
@@ -182,11 +182,7 @@ public class ApiConstructs {
 		return this.classes.get(typeSpec.fullName());
 	}
 
-	public ClassOutline getClassOutline(final String fullName) {
-		return this.classes.get(fullName);
-	}
-
-	public EnumOutline getEnumOutline(final JType typeSpec) {
+	EnumOutline getEnumOutline(final JType typeSpec) {
 		return this.enums.get(typeSpec.fullName());
 	}
 
@@ -243,7 +239,7 @@ public class ApiConstructs {
 		try {
 			final Class<?> builderClass = Class.forName(cls.getName() + "$" + ApiConstructs.BUILDER_CLASS_NAME);
 			return this.codeModel.ref(builderClass);
-		} catch (Exception e) {
+		} catch (final Exception e) {
 			return null;
 		}
 	}

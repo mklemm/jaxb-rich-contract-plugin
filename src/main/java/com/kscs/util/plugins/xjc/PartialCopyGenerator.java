@@ -32,7 +32,7 @@ import static com.kscs.util.plugins.xjc.PluginUtil.nullSafe;
 /**
  * @author mirko 2014-06-04
  */
-public class PartialCopyGenerator {
+class PartialCopyGenerator {
 	private final ApiConstructs apiConstructs;
 	private final JVar includeParam;
 	private final JVar propertyTreeParam;

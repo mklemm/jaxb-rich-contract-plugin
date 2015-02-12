@@ -43,7 +43,7 @@ public class DefinedClassOutline implements TypeOutline {
 	public DefinedClassOutline(final ApiConstructs apiConstructs, final ClassOutline classOutline) {
 		this.apiConstructs = apiConstructs;
 		this.classOutline = classOutline;
-		final List<PropertyOutline> properties = new ArrayList<PropertyOutline>(classOutline.getDeclaredFields().length);
+		final List<PropertyOutline> properties = new ArrayList<>(classOutline.getDeclaredFields().length);
 		for (final FieldOutline fieldOutline : classOutline.getDeclaredFields()) {
 			properties.add(new DefinedPropertyOutline(fieldOutline));
 		}
