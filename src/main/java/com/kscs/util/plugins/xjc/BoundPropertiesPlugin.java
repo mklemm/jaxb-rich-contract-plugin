@@ -60,6 +60,7 @@ import com.sun.tools.xjc.outline.FieldOutline;
 import com.sun.tools.xjc.outline.Outline;
 import org.xml.sax.ErrorHandler;
 import org.xml.sax.SAXException;
+import org.xml.sax.SAXParseException;
 
 /**
  * XJC Plugin generated conatrained and bound JavaBeans properties
@@ -119,6 +120,7 @@ public class BoundPropertiesPlugin extends AbstractPlugin {
 
 	@Override
 	public boolean run(final Outline outline, final Options opt, final ErrorHandler errorHandler) throws SAXException {
+
 		if (!this.constrained && !this.bound) {
 			return true;
 		}
@@ -137,7 +139,11 @@ public class BoundPropertiesPlugin extends AbstractPlugin {
 			apiConstructs.writeSourceFile(VetoableCollectionChangeListener.class);
 		}
 
-		final int setterAccess = apiConstructs.hasPlugin(ImmutablePlugin.class) ? JMod.PROTECTED : JMod.PUBLIC;
+		if(apiConstructs.hasPlugin(ImmutablePlugin.class)) {
+			errorHandler.error(new SAXParseException(getMessage("error.immutableAndConstrainedProperties"), outline.getModel().getLocator()));
+		}
+
+		final int setterAccess = JMod.PUBLIC;
 
 		for (final ClassOutline classOutline : outline.getClasses()) {
 			final JDefinedClass definedClass = classOutline.implClass;
@@ -220,6 +226,10 @@ public class BoundPropertiesPlugin extends AbstractPlugin {
 			final JMethod addMethod = definedClass.method(JMod.PUBLIC, m.VOID, "add" + aspectNameCap + "Listener");
 			final JVar addParam = addMethod.param(JMod.FINAL, listenerClass, aspectName + "Listener");
 			addMethod.body().invoke(JExpr._this().ref(supportField), "add" + aspectNameCap + "Listener").arg(addParam);
+
+			final JMethod removeMethod = definedClass.method(JMod.PUBLIC, m.VOID, "remove" + aspectNameCap + "Listener");
+			final JVar removeParam = removeMethod.param(JMod.FINAL, listenerClass, aspectName + "Listener");
+			removeMethod.body().invoke(JExpr._this().ref(supportField), "remove" + aspectNameCap + "Listener").arg(removeParam);
 		}
 		final JMethod withMethod = definedClass.method(JMod.PUBLIC, definedClass, "with" + aspectNameCap + "Listener");
 		final JVar withParam = withMethod.param(JMod.FINAL, listenerClass, aspectName + "Listener");

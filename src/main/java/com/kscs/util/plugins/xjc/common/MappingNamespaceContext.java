@@ -22,7 +22,7 @@
  * THE SOFTWARE.
  */
 
-package com.kscs.util.plugins.xjc;
+package com.kscs.util.plugins.xjc.common;
 
 import javax.xml.namespace.NamespaceContext;
 import java.util.ArrayList;
@@ -35,7 +35,7 @@ import java.util.Map;
 /**
 * @author Mirko Klemm 2015-02-03
 */
-class MappingNamespaceContext implements NamespaceContext {
+public class MappingNamespaceContext implements NamespaceContext {
 	private final Map<String, List<String>> namespacesByUri = new HashMap<>();
 	private final HashMap<String, String> namespacesByPrefix = new HashMap<>();
 

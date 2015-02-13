@@ -46,7 +46,6 @@ import java.util.logging.Logger;
 import com.kscs.util.jaxb._interface.Interface;
 import com.kscs.util.jaxb._interface.Interfaces;
 import com.kscs.util.plugins.xjc.common.AbstractXSFunction;
-import com.kscs.util.plugins.xjc.common.EpisodeBuilder;
 import com.sun.codemodel.ClassType;
 import com.sun.codemodel.JClassAlreadyExistsException;
 import com.sun.codemodel.JDefinedClass;

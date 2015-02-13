@@ -47,7 +47,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.ResourceBundle;
 import com.kscs.util.plugins.xjc.common.AbstractPlugin;
-import com.kscs.util.plugins.xjc.common.EpisodeBuilder;
+import com.kscs.util.plugins.xjc.common.MappingNamespaceContext;
 import com.kscs.util.plugins.xjc.common.Namespaces;
 import com.kscs.util.plugins.xjc.common.PluginUsageBuilder;
 import com.kscs.util.plugins.xjc.common.Setter;
