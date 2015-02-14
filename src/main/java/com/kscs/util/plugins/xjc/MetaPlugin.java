@@ -58,7 +58,7 @@ public class MetaPlugin extends AbstractPlugin {
 	@Opt
 	private boolean generateTools = true;
 	@Opt
-	private boolean full = false;
+	private boolean extended = false;
 	@Opt
 	private boolean camelCase = false;
 	@Opt
@@ -72,7 +72,7 @@ public class MetaPlugin extends AbstractPlugin {
 	@Override
 	public boolean run(final Outline outline, final Options opt, final ErrorHandler errorHandler) throws SAXException {
 		final ApiConstructs apiConstructs = new ApiConstructs(outline, opt, errorHandler);
-		if(this.full && this.generateTools) {
+		if(this.extended && this.generateTools) {
 			apiConstructs.writeSourceFile(PropertyInfo.class);
 		}
 		for(final ClassOutline classOutline:outline.getClasses()) {
@@ -85,7 +85,7 @@ public class MetaPlugin extends AbstractPlugin {
 		try {
 			final JDefinedClass metaClass = classOutline.implClass._class(JMod.PUBLIC | JMod.STATIC, this.metaClassName);
 			for(final FieldOutline fieldOutline:classOutline.getDeclaredFields()) {
-				if(this.full) {
+				if(this.extended) {
 					generateFullMetaField(metaClass, fieldOutline);
 				} else {
 					generateNameOnlyMetaField(metaClass, fieldOutline);
