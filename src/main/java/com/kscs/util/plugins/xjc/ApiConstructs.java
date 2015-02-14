@@ -84,6 +84,7 @@ public class ApiConstructs {
 	public final JCodeModel codeModel;
 	public final JClass arrayListClass;
 	public final JClass listClass;
+	public final JClass iterableClass;
 	public final JClass collectionClass;
 	private final JClass collectionsClass;
 	private final JClass arraysClass;
@@ -115,6 +116,7 @@ public class ApiConstructs {
 		this.opt = opt;
 		this.arrayListClass = this.codeModel.ref(ArrayList.class);
 		this.listClass = this.codeModel.ref(List.class);
+		this.iterableClass = this.codeModel.ref(Collection.class);
 		this.collectionClass = this.codeModel.ref(Collection.class);
 		this.collectionsClass = this.codeModel.ref(Collections.class);
 		this.arraysClass = this.codeModel.ref(Arrays.class);

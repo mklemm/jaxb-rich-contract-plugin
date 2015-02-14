@@ -21,24 +21,28 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package com.kscs.util.jaxb;
+
+package com.kscs.util.plugins.xjc.common;
+
+import java.lang.reflect.Field;
 
 /**
- * @author mirko 2014-05-28
+ * @author Mirko Klemm 2015-02-13
  */
-public class PropertyInfo<TInstance, TProperty> {
-	public final String propertyName;
-	public final Class<TProperty> declaredType;
-	public final Class<TInstance> declaringClass;
-	public final boolean collection;
-	public final TProperty defaultValue;
+public class StringOption extends Option<String> {
 
-	public PropertyInfo(final String propertyName, final Class<TInstance> declaringClass, final Class<TProperty> declaredType, final boolean collection, final TProperty defaultValue) {
-		this.propertyName = propertyName;
-		this.declaredType = declaredType;
-		this.declaringClass = declaringClass;
-		this.collection = collection;
-		this.defaultValue = defaultValue;
+	public StringOption(final String name, final AbstractPlugin plugin, final Field field) {
+		super(name, plugin, field, "<string>");
+	}
+
+	@Override
+	public void setStringValue(final String s) {
+		set(s);
+	}
+
+	@Override
+	public String getStringValue() {
+		return get();
 	}
 
 }

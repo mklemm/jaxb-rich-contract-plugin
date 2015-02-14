@@ -25,81 +25,89 @@
 package com.kscs.util.plugins.xjc.common;
 
 import java.io.IOException;
+import java.lang.reflect.Field;
 import java.text.MessageFormat;
-import java.util.Map;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.ResourceBundle;
 import com.sun.tools.xjc.BadCommandLineException;
 import com.sun.tools.xjc.Options;
 import com.sun.tools.xjc.Plugin;
 
 /**
+ * Common base class for plugins, manages command line parsing,
+ * i18n resource bundles, and printout of "usage" information.
+ *
  * @author Mirko Klemm 2015-02-07
  */
 public abstract class AbstractPlugin extends Plugin {
 	private static final ResourceBundle BASE_RESOURCE_BUNDLE = ResourceBundle.getBundle(AbstractPlugin.class.getName());
 	private final ResourceBundle resourceBundle;
+	private final List<Option<?>> options;
 
 	protected AbstractPlugin() {
 		this.resourceBundle = ResourceBundle.getBundle(getClass().getName());
+		this.options = buildOptions(this, getClass());
 	}
 
-	protected static Boolean parseBoolean(final String arg) {
-		final boolean argTrue = isTrue(arg);
-		final boolean argFalse = isFalse(arg);
-		if (!argTrue && !argFalse) {
-			return null;
-		} else {
-			return argTrue;
+	private static List<Option<?>> buildOptions(final AbstractPlugin plugin, final Class<?> pluginClass) {
+		final List<Option<?>> options = new ArrayList<>();
+		if (pluginClass.getSuperclass() != null) {
+			options.addAll(buildOptions(plugin, pluginClass.getSuperclass()));
 		}
-	}
-
-	private static boolean isTrue(final String arg) {
-		return arg.endsWith("y") || arg.endsWith("true") || arg.endsWith("on") || arg.endsWith("yes");
-	}
-
-	private static boolean isFalse(final String arg) {
-		return arg.endsWith("n") || arg.endsWith("false") || arg.endsWith("off") || arg.endsWith("no");
+		for (final Field field : pluginClass.getDeclaredFields()) {
+			if (field.isAnnotationPresent(Opt.class)) {
+				final String optionName = field.getAnnotation(Opt.class).value().isEmpty() ? field.getName() : field.getAnnotation(Opt.class).value();
+				if (field.getType().equals(String.class)) {
+					options.add(new StringOption(optionName, plugin, field));
+				} else if (field.getType().equals(Boolean.class) || field.getType().equals(boolean.class)) {
+					options.add(new BooleanOption(optionName, plugin, field));
+				}
+			}
+		}
+		return options;
 	}
 
 	@Override
 	public int parseArgument(final Options opt, final String[] args, final int i) throws BadCommandLineException, IOException {
-		int currentIndex = i;
 		if (('-' + getOptionName()).equals(args[i])) {
-			currentIndex = parseOptions(args, i, getSetters());
+			return parseOptions(args, i + 1) + 1;
 		}
-		return currentIndex - i;
+		return 0;
 	}
 
-	private int parseOptions(final String[] args, int i, final Map<String, Setter<String>> setters) throws BadCommandLineException {
-		for (final String name : setters.keySet()) {
-			if (args.length > i + 1) {
-				if (args[i + 1].equalsIgnoreCase(name)) {
-					if (args.length > i + 2 && !args[i + 2].startsWith("-")) {
-						setters.get(name).set(args[i + 2]);
-						i += 2;
-					} else {
-						throw new BadCommandLineException(MessageFormat.format(AbstractPlugin.BASE_RESOURCE_BUNDLE.getString("exception.missingArgument"), name));
-					}
-				} else if (args[i + 1].toLowerCase().startsWith(name + "=")) {
-					setters.get(name).set(args[i + 1].substring(name.length() + 1));
+	private int parseOptions(final String[] args, final int startIndex) throws BadCommandLineException {
+		int count = 0;
+		for (final Option<?> option : this.options) {
+			int i;
+			for (i = startIndex; i < args.length && !args[i].startsWith("-X"); i++) {
+				if (option.matches(args[i])) {
 					i++;
+					if (args.length > i && !args[i].startsWith("-")) {
+						option.setStringValue(args[i]);
+						count += 2;
+					} else {
+						throw new BadCommandLineException(MessageFormat.format(AbstractPlugin.BASE_RESOURCE_BUNDLE.getString("exception.missingArgument"), option.getName()));
+					}
+				} else {
+					if (option.tryParse(args[i])) {
+						count++;
+					}
 				}
-			} else {
-				return 0;
 			}
 		}
-		return i;
+		return count;
 	}
-
-	protected abstract Map<String, Setter<String>> getSetters();
 
 	@Override
 	public String getUsage() {
-		final PluginUsageBuilder pluginUsageBuilder = new PluginUsageBuilder(this.resourceBundle);
-		return buildUsage(pluginUsageBuilder).build();
+		final PluginUsageBuilder pluginUsageBuilder = new PluginUsageBuilder(AbstractPlugin.BASE_RESOURCE_BUNDLE, this.resourceBundle);
+		pluginUsageBuilder.addMain(getOptionName().substring(1));
+		for (final Option<?> option : this.options) {
+			pluginUsageBuilder.addOption(option);
+		}
+		return pluginUsageBuilder.build();
 	}
-
-	protected abstract PluginUsageBuilder buildUsage(final PluginUsageBuilder pluginUsageBuilder);
 
 	protected String getMessage(final String key, final Object... args) {
 		return MessageFormat.format(this.resourceBundle.getString(key), args);

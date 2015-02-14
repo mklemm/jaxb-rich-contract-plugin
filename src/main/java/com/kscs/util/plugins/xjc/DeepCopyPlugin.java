@@ -24,19 +24,14 @@
 
 package com.kscs.util.plugins.xjc;
 
-import java.util.HashMap;
-import java.util.Map;
 import com.kscs.util.jaxb.Copyable;
 import com.kscs.util.jaxb.PartialCopyable;
-import com.kscs.util.jaxb.PropertyInfo;
 import com.kscs.util.jaxb.PropertyTree;
 import com.kscs.util.jaxb.PropertyTreeUse;
 import com.kscs.util.jaxb.Selector;
-import com.kscs.util.jaxb.TransformerPath;
 import com.kscs.util.plugins.xjc.common.AbstractPlugin;
-import com.kscs.util.plugins.xjc.common.PluginUsageBuilder;
+import com.kscs.util.plugins.xjc.common.Opt;
 import com.kscs.util.plugins.xjc.common.PluginUtil;
-import com.kscs.util.plugins.xjc.common.Setter;
 import com.sun.codemodel.JBlock;
 import com.sun.codemodel.JCatchBlock;
 import com.sun.codemodel.JClass;
@@ -47,7 +42,6 @@ import com.sun.codemodel.JExpression;
 import com.sun.codemodel.JFieldRef;
 import com.sun.codemodel.JFieldVar;
 import com.sun.codemodel.JForEach;
-import com.sun.codemodel.JInvocation;
 import com.sun.codemodel.JMethod;
 import com.sun.codemodel.JMod;
 import com.sun.codemodel.JTryBlock;
@@ -65,55 +59,14 @@ import static com.kscs.util.plugins.xjc.common.PluginUtil.nullSafe;
  * XJC Plugin to generate copy and partial copy methods
  */
 public class DeepCopyPlugin extends AbstractPlugin {
-	private boolean generatePartialCloneMethod = true;
-	private boolean generateTools = true;
-	private boolean generateConstructor = true;
-	private boolean narrow = false;
-
-	private final Map<String,Setter<String>> setters = new HashMap<String,Setter<String>>(){{
-		put("partial", new Setter<String>() {
-			@Override
-			public void set(final String val) {
-				DeepCopyPlugin.this.generatePartialCloneMethod = parseBoolean(val);
-			}
-		});
-		put("generate-tools", new Setter<String>() {
-			@Override
-			public void set(final String val) {
-				DeepCopyPlugin.this.generateTools = parseBoolean(val);
-			}
-		});
-		put("constructor", new Setter<String>() {
-			@Override
-			public void set(final String val) {
-				DeepCopyPlugin.this.generateConstructor = parseBoolean(val);
-			}
-		});
-		put("narrow", new Setter<String>() {
-			@Override
-			public void set(final String val) {
-				DeepCopyPlugin.this.narrow = parseBoolean(val);
-			}
-		});
-	}};
+	@Opt("partial") private boolean generatePartialCloneMethod = true;
+	@Opt private boolean generateTools = true;
+	@Opt("constructor") private boolean generateConstructor = true;
+	@Opt private boolean narrow = false;
 
 	@Override
 	public String getOptionName() {
 		return "Xcopy";
-	}
-
-	@Override
-	protected Map<String, Setter<String>> getSetters() {
-		return this.setters;
-	}
-
-	@Override
-	protected PluginUsageBuilder buildUsage(final PluginUsageBuilder pluginUsageBuilder) {
-		return pluginUsageBuilder.addMain("copy")
-						.addOption("partial", this.generatePartialCloneMethod)
-						.addOption("constructor", this.generateConstructor)
-						.addOption("generate-tools", this.generateTools)
-						.addOption("narrow", this.narrow);
 	}
 
 	@Override
@@ -444,131 +397,6 @@ public class DeepCopyPlugin extends AbstractPlugin {
 			final JCatchBlock catchBlock = tryBlock._catch(apiConstructs.codeModel.ref(CloneNotSupportedException.class));
 			final JVar exceptionVar = catchBlock.param("cnse");
 			catchBlock.body()._throw(JExpr._new(apiConstructs.codeModel.ref(RuntimeException.class)).arg(exceptionVar));
-		}
-
-	}
-
-	void generateTransformingConstructor(final ApiConstructs apiConstructs, final ClassOutline classOutline, final JDefinedClass definedClass, final ImmutablePlugin immutablePlugin) {
-		final JMethod constructor = definedClass.constructor(definedClass.isAbstract() ? JMod.PROTECTED : JMod.PUBLIC);
-		final JVar otherParam = constructor.param(JMod.FINAL, classOutline.implClass, "other");
-		final JVar transformerPathParam = constructor.param(JMod.FINAL, TransformerPath.class, "transformerPath");
-
-		final JDocComment docComment = constructor.javadoc();
-		docComment.append(getMessage("copyConstructor.javadoc.desc", definedClass.name()));
-		docComment.addParam(otherParam).append(getMessage("copyConstructor.javadoc.param.other", definedClass.name()));
-		docComment.addParam(transformerPathParam).append(getMessage("copyConstructor.javadoc.param.transformerPath", definedClass.name()));
-
-		if (classOutline.getSuperClass() != null) {
-			constructor.body().invoke("super").arg(otherParam).arg(transformerPathParam);
-		}
-
-		final JBlock outer;
-		final JBlock body;
-		final JTryBlock tryBlock;
-
-		final boolean mustCatch = mustCatch(apiConstructs, classOutline, new Predicate<JClass>() {
-			@Override
-			public boolean matches(final JClass fieldType) {
-				return (!apiConstructs.canInstantiate(fieldType)) && (!apiConstructs.partialCopyableInterface.isAssignableFrom(fieldType)) && apiConstructs.cloneThrows(fieldType, false);
-			}
-		});
-
-		if (!mustCatch) {
-			outer = constructor.body();
-			tryBlock = null;
-			body = outer;
-		} else {
-			outer = constructor.body();
-			tryBlock = outer._try();
-			body = tryBlock.body();
-		}
-		JBlock currentBlock;
-		final JExpression newObjectVar = JExpr._this();
-		for (final FieldOutline fieldOutline : classOutline.getDeclaredFields()) {
-			final JFieldVar field = PluginUtil.getDeclaredField(fieldOutline);
-			if (field != null) {
-				if ((field.mods().getValue() & (JMod.FINAL | JMod.STATIC)) == 0) {
-					final JFieldRef newField = JExpr.ref(newObjectVar, field);
-					final JFieldRef fieldRef = otherParam.ref(field);
-					final JVar fieldPathVar = body.decl(JMod.FINAL, apiConstructs.codeModel._ref(TransformerPath.class), field.name() + "TransformerPath", transformerPathParam.invoke("get").arg(JExpr.lit(field.name())));
-					currentBlock = body;
-					if (field.type().isReference()) {
-						final JClass fieldType = (JClass) field.type();
-						if (apiConstructs.collectionClass.isAssignableFrom(fieldType)) {
-							final JClass elementType = fieldType.getTypeParameters().get(0);
-							final JInvocation includesInvoke = createTransformerInvocation(apiConstructs, fieldOutline, definedClass, otherParam, transformerPathParam);
-
-							if (this.narrow && apiConstructs.canInstantiate(elementType)) {
-								final JForEach forLoop = apiConstructs.loop(currentBlock, fieldRef, elementType, newField, elementType);
-								forLoop.body().invoke(newField, "add").arg(includesInvoke.arg(otherParam).arg(nullSafe(forLoop.var(), JExpr._new(elementType).arg(forLoop.var()).arg(fieldPathVar))));
-							} else if (apiConstructs.partialCopyableInterface.isAssignableFrom(elementType)) {
-								final JForEach forLoop = apiConstructs.loop(currentBlock, fieldRef, elementType, newField, elementType);
-								forLoop.body().invoke(newField, "add").arg(includesInvoke.arg(otherParam).arg(nullSafe(forLoop.var(), apiConstructs.castOnDemand(elementType, forLoop.var().invoke(apiConstructs.copyMethod).arg(fieldPathVar)))));
-							} else if (apiConstructs.copyableInterface.isAssignableFrom(elementType)) {
-								final JForEach forLoop = apiConstructs.loop(currentBlock, fieldRef, elementType, newField, elementType);
-								forLoop.body().invoke(newField, "add").arg(includesInvoke.arg(otherParam).arg(nullSafe(forLoop.var(), apiConstructs.castOnDemand(elementType, forLoop.var().invoke(apiConstructs.copyMethod)))));
-							} else if (apiConstructs.cloneableInterface.isAssignableFrom(elementType)) {
-								final JForEach forLoop = apiConstructs.loop(currentBlock, fieldRef, elementType, newField, elementType);
-								forLoop.body().invoke(newField, "add").arg(includesInvoke.arg(otherParam).arg(nullSafe(forLoop.var(), apiConstructs.castOnDemand(elementType, forLoop.var().invoke(apiConstructs.cloneMethod)))));
-							} else {
-								currentBlock.assign(newField, includesInvoke.arg(otherParam).arg(nullSafe(fieldRef, apiConstructs.newArrayList(elementType).arg(fieldRef))));
-							}
-							if (immutablePlugin != null) {
-								immutablePlugin.immutableInit(apiConstructs, body, JExpr._this(), field);
-							}
-
-						} else if (this.narrow && apiConstructs.canInstantiate(fieldType)) {
-							currentBlock.assign(newField, nullSafe(fieldRef, JExpr._new(fieldType).arg(fieldRef).arg(fieldPathVar)));
-						} else if (apiConstructs.partialCopyableInterface.isAssignableFrom(fieldType)) {
-							currentBlock.assign(newField, nullSafe(fieldRef, apiConstructs.castOnDemand(fieldType, fieldRef.invoke(apiConstructs.copyMethod).arg(fieldPathVar))));
-						} else if (apiConstructs.cloneableInterface.isAssignableFrom(fieldType)) {
-							currentBlock.assign(newField, createTransformerInvocation(apiConstructs, fieldOutline, definedClass, otherParam, transformerPathParam).arg(nullSafe(fieldRef, apiConstructs.castOnDemand(fieldType, fieldRef.invoke(apiConstructs.cloneMethod)))));
-						} else {
-							currentBlock.assign(newField, fieldRef);
-						}
-					} else {
-						currentBlock.assign(newField, createTransformerInvocation(apiConstructs, fieldOutline, definedClass, otherParam, transformerPathParam).arg(fieldRef));
-					}
-				}
-			}
-		}
-
-		if (tryBlock != null) {
-			final JCatchBlock catchBlock = tryBlock._catch(apiConstructs.codeModel.ref(CloneNotSupportedException.class));
-			final JVar exceptionVar = catchBlock.param("cnse");
-			catchBlock.body()._throw(JExpr._new(apiConstructs.codeModel.ref(RuntimeException.class)).arg(exceptionVar));
-		}
-
-	}
-
-	private JInvocation createTransformerInvocation(final ApiConstructs apiConstructs, final FieldOutline fieldOutline, final JClass definedClass, final JVar copiedInstanceParam, final JVar transformerPathParam) {
-		final JFieldVar field = PluginUtil.getDeclaredField(fieldOutline);
-		final JClass fieldType = (JClass) field.type();
-
-		final JInvocation fieldPathVar = transformerPathParam.invoke("get").arg(JExpr.lit(field.name()));
-
-		if (apiConstructs.collectionClass.isAssignableFrom(fieldType)) {
-			final JClass elementType = fieldType.getTypeParameters().get(0);
-
-			return 	fieldPathVar.invoke("transform")
-					.arg(JExpr._new(apiConstructs.codeModel._ref(PropertyInfo.class))
-							.arg(JExpr.lit(field.name()))
-							.arg(elementType.dotclass())
-							.arg(definedClass.dotclass())
-							.arg(JExpr.lit(0))
-							.arg(JExpr.lit(fieldOutline.getPropertyInfo().isCollection() ? PropertyInfo.UNBOUNDED : 1))
-							.arg(JExpr.lit(true)))
-					.arg(copiedInstanceParam);
-		} else {
-			return fieldPathVar.invoke("transform")
-								.arg(JExpr._new(apiConstructs.codeModel._ref(PropertyInfo.class))
-										.arg(JExpr.lit(field.name()))
-										.arg(fieldType.dotclass())
-										.arg(definedClass.dotclass())
-										.arg(JExpr.lit(fieldOutline.getPropertyInfo().isOptionalPrimitive() ? 0 : 1))
-										.arg(JExpr.lit(1))
-										.arg(JExpr.lit(true)))
-								.arg(copiedInstanceParam);
 		}
 
 	}

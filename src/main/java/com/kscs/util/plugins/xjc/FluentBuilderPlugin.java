@@ -24,7 +24,6 @@
 
 package com.kscs.util.plugins.xjc;
 
-import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import com.kscs.util.jaxb.BuilderUtilities;
@@ -32,8 +31,7 @@ import com.kscs.util.jaxb.PropertyTree;
 import com.kscs.util.jaxb.PropertyTreeUse;
 import com.kscs.util.jaxb.Selector;
 import com.kscs.util.plugins.xjc.common.AbstractPlugin;
-import com.kscs.util.plugins.xjc.common.PluginUsageBuilder;
-import com.kscs.util.plugins.xjc.common.Setter;
+import com.kscs.util.plugins.xjc.common.Opt;
 import com.sun.codemodel.ClassType;
 import com.sun.codemodel.JClassAlreadyExistsException;
 import com.sun.codemodel.JDefinedClass;
@@ -49,49 +47,16 @@ import org.xml.sax.SAXParseException;
  * Plugin to generate fluent Builders for generated classes
  */
 public class FluentBuilderPlugin extends AbstractPlugin {
+	@Opt
 	private boolean generateTools = true;
+	@Opt
 	private boolean narrow = false;
+	@Opt
 	private boolean copyPartial = true;
-
-	private final Map<String, Setter<String>> setters = new HashMap<String, Setter<String>>() {{
-		put("generate-tools", new Setter<String>() {
-			@Override
-			public void set(final String val) {
-				FluentBuilderPlugin.this.generateTools = parseBoolean(val);
-			}
-		});
-		put("copy-partial", new Setter<String>() {
-			@Override
-			public void set(final String val) {
-				FluentBuilderPlugin.this.copyPartial = parseBoolean(val);
-			}
-		});
-		put("narrow", new Setter<String>() {
-			@Override
-			public void set(final String val) {
-				FluentBuilderPlugin.this.narrow = parseBoolean(val);
-			}
-		});
-
-	}};
 
 	@Override
 	public String getOptionName() {
 		return "Xfluent-builder";
-	}
-
-	@Override
-	protected Map<String, Setter<String>> getSetters() {
-		return this.setters;
-	}
-
-	@Override
-	protected PluginUsageBuilder buildUsage(final PluginUsageBuilder pluginUsageBuilder) {
-		return pluginUsageBuilder
-				.addMain("fluent-builder")
-				.addOption("generate-tools", this.generateTools)
-				.addOption("copy-partial", this.copyPartial)
-				.addOption("narrow", this.narrow);
 	}
 
 	@Override

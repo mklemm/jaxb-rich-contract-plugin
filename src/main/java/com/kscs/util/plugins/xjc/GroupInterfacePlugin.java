@@ -42,15 +42,12 @@ import java.net.URL;
 import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.ResourceBundle;
 import com.kscs.util.plugins.xjc.common.AbstractPlugin;
 import com.kscs.util.plugins.xjc.common.MappingNamespaceContext;
 import com.kscs.util.plugins.xjc.common.Namespaces;
-import com.kscs.util.plugins.xjc.common.PluginUsageBuilder;
-import com.kscs.util.plugins.xjc.common.Setter;
+import com.kscs.util.plugins.xjc.common.Opt;
 import com.sun.tools.xjc.BadCommandLineException;
 import com.sun.tools.xjc.Options;
 import com.sun.tools.xjc.outline.ClassOutline;
@@ -70,37 +67,15 @@ import org.xml.sax.SAXException;
 public class GroupInterfacePlugin extends AbstractPlugin {
 	private static final ResourceBundle RESOURCE_BUNDLE = ResourceBundle.getBundle(GroupInterfacePlugin.class.getName());
 	private static final XPathFactory X_PATH_FACTORY = XPathFactory.newInstance();
+	@Opt
 	private boolean declareSetters = true;
+	@Opt
 	private boolean declareBuilderInterface = true;
+	@Opt
 	private String upstreamEpisodeFile = "/META-INF/jaxb-interfaces.episode";
+	@Opt
 	private String downstreamEpisodeFile = "/META-INF/jaxb-interfaces.episode";
 	private GroupInterfaceGenerator generator = null;
-	private final Map<String,Setter<String>> setters = new HashMap<String,Setter<String>>(){{
-		put("declare-setters", new Setter<String>() {
-			@Override
-			public void set(final String val) {
-				GroupInterfacePlugin.this.declareSetters = parseBoolean(val);
-			}
-		});
-		put("declare-builder-interface", new Setter<String>() {
-			@Override
-			public void set(final String val) {
-				GroupInterfacePlugin.this.declareBuilderInterface = parseBoolean(val);
-			}
-		});
-		put("upstream-episode-file", new Setter<String>() {
-			@Override
-			public void set(final String val) {
-				GroupInterfacePlugin.this.upstreamEpisodeFile = val;
-			}
-		});
-		put("downstream-episode-file", new Setter<String>() {
-			@Override
-			public void set(final String val) {
-				GroupInterfacePlugin.this.downstreamEpisodeFile = val;
-			}
-		});
-	}};
 	public static final TransformerFactory TRANSFORMER_FACTORY;
 	private static final DocumentBuilderFactory DOCUMENT_BUILDER_FACTORY;
 	private static final DocumentBuilder DOCUMENT_BUILDER;
@@ -127,21 +102,8 @@ public class GroupInterfacePlugin extends AbstractPlugin {
 	}
 
 	@Override
-	protected Map<String, Setter<String>> getSetters() {
-		return this.setters;
-	}
-
-	@Override
 	public String getOptionName() {
 		return "Xgroup-contract";
-	}
-
-	@Override
-	public PluginUsageBuilder buildUsage(final PluginUsageBuilder pluginUsageBuilder) {
-		return pluginUsageBuilder
-				.addMain("group-contract")
-				.addOption("declare-setters", this.declareSetters)
-				.addOption("declare-builder-interface", this.declareBuilderInterface);
 	}
 
 	@Override

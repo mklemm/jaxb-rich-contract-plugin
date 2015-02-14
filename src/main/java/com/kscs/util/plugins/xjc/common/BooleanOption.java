@@ -21,24 +21,45 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package com.kscs.util.jaxb;
+
+package com.kscs.util.plugins.xjc.common;
+
+import java.lang.reflect.Field;
 
 /**
- * @author mirko 2014-05-28
+ * @author Mirko Klemm 2015-02-13
  */
-public class PropertyInfo<TInstance, TProperty> {
-	public final String propertyName;
-	public final Class<TProperty> declaredType;
-	public final Class<TInstance> declaringClass;
-	public final boolean collection;
-	public final TProperty defaultValue;
+public class BooleanOption extends Option<Boolean> {
+	public BooleanOption(final String name, final AbstractPlugin plugin, final Field field) {
+		super(name, plugin, field, "{y|n}");
+	}
 
-	public PropertyInfo(final String propertyName, final Class<TInstance> declaringClass, final Class<TProperty> declaredType, final boolean collection, final TProperty defaultValue) {
-		this.propertyName = propertyName;
-		this.declaredType = declaredType;
-		this.declaringClass = declaringClass;
-		this.collection = collection;
-		this.defaultValue = defaultValue;
+	@Override
+	public void setStringValue(final String s) {
+		set(parseBoolean(s));
+	}
+
+	@Override
+	public String getStringValue() {
+		return get() ? "y" : "n";
+	}
+
+	private  static Boolean parseBoolean(final String arg) {
+		final boolean argTrue = isTrue(arg);
+		final boolean argFalse = isFalse(arg);
+		if (!argTrue && !argFalse) {
+			return null;
+		} else {
+			return argTrue;
+		}
+	}
+
+	private static boolean isTrue(final String arg) {
+		return arg.endsWith("y") || arg.endsWith("true") || arg.endsWith("on") || arg.endsWith("yes");
+	}
+
+	private static boolean isFalse(final String arg) {
+		return arg.endsWith("n") || arg.endsWith("false") || arg.endsWith("off") || arg.endsWith("no");
 	}
 
 }

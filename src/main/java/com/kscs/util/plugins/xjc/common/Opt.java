@@ -21,49 +21,21 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package com.kscs.util.plugins.xjc;
 
-import org.junit.Test;
+package com.kscs.util.plugins.xjc.common;
+
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
 /**
- * Test usage output
+ * Denotes a field of a plugin class as
+ * a plugin argument parsed from the XJC command line
+ * @author Mirko Klemm 2015-02-13
  */
-public class PluginUsageBuilderTest {
-	@Test
-	public void testPluginUsageFluentBuilder() {
-		final FluentBuilderPlugin plugin = new FluentBuilderPlugin();
-		System.out.println(plugin.getUsage());
-	}
-
-	@Test
-	public void testPluginUsageImmutable() {
-		final ImmutablePlugin plugin = new ImmutablePlugin();
-		System.out.println(plugin.getUsage());
-	}
-
-	@Test
-	public void testPluginUsageGroupContract() {
-		final GroupInterfacePlugin plugin = new GroupInterfacePlugin();
-		System.out.println(plugin.getUsage());
-	}
-
-	@Test
-	public void testPluginUsageDeepClone() {
-		final DeepClonePlugin plugin = new DeepClonePlugin();
-		System.out.println(plugin.getUsage());
-	}
-
-	@Test
-	public void testPluginUsageDeepCopy() {
-		final DeepCopyPlugin plugin = new DeepCopyPlugin();
-		System.out.println(plugin.getUsage());
-	}
-
-	@Test
-	public void testPluginUsageBoundProperties() {
-		final BoundPropertiesPlugin plugin = new BoundPropertiesPlugin();
-		System.out.println(plugin.getUsage());
-	}
-
-
+@Retention(RetentionPolicy.RUNTIME)
+@Target(ElementType.FIELD)
+public @interface Opt {
+	String value() default "";
 }

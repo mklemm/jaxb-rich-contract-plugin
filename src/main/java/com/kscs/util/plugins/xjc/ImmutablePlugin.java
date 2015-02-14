@@ -24,8 +24,7 @@
 
 package com.kscs.util.plugins.xjc;
 
-import java.util.ResourceBundle;
-import com.kscs.util.plugins.xjc.common.PluginUsageBuilder;
+import com.kscs.util.plugins.xjc.common.AbstractPlugin;
 import com.kscs.util.plugins.xjc.common.PluginUtil;
 import com.kscs.util.plugins.xjc.common.PropertyOutline;
 import com.sun.codemodel.JBlock;
@@ -39,7 +38,6 @@ import com.sun.codemodel.JMethod;
 import com.sun.codemodel.JMod;
 import com.sun.codemodel.JType;
 import com.sun.tools.xjc.Options;
-import com.sun.tools.xjc.Plugin;
 import com.sun.tools.xjc.outline.ClassOutline;
 import com.sun.tools.xjc.outline.FieldOutline;
 import com.sun.tools.xjc.outline.Outline;
@@ -49,16 +47,11 @@ import org.xml.sax.SAXException;
 /**
  * XJC Plugin to make generated classes immutable
  */
-public class ImmutablePlugin extends Plugin {
+public class ImmutablePlugin extends AbstractPlugin {
 
 	@Override
 	public String getOptionName() {
 		return "Ximmutable";
-	}
-
-	@Override
-	public String getUsage() {
-		return new PluginUsageBuilder(ResourceBundle.getBundle(ImmutablePlugin.class.getName())).addMain("immutable").build();
 	}
 
 	@Override

@@ -43,6 +43,7 @@ import static com.kscs.util.plugins.xjc.common.PluginUtil.nullSafe;
 class BuilderGenerator {
 	private static final String ITEM_VAR_NAME = "_item";
 	private static final Logger LOGGER = Logger.getLogger(BuilderGenerator.class.getName());
+	public static final String PRODUCT_VAR_NAME = "_product";
 	private final ApiConstructs apiConstructs;
 	private final JDefinedClass definedClass;
 	private final JDefinedClass builderClass;
@@ -78,7 +79,7 @@ class BuilderGenerator {
 			final JMethod endMethod = this.builderClass.method(JMod.PUBLIC, this.parentBuilderTypeParam, "end");
 			if (this.implement) {
 				this.parentBuilderField = this.builderClass.field(JMod.PROTECTED | JMod.FINAL, this.parentBuilderTypeParam, "_parentBuilder");
-				this.productField = this.builderClass.field(JMod.PROTECTED | JMod.FINAL, this.definedClass, "_product");
+				this.productField = this.builderClass.field(JMod.PROTECTED | JMod.FINAL, this.definedClass, BuilderGenerator.PRODUCT_VAR_NAME);
 
 				endMethod.body()._return(JExpr._this().ref(this.parentBuilderField));
 			} else {
@@ -160,13 +161,13 @@ class BuilderGenerator {
 		final String propertyName = fieldOutline.getBaseName();
 		final JType fieldType = fieldOutline.getRawType();
 
-		final JClass listType = this.apiConstructs.listClass.narrow(elementType.wildcard());
+		final JClass iterableType = this.apiConstructs.iterableClass.narrow(elementType.wildcard());
 		final JMethod addListMethod = this.builderClass.method(JMod.PUBLIC, this.builderType, ApiConstructs.ADD_METHOD_PREFIX + propertyName);
-		final JVar addListParam = addListMethod.param(JMod.FINAL, listType, fieldName);
+		final JVar addListParam = addListMethod.param(JMod.FINAL, iterableType, fieldName);
 		generateAddMethodJavadoc(addListMethod, addListParam);
 
 		final JMethod withListMethod = this.builderClass.method(JMod.PUBLIC, this.builderType, ApiConstructs.WITH_METHOD_PREFIX + propertyName);
-		final JVar withListParam = withListMethod.param(JMod.FINAL, listType, fieldName);
+		final JVar withListParam = withListMethod.param(JMod.FINAL, iterableType, fieldName);
 		generateWithMethodJavadoc(withListMethod, withListParam);
 
 		final JMethod addVarargsMethod = this.builderClass.method(JMod.PUBLIC, this.builderType, ApiConstructs.ADD_METHOD_PREFIX + propertyName);
@@ -250,10 +251,10 @@ class BuilderGenerator {
 		if (superFieldOutline.isCollection()) {
 			if (!fieldType.isArray()) {
 				final JClass elementType = ((JClass) fieldType).getTypeParameters().get(0);
-				final JClass listType = this.apiConstructs.listClass.narrow(elementType.wildcard());
+				final JClass iterableType = this.apiConstructs.iterableClass.narrow(elementType.wildcard());
 
 				final JMethod addListMethod = this.builderClass.method(JMod.PUBLIC, this.builderType, ApiConstructs.ADD_METHOD_PREFIX + superPropertyName);
-				final JVar addListParam = addListMethod.param(JMod.FINAL, listType, fieldName);
+				final JVar addListParam = addListMethod.param(JMod.FINAL, iterableType, fieldName);
 				generateAddMethodJavadoc(addListMethod, addListParam);
 
 				final JMethod addVarargsMethod = this.builderClass.method(JMod.PUBLIC, this.builderType, ApiConstructs.ADD_METHOD_PREFIX + superPropertyName);
@@ -261,7 +262,7 @@ class BuilderGenerator {
 				generateAddMethodJavadoc(addVarargsMethod, addVarargsParam);
 
 				final JMethod withListMethod = this.builderClass.method(JMod.PUBLIC, this.builderType, ApiConstructs.WITH_METHOD_PREFIX + superPropertyName);
-				final JVar withListParam = withListMethod.param(JMod.FINAL, listType, fieldName);
+				final JVar withListParam = withListMethod.param(JMod.FINAL, iterableType, fieldName);
 				generateWithMethodJavadoc(withListMethod, withListParam);
 
 				final JMethod withVarargsMethod = this.builderClass.method(JMod.PUBLIC, this.builderType, ApiConstructs.WITH_METHOD_PREFIX + superPropertyName);
@@ -298,10 +299,10 @@ class BuilderGenerator {
 				}
 			} else {
 				final JType elementType = fieldType.elementType();
-				final JClass listType = this.apiConstructs.listClass.narrow(elementType);
+				final JClass iterableType = this.apiConstructs.iterableClass.narrow(elementType);
 
 				final JMethod withListMethod = this.builderClass.method(JMod.PUBLIC, this.builderType, ApiConstructs.WITH_METHOD_PREFIX + superPropertyName);
-				final JVar withListParam = withListMethod.param(JMod.FINAL, listType, fieldName);
+				final JVar withListParam = withListMethod.param(JMod.FINAL, iterableType, fieldName);
 				generateWithMethodJavadoc(withListMethod, withListParam);
 
 				final JMethod withVarargsMethod = this.builderClass.method(JMod.PUBLIC, this.builderType, ApiConstructs.WITH_METHOD_PREFIX + superPropertyName);
@@ -361,11 +362,11 @@ class BuilderGenerator {
 		final JMethod buildMethod = this.builderClass.method(JMod.PUBLIC, this.definedClass, ApiConstructs.BUILD_METHOD_NAME);
 		if (this.implement) {
 			if (this.definedClass.isAbstract()) {
-				buildMethod.body()._return(JExpr.cast(this.definedClass, JExpr._this().ref("_product")));
+				buildMethod.body()._return(JExpr.cast(this.definedClass, JExpr._this().ref(BuilderGenerator.PRODUCT_VAR_NAME)));
 			} else {
-				final JConditional ifStatement = buildMethod.body()._if(JExpr._this().ref("_product").eq(JExpr._null()));
+				final JConditional ifStatement = buildMethod.body()._if(JExpr._this().ref(BuilderGenerator.PRODUCT_VAR_NAME).eq(JExpr._null()));
 				ifStatement._then()._return((JExpr._this().invoke(initMethod).arg(JExpr._new(this.definedClass))));
-				ifStatement._else()._return(JExpr.cast(this.definedClass, JExpr._this().ref("_product")));
+				ifStatement._else()._return(JExpr.cast(this.definedClass, JExpr._this().ref(BuilderGenerator.PRODUCT_VAR_NAME)));
 			}
 		}
 		return buildMethod;

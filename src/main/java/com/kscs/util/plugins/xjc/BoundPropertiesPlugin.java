@@ -29,8 +29,6 @@ import java.beans.PropertyVetoException;
 import java.beans.VetoableChangeListener;
 import java.beans.VetoableChangeSupport;
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Map;
 import com.kscs.util.jaxb.BoundList;
 import com.kscs.util.jaxb.BoundListProxy;
 import com.kscs.util.jaxb.CollectionChangeEvent;
@@ -38,8 +36,7 @@ import com.kscs.util.jaxb.CollectionChangeEventType;
 import com.kscs.util.jaxb.CollectionChangeListener;
 import com.kscs.util.jaxb.VetoableCollectionChangeListener;
 import com.kscs.util.plugins.xjc.common.AbstractPlugin;
-import com.kscs.util.plugins.xjc.common.PluginUsageBuilder;
-import com.kscs.util.plugins.xjc.common.Setter;
+import com.kscs.util.plugins.xjc.common.Opt;
 import com.sun.codemodel.JBlock;
 import com.sun.codemodel.JCatchBlock;
 import com.sun.codemodel.JClass;
@@ -63,59 +60,21 @@ import org.xml.sax.SAXException;
 import org.xml.sax.SAXParseException;
 
 /**
- * XJC Plugin generated conatrained and bound JavaBeans properties
+ * XJC Plugin generates constrained and bound JavaBeans properties
  */
 public class BoundPropertiesPlugin extends AbstractPlugin {
 
-	private boolean constrained = true;
-	private boolean bound = true;
-	private boolean setterThrows = false;
-	private boolean generateTools = true;
-
-	private final Map<String,Setter<String>> setters = new HashMap<String,Setter<String>>() {{
-		put("constrained", new Setter<String>() {
-			@Override
-			public void set(final String val) {
-				BoundPropertiesPlugin.this.constrained = parseBoolean(val);
-			}
-		});
-		put("bound", new Setter<String>() {
-			@Override
-			public void set(final String val) {
-				BoundPropertiesPlugin.this.bound = parseBoolean(val);
-			}
-		});
-		put("generate-tools", new Setter<String>() {
-			@Override
-			public void set(final String val) {
-				BoundPropertiesPlugin.this.generateTools = parseBoolean(val);
-			}
-		});
-		put("setter-throws", new Setter<String>() {
-			@Override
-			public void set(final String val) {
-				BoundPropertiesPlugin.this.setterThrows = parseBoolean(val);
-			}
-		});
-	}};
+	public static final String PROXY_SUFFIX = "__Proxy";
+	public static final String SUPPORT_FIELD_SUFFIX = "__Support";
+	public static final String OLD_VALUE_VAR_NAME = "__oldValue";
+	@Opt private boolean constrained = true;
+	@Opt private boolean bound = true;
+	@Opt private boolean setterThrows = false;
+	@Opt private boolean generateTools = true;
 
 	@Override
 	public String getOptionName() {
 		return "Xconstrained-properties";
-	}
-
-	@Override
-	protected Map<String, Setter<String>> getSetters() {
-		return this.setters;
-	}
-
-	@Override
-	public PluginUsageBuilder buildUsage(final PluginUsageBuilder pluginUsageBuilder) {
-		return pluginUsageBuilder.addMain("constrained-properties")
-				.addOption("constrained", this.constrained)
-				.addOption("bound", this.bound)
-				.addOption("setter-throws", this.setterThrows)
-				.addOption("generate-tools", this.generateTools);
 	}
 
 	@Override
@@ -182,7 +141,7 @@ public class BoundPropertiesPlugin extends AbstractPlugin {
 					final JMethod setter = definedClass.method(setterAccess, m.VOID, "set" + outline.getModel().getNameConverter().toPropertyName(field.name()));
 					final JVar setterArg = setter.param(JMod.FINAL, field.type(), "value");
 					final JBlock body = setter.body();
-					final JVar oldValueVar = body.decl(JMod.FINAL, field.type(), "oldValue", JExpr._this().ref(field));
+					final JVar oldValueVar = body.decl(JMod.FINAL, field.type(), BoundPropertiesPlugin.OLD_VALUE_VAR_NAME, JExpr._this().ref(field));
 
 					if (this.constrained) {
 						final JTryBlock tryBlock;
@@ -222,7 +181,7 @@ public class BoundPropertiesPlugin extends AbstractPlugin {
 		final String aspectNameCap = aspectName.substring(0, 1).toUpperCase() + aspectName.substring(1);
 
 		if (classOutline.getSuperClass() == null) { // only generate fields in topmost classes
-			final JFieldVar supportField = definedClass.field(JMod.PROTECTED | JMod.FINAL | JMod.TRANSIENT, supportClass, aspectName + "Support", JExpr._new(m.ref(supportClass)).arg(JExpr._this()));
+			final JFieldVar supportField = definedClass.field(JMod.PROTECTED | JMod.FINAL | JMod.TRANSIENT, supportClass, aspectName + BoundPropertiesPlugin.SUPPORT_FIELD_SUFFIX, JExpr._new(m.ref(supportClass)).arg(JExpr._this()));
 			final JMethod addMethod = definedClass.method(JMod.PUBLIC, m.VOID, "add" + aspectNameCap + "Listener");
 			final JVar addParam = addMethod.param(JMod.FINAL, listenerClass, aspectName + "Listener");
 			addMethod.body().invoke(JExpr._this().ref(supportField), "add" + aspectNameCap + "Listener").arg(addParam);
@@ -243,7 +202,7 @@ public class BoundPropertiesPlugin extends AbstractPlugin {
 
 	private JInvocation invokeListener(final JBlock block, final JFieldVar field, final JVar oldValueVar, final JVar setterArg, final String aspectName) {
 		final String aspectNameCap = aspectName.substring(0, 1).toUpperCase() + aspectName.substring(1);
-		final JInvocation fvcInvoke = block.invoke(JExpr._this().ref(aspectName + "Support"), "fire" + aspectNameCap);
+		final JInvocation fvcInvoke = block.invoke(JExpr._this().ref(aspectName + BoundPropertiesPlugin.SUPPORT_FIELD_SUFFIX), "fire" + aspectNameCap);
 		fvcInvoke.arg(JExpr.lit(field.name()));
 		fvcInvoke.arg(oldValueVar);
 		fvcInvoke.arg(setterArg);
@@ -255,7 +214,7 @@ public class BoundPropertiesPlugin extends AbstractPlugin {
 		final JDefinedClass definedClass = classOutline.implClass;
 		final JFieldVar collectionField = definedClass.fields().get(fieldOutline.getPropertyInfo().getName(false));
 		final JClass elementType = ((JClass) collectionField.type()).getTypeParameters().get(0);
-		return definedClass.field(JMod.PRIVATE | JMod.TRANSIENT, m.ref(BoundList.class).narrow(elementType), collectionField.name() + "Proxy", JExpr._null());
+		return definedClass.field(JMod.PRIVATE | JMod.TRANSIENT, m.ref(BoundList.class).narrow(elementType), collectionField.name() + BoundPropertiesPlugin.PROXY_SUFFIX, JExpr._null());
 	}
 
 	private JMethod generateLazyProxyInitGetter(final ClassOutline classOutline, final FieldOutline fieldOutline) {
@@ -267,7 +226,7 @@ public class BoundPropertiesPlugin extends AbstractPlugin {
 		final JClass elementType = ((JClass) collectionField.type()).getTypeParameters().get(0);
 		final JClass proxyFieldType = m.ref(BoundList.class).narrow(elementType);
 		final JFieldRef collectionFieldRef = JExpr._this().ref(collectionField);
-		final JFieldRef proxyField = JExpr._this().ref(collectionField.name() + "Proxy");
+		final JFieldRef proxyField = JExpr._this().ref(collectionField.name() + BoundPropertiesPlugin.PROXY_SUFFIX);
 		final JMethod oldGetter = definedClass.getMethod(getterName, new JType[0]);
 		definedClass.methods().remove(oldGetter);
 		final JMethod newGetter = definedClass.method(JMod.PUBLIC, proxyFieldType, getterName);

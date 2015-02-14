@@ -24,12 +24,9 @@
 
 package com.kscs.util.plugins.xjc;
 
-import java.util.HashMap;
-import java.util.Map;
 import com.kscs.util.plugins.xjc.common.AbstractPlugin;
-import com.kscs.util.plugins.xjc.common.PluginUsageBuilder;
+import com.kscs.util.plugins.xjc.common.Opt;
 import com.kscs.util.plugins.xjc.common.PluginUtil;
-import com.kscs.util.plugins.xjc.common.Setter;
 import com.sun.codemodel.JBlock;
 import com.sun.codemodel.JCatchBlock;
 import com.sun.codemodel.JClass;
@@ -55,15 +52,8 @@ import static com.kscs.util.plugins.xjc.common.PluginUtil.nullSafe;
  * XJC Plugin to generate Object.clone() implementation method
  */
 public class DeepClonePlugin extends AbstractPlugin {
+	@Opt("clone-throws")
 	private boolean throwCloneNotSupported = false;
-	private final Map<String,Setter<String>> setters = new HashMap<String,Setter<String>>() {{
-		put("clone-throws", new Setter<String>() {
-			@Override
-			public void set(final String val) {
-				DeepClonePlugin.this.throwCloneNotSupported = parseBoolean(val);
-			}
-		});
-	}};
 
 	public boolean isThrowCloneNotSupported() {
 		return this.throwCloneNotSupported;
@@ -72,17 +62,6 @@ public class DeepClonePlugin extends AbstractPlugin {
 	@Override
 	public String getOptionName() {
 		return "Xclone";
-	}
-
-	@Override
-	protected Map<String, Setter<String>> getSetters() {
-		return this.setters;
-	}
-
-	@Override
-	protected PluginUsageBuilder buildUsage(final PluginUsageBuilder pluginUsageBuilder) {
-		return pluginUsageBuilder.addMain("clone")
-						.addOption("clone-throws", this.throwCloneNotSupported);
 	}
 
 	@Override
