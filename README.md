@@ -469,7 +469,7 @@ Options:
 When creating a builder via `copyOf()`, the narrowest possible copy of the input object is instantiated.
 See also the documentation on `-Xclone` for a discussion.
 
-#### `-partial-clone=`y/n
+#### `-copyPartial=`y/n
 If set to true, generates a `copyOf()`-Method that takes an additional `PropertyPath` parameter to limit
 the copying to a certain depth or certain nodes in the object tree.
 
