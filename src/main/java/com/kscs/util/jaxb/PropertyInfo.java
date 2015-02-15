@@ -23,6 +23,8 @@
  */
 package com.kscs.util.jaxb;
 
+import javax.xml.namespace.QName;
+
 /**
  * @author mirko 2014-05-28
  */
@@ -32,13 +34,19 @@ public class PropertyInfo<TInstance, TProperty> {
 	public final Class<TInstance> declaringClass;
 	public final boolean collection;
 	public final TProperty defaultValue;
+	public final QName schemaType;
+	public final boolean attribute;
+	public final QName schemaName;
 
-	public PropertyInfo(final String propertyName, final Class<TInstance> declaringClass, final Class<TProperty> declaredType, final boolean collection, final TProperty defaultValue) {
+	public PropertyInfo(final String propertyName, final Class<TInstance> declaringClass, final Class<TProperty> declaredType, final boolean collection, final TProperty defaultValue, final QName schemaName, final QName schemaType, final boolean attribute) {
 		this.propertyName = propertyName;
 		this.declaredType = declaredType;
 		this.declaringClass = declaringClass;
 		this.collection = collection;
 		this.defaultValue = defaultValue;
+		this.schemaType = schemaType;
+		this.attribute = attribute;
+		this.schemaName = schemaName;
 	}
 
 }
