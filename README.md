@@ -2,8 +2,11 @@ jaxb2-rich-contract-plugin
 ==========================
 
 Current Release Version: 1.5.1
+
 Get it with Maven:
+
 Repository-URI: http://maven.klemm-scs.com/release
+
 ```xml
 <groupId>com.kscs.util</groupId>
 	<artifactId>jaxb2-rich-contract-plugin</artifactId>
