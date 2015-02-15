@@ -25,6 +25,7 @@
 package com.kscs.util.plugins.xjc.common;
 
 import java.io.IOException;
+import java.io.PrintStream;
 import java.lang.reflect.Field;
 import java.text.MessageFormat;
 import java.util.ArrayList;
@@ -68,6 +69,18 @@ public abstract class AbstractPlugin extends Plugin {
 		return options;
 	}
 
+	private static String arg(final String s) {
+		return "<arg>-" + s + "</arg>";
+	}
+
+	private static String tab(final int tabAmount) {
+		final StringBuilder sb = new StringBuilder();
+		for (int i = 0; i < tabAmount; i++) {
+			sb.append("\t");
+		}
+		return sb.toString();
+	}
+
 	@Override
 	public int parseArgument(final Options opt, final String[] args, final int i) throws BadCommandLineException, IOException {
 		if (('-' + getOptionName()).equals(args[i])) {
@@ -107,6 +120,15 @@ public abstract class AbstractPlugin extends Plugin {
 			pluginUsageBuilder.addOption(option);
 		}
 		return pluginUsageBuilder.build();
+	}
+
+	public void printInvocation(final PrintStream w, final int tabAmount) {
+		w.print(tab(tabAmount));
+		w.println(arg(getOptionName()));
+		for (final Option option : this.options) {
+			w.print(tab(tabAmount + 1));
+			w.println(arg(option.getName() + "=" + option.getStringValue()));
+		}
 	}
 
 	protected String getMessage(final String key, final Object... args) {

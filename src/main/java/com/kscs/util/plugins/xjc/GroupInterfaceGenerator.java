@@ -149,7 +149,7 @@ class GroupInterfaceGenerator {
 		final FluentBuilderPlugin fluentBuilderPlugin = this.apiConstructs.findPlugin(FluentBuilderPlugin.class);
 		this.declareBuilderInterface = declareBuilderInterface && fluentBuilderPlugin != null;
 		this.needsCloneMethod = deepClonePlugin != null;
-		this.cloneMethodThrows = this.needsCloneMethod && deepClonePlugin.isThrowCloneNotSupported();
+		this.cloneMethodThrows = this.needsCloneMethod && deepClonePlugin.isCloneThrows();
 		this.needsCopyMethod = deepCopyPlugin != null;
 		this.upstreamEpisode = upstreamEpisode;
 		this.episodeBuilder = episodeBuilder;

@@ -52,11 +52,11 @@ import static com.kscs.util.plugins.xjc.common.PluginUtil.nullSafe;
  * XJC Plugin to generate Object.clone() implementation method
  */
 public class DeepClonePlugin extends AbstractPlugin {
-	@Opt("clone-throws")
-	private boolean throwCloneNotSupported = false;
+	@Opt
+	private boolean cloneThrows = false;
 
-	public boolean isThrowCloneNotSupported() {
-		return this.throwCloneNotSupported;
+	public boolean isCloneThrows() {
+		return this.cloneThrows;
 	}
 
 	@Override
@@ -83,10 +83,10 @@ public class DeepClonePlugin extends AbstractPlugin {
 	private void generateCloneMethod(final ApiConstructs apiConstructs, final ClassOutline classOutline) {
 		final JDefinedClass definedClass = classOutline.implClass;
 
-		final boolean mustCatch = "java.lang.Object".equals(definedClass._extends().fullName()) || apiConstructs.cloneThrows(definedClass._extends(), this.throwCloneNotSupported) || mustCatch(apiConstructs, classOutline, new Predicate<JClass>() {
+		final boolean mustCatch = "java.lang.Object".equals(definedClass._extends().fullName()) || apiConstructs.cloneThrows(definedClass._extends(), this.cloneThrows) || mustCatch(apiConstructs, classOutline, new Predicate<JClass>() {
 			@Override
 			public boolean matches(final JClass arg) {
-				return apiConstructs.cloneThrows(arg, DeepClonePlugin.this.throwCloneNotSupported);
+				return apiConstructs.cloneThrows(arg, DeepClonePlugin.this.cloneThrows);
 			}
 		});
 
@@ -96,10 +96,10 @@ public class DeepClonePlugin extends AbstractPlugin {
 		final JBlock outer;
 		final JBlock body;
 		final JTryBlock tryBlock;
-		if (this.throwCloneNotSupported) {
+		if (this.cloneThrows) {
 			cloneMethod._throws(CloneNotSupportedException.class);
 		}
-		if (this.throwCloneNotSupported || !mustCatch) {
+		if (this.cloneThrows || !mustCatch) {
 			outer = cloneMethod.body();
 			tryBlock = null;
 			body = outer;
