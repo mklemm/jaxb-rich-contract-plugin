@@ -448,7 +448,7 @@ Example use in code:
 In addition, new instances can be created as copies of existing instances using the builder, with an optional modification by othe builder methods:
 ```java
 	MyElement newElement = MyElement.copyOf(oldElement).withPropertyA(...).withPropertyB(...).build();
-	
+```	
 The "partial" copy introduced in the "clone" plugin will work here as well:
 ```java
 	PropertyTree selection = MyElement.Select.root().propertyA().propertyAB().build();
