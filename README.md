@@ -162,7 +162,7 @@ The following example shows all possible options reflecting their default values
             </plugin>
         </plugins>
     </build>
-``
+```
 Note: the `<extension>` flag must be set to "true" in order to make XJC accept any extensions at all.
 
 Note: jaxb2-rich-contract-plugin implements JAXB and XJC APIs version 2.2.7. You most likely will have
