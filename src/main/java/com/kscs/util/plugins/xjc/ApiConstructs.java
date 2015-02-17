@@ -66,7 +66,6 @@ public class ApiConstructs {
 	public static final String BUILDER_CLASS_NAME = "Builder";
 	public static final String BUILDER_INTERFACE_NAME = "BuildSupport";
 	public static final String BUILD_METHOD_NAME = "build";
-	public static final String BUILDER_METHOD_NAME = "builder";
 	public static final String INIT_METHOD_NAME = "init";
 	public static final String PRODUCT_INSTANCE_NAME = "product";
 	public static final String ADD_METHOD_PREFIX = "add";
@@ -75,11 +74,12 @@ public class ApiConstructs {
 	private static final String UNMODIFIABLE_LIST = "unmodifiableList";
 	public static final String ADD_ALL = "addAll";
 	public static final String GET_BUILDER = "getBuilder";
-	private static final String CLONE_METHOD_NAME = "clone";
-	private static final String COPY_METHOD_NAME = "createCopy";
-	private static final String COPY_EXCEPT_METHOD_NAME = "copyExcept";
-	private static final String COPY_ONLY_METHOD_NAME = "copyOnly";
-
+	public static final String CLONE_METHOD_NAME = "clone";
+	public static final String COPY_METHOD_NAME = "createCopy";
+	public static final String COPY_EXCEPT_METHOD_NAME = "copyExcept";
+	public static final String COPY_ONLY_METHOD_NAME = "copyOnly";
+	public static final String BUILD_COPY_METHOD_NAME = "copyOf";
+	public static final String NEW_BUILDER_METHOD_NAME = "builder";
 
 	public final JCodeModel codeModel;
 	public final JClass arrayListClass;
@@ -104,10 +104,12 @@ public class ApiConstructs {
 	public final JClass cloneGraphClass;
 	public final JExpression excludeConst;
 	public final JExpression includeConst;
-	public final String cloneMethod;
-	public final String copyMethod;
-	public final String copyExceptMethod;
-	public final String copyOnlyMethod;
+	public final String cloneMethodName;
+	public final String copyMethodName;
+	public final String copyExceptMethodName;
+	public final String copyOnlyMethodName;
+	public final String buildCopyMethodName;
+	public final String newBuilderMethodName;
 
 	ApiConstructs(final Outline outline, final Options opt, final ErrorHandler errorHandler) {
 		this.outline = outline;
@@ -140,10 +142,12 @@ public class ApiConstructs {
 		}
 		this.excludeConst = this.codeModel.ref(PropertyTreeUse.class).staticRef("EXCLUDE");
 		this.includeConst = this.codeModel.ref(PropertyTreeUse.class).staticRef("INCLUDE");
-		this.cloneMethod = ApiConstructs.CLONE_METHOD_NAME;
-		this.copyMethod = ApiConstructs.COPY_METHOD_NAME;
-		this.copyExceptMethod = ApiConstructs.COPY_EXCEPT_METHOD_NAME;
-		this.copyOnlyMethod = ApiConstructs.COPY_ONLY_METHOD_NAME;
+		this.cloneMethodName = ApiConstructs.CLONE_METHOD_NAME;
+		this.copyMethodName = ApiConstructs.COPY_METHOD_NAME;
+		this.copyExceptMethodName = ApiConstructs.COPY_EXCEPT_METHOD_NAME;
+		this.copyOnlyMethodName = ApiConstructs.COPY_ONLY_METHOD_NAME;
+		this.buildCopyMethodName = ApiConstructs.BUILD_COPY_METHOD_NAME;
+		this.newBuilderMethodName = ApiConstructs.NEW_BUILDER_METHOD_NAME;
 	}
 
 	public JInvocation asList(final JExpression expression) {

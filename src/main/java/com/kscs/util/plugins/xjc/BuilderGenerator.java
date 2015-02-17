@@ -58,7 +58,11 @@ class BuilderGenerator {
 	private final boolean narrow;
 	private final boolean implement;
 
+	private final String builderFieldSuffix = "Builder";
+
 	private final ResourceBundle resources;
+
+
 
 	BuilderGenerator(final ApiConstructs apiConstructs, final Map<String, BuilderOutline> builderOutlines, final BuilderOutline builderOutline, final boolean copyPartial, final boolean narrow) {
 		this.apiConstructs = apiConstructs;
@@ -216,7 +220,7 @@ class BuilderGenerator {
 				final JFieldVar builderField = this.builderClass.field(JMod.PRIVATE, builderListClass, fieldName);
 				final JConditional addIfNull = addMethod.body()._if(JExpr._this().ref(builderField).eq(JExpr._null()));
 				addIfNull._then().assign(JExpr._this().ref(builderField), JExpr._new(builderArrayListClass));
-				final JVar childBuilderVar = addMethod.body().decl(JMod.FINAL, builderFieldElementType, fieldName + "Builder", JExpr._new(builderFieldElementType).arg(JExpr._this()).arg(JExpr._null()).arg(JExpr.FALSE));
+				final JVar childBuilderVar = addMethod.body().decl(JMod.FINAL, builderFieldElementType, fieldName + builderFieldSuffix, JExpr._new(builderFieldElementType).arg(JExpr._this()).arg(JExpr._null()).arg(JExpr.FALSE));
 				addMethod.body().add(JExpr._this().ref(builderField).invoke("add").arg(childBuilderVar));
 				addMethod.body()._return(childBuilderVar);
 
@@ -373,39 +377,39 @@ class BuilderGenerator {
 	}
 
 	JMethod generateBuilderMethod() {
-		final JMethod builderMethod = this.definedClass.method(JMod.PUBLIC | JMod.STATIC, this.builderClass.narrow(Void.class), ApiConstructs.BUILDER_METHOD_NAME);
+		final JMethod builderMethod = this.definedClass.method(JMod.PUBLIC | JMod.STATIC, this.builderClass.narrow(Void.class), this.apiConstructs.newBuilderMethodName);
 		builderMethod.body()._return(JExpr._new(this.builderClass.narrow(Void.class)).arg(JExpr._null()).arg(JExpr._null()).arg(JExpr.FALSE));
 
-		final JMethod copyOfMethod = this.definedClass.method(JMod.PUBLIC | JMod.STATIC, this.builderClass.narrow(Void.class), "copyOf");
-		final JVar otherParam = copyOfMethod.param(JMod.FINAL, this.definedClass, "other");
+		final JMethod copyOfMethod = this.definedClass.method(JMod.PUBLIC | JMod.STATIC, this.builderClass.narrow(Void.class), this.apiConstructs.buildCopyMethodName);
+		final JVar otherParam = copyOfMethod.param(JMod.FINAL, this.definedClass, "_other");
 		copyOfMethod.body()._return(JExpr._new((this.builderClass.narrow(Void.class))).arg(JExpr._null()).arg(otherParam).arg(JExpr.TRUE));
 
 		if (this.copyPartial) {
-			final JMethod partialCopyOfMethod = this.definedClass.method(JMod.PUBLIC | JMod.STATIC, this.builderClass.narrow(Void.class), "copyOf");
-			final JVar partialOtherParam = partialCopyOfMethod.param(JMod.FINAL, this.definedClass, "other");
-			final JVar propertyPathParam = partialCopyOfMethod.param(JMod.FINAL, PropertyTree.class, "propertyTree");
-			final JVar graphUseParam = partialCopyOfMethod.param(JMod.FINAL, PropertyTreeUse.class, "propertyTreeUse");
+			final JMethod partialCopyOfMethod = this.definedClass.method(JMod.PUBLIC | JMod.STATIC, this.builderClass.narrow(Void.class), this.apiConstructs.buildCopyMethodName);
+			final JVar partialOtherParam = partialCopyOfMethod.param(JMod.FINAL, this.definedClass, "_other");
+			final JVar propertyPathParam = partialCopyOfMethod.param(JMod.FINAL, PropertyTree.class, "_propertyTree");
+			final JVar graphUseParam = partialCopyOfMethod.param(JMod.FINAL, PropertyTreeUse.class, "_propertyTreeUse");
 			partialCopyOfMethod.body()._return(JExpr._new((this.builderClass.narrow(Void.class))).arg(JExpr._null()).arg(partialOtherParam).arg(JExpr.TRUE).arg(propertyPathParam).arg(graphUseParam));
 
-			generateConveniencePartialCopyMethod(partialCopyOfMethod, "copyExcept", this.apiConstructs.excludeConst);
-			generateConveniencePartialCopyMethod(partialCopyOfMethod, "copyOnly", this.apiConstructs.includeConst);
+			generateConveniencePartialCopyMethod(partialCopyOfMethod, this.apiConstructs.copyExceptMethodName, this.apiConstructs.excludeConst);
+			generateConveniencePartialCopyMethod(partialCopyOfMethod, this.apiConstructs.copyOnlyMethodName, this.apiConstructs.includeConst);
 		}
 		return builderMethod;
 	}
 
 	private JMethod generateConveniencePartialCopyMethod(final JMethod partialCopyOfMethod, final String methodName, final JExpression propertyTreeUseArg) {
 		final JMethod conveniencePartialCopyMethod = this.definedClass.method(JMod.PUBLIC | JMod.STATIC, this.builderClass.narrow(Void.class), methodName);
-		final JVar partialOtherParam = conveniencePartialCopyMethod.param(JMod.FINAL, this.definedClass, "other");
-		final JVar propertyPathParam = conveniencePartialCopyMethod.param(JMod.FINAL, PropertyTree.class, "propertyTree");
+		final JVar partialOtherParam = conveniencePartialCopyMethod.param(JMod.FINAL, this.definedClass, "_other");
+		final JVar propertyPathParam = conveniencePartialCopyMethod.param(JMod.FINAL, PropertyTree.class, "_propertyTree");
 		conveniencePartialCopyMethod.body()._return(JExpr.invoke(partialCopyOfMethod).arg(partialOtherParam).arg(propertyPathParam).arg(propertyTreeUseArg));
 		return conveniencePartialCopyMethod;
 	}
 
 	final void generateCopyConstructor() {
 		final JMethod constructor = this.builderClass.constructor(this.builderClass.isAbstract() ? JMod.PROTECTED : JMod.PUBLIC);
-		final JVar parentBuilderParam = constructor.param(JMod.FINAL, this.parentBuilderTypeParam, "parentBuilder");
-		final JVar otherParam = constructor.param(JMod.FINAL, this.classOutline.getImplClass(), "other");
-		final JVar copyParam = constructor.param(JMod.FINAL, this.apiConstructs.codeModel.BOOLEAN, "copy");
+		final JVar parentBuilderParam = constructor.param(JMod.FINAL, this.parentBuilderTypeParam, "_parentBuilder");
+		final JVar otherParam = constructor.param(JMod.FINAL, this.classOutline.getImplClass(), "_other");
+		final JVar copyParam = constructor.param(JMod.FINAL, this.apiConstructs.codeModel.BOOLEAN, "_copy");
 
 		if (this.classOutline.getSuperClass() != null) {
 			constructor.body().invoke("super").arg(parentBuilderParam).arg(otherParam).arg(copyParam);
@@ -490,7 +494,7 @@ class BuilderGenerator {
 
 		if (tryBlock != null) {
 			final JCatchBlock catchBlock = tryBlock._catch(this.apiConstructs.codeModel.ref(CloneNotSupportedException.class));
-			final JVar exceptionVar = catchBlock.param("cnse");
+			final JVar exceptionVar = catchBlock.param("_cnse");
 			catchBlock.body()._throw(JExpr._new(this.apiConstructs.codeModel.ref(RuntimeException.class)).arg(exceptionVar));
 		}
 	}
@@ -506,9 +510,9 @@ class BuilderGenerator {
 
 	final void generateGraphCopyConstructor() {
 		final JMethod constructor = this.builderClass.constructor(this.builderClass.isAbstract() ? JMod.PROTECTED : JMod.PUBLIC);
-		final JVar parentBuilderParam = constructor.param(JMod.FINAL, this.parentBuilderTypeParam, "parentBuilder");
-		final JVar otherParam = constructor.param(JMod.FINAL, this.classOutline.getImplClass(), "other");
-		final JVar copyParam = constructor.param(JMod.FINAL, this.apiConstructs.codeModel.BOOLEAN, "copy");
+		final JVar parentBuilderParam = constructor.param(JMod.FINAL, this.parentBuilderTypeParam, "_parentBuilder");
+		final JVar otherParam = constructor.param(JMod.FINAL, this.classOutline.getImplClass(), "_other");
+		final JVar copyParam = constructor.param(JMod.FINAL, this.apiConstructs.codeModel.BOOLEAN, "_copy");
 		final PartialCopyGenerator cloneGenerator = new PartialCopyGenerator(this.apiConstructs, constructor);
 
 		if (this.classOutline.getSuperClass() != null) {
@@ -601,7 +605,7 @@ class BuilderGenerator {
 
 		if (tryBlock != null) {
 			final JCatchBlock catchBlock = tryBlock._catch(this.apiConstructs.codeModel.ref(CloneNotSupportedException.class));
-			final JVar exceptionVar = catchBlock.param("cnse");
+			final JVar exceptionVar = catchBlock.param("_cnse");
 			catchBlock.body()._throw(JExpr._new(this.apiConstructs.codeModel.ref(RuntimeException.class)).arg(exceptionVar));
 		}
 

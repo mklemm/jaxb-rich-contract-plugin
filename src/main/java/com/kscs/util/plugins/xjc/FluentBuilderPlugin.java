@@ -53,11 +53,19 @@ public class FluentBuilderPlugin extends AbstractPlugin {
 	private boolean narrow = false;
 	@Opt
 	private boolean copyPartial = true;
+	@Opt
+	private String selectorClassName = "Selector";
+	@Opt
+	private String builderClassName = ApiConstructs.BUILDER_CLASS_NAME;
+	@Opt
+	private String newBuilderMethodName = ApiConstructs.BUILDER_METHOD_NAME;
 
 	@Override
 	public String getOptionName() {
 		return "Xfluent-builder";
 	}
+
+
 
 	@Override
 	public boolean run(final Outline outline, final Options opt, final ErrorHandler errorHandler) throws SAXException {
@@ -83,10 +91,10 @@ public class FluentBuilderPlugin extends AbstractPlugin {
 		for (final ClassOutline classOutline : outline.getClasses()) {
 			final JDefinedClass definedClass = classOutline.implClass;
 			try {
-				final BuilderOutline builderOutline = new BuilderOutline(new DefinedClassOutline(apiConstructs, classOutline), classOutline.implClass._class(JMod.PUBLIC | JMod.STATIC, ApiConstructs.BUILDER_CLASS_NAME, ClassType.CLASS));
+				final BuilderOutline builderOutline = new BuilderOutline(new DefinedClassOutline(apiConstructs, classOutline), classOutline.implClass._class(JMod.PUBLIC | JMod.STATIC, this.builderClassName, ClassType.CLASS));
 				builderClasses.put(definedClass.fullName(), builderOutline);
 			} catch (final JClassAlreadyExistsException caex) {
-				errorHandler.warning(new SAXParseException("Class \"" + definedClass.name() + "\" already contains inner class \"Builder\". Skipping generation of fluent builder.", classOutline.target.getLocator(), caex));
+				errorHandler.warning(new SAXParseException(getMessage("error.builderClassExists", definedClass.name()), classOutline.target.getLocator(), caex));
 			}
 		}
 

@@ -76,13 +76,13 @@ class PartialCopyGenerator {
 				final JClass elementType = fieldType.getTypeParameters().get(0);
 				if (this.apiConstructs.partialCopyableInterface.isAssignableFrom(elementType)) {
 					final JForEach forLoop = this.apiConstructs.loop(currentBlock, fieldRef, elementType, newField, elementType);
-					forLoop.body().invoke(newField, "add").arg(nullSafe(forLoop.var(), this.apiConstructs.castOnDemand(elementType, forLoop.var().invoke(this.apiConstructs.copyMethod).arg(fieldPathVar).arg(this.includeParam))));
+					forLoop.body().invoke(newField, "add").arg(nullSafe(forLoop.var(), this.apiConstructs.castOnDemand(elementType, forLoop.var().invoke(this.apiConstructs.copyMethodName).arg(fieldPathVar).arg(this.includeParam))));
 				} else if (this.apiConstructs.copyableInterface.isAssignableFrom(elementType)) {
 					final JForEach forLoop = this.apiConstructs.loop(currentBlock, fieldRef, elementType, newField, elementType);
-					forLoop.body().invoke(newField, "add").arg(nullSafe(forLoop.var(), this.apiConstructs.castOnDemand(elementType, forLoop.var().invoke(this.apiConstructs.copyMethod))));
+					forLoop.body().invoke(newField, "add").arg(nullSafe(forLoop.var(), this.apiConstructs.castOnDemand(elementType, forLoop.var().invoke(this.apiConstructs.copyMethodName))));
 				} else if (this.apiConstructs.cloneableInterface.isAssignableFrom(elementType)) {
 					final JForEach forLoop = this.apiConstructs.loop(currentBlock, fieldRef, elementType, newField, elementType);
-					forLoop.body().invoke(newField, "add").arg(nullSafe(forLoop.var(), this.apiConstructs.castOnDemand(elementType, forLoop.var().invoke(this.apiConstructs.cloneMethod))));
+					forLoop.body().invoke(newField, "add").arg(nullSafe(forLoop.var(), this.apiConstructs.castOnDemand(elementType, forLoop.var().invoke(this.apiConstructs.cloneMethodName))));
 				} else {
 					currentBlock.assign(newField, nullSafe(fieldRef, this.apiConstructs.newArrayList(elementType).arg(fieldRef)));
 				}
@@ -93,11 +93,11 @@ class PartialCopyGenerator {
 				}
 
 			} else if (this.apiConstructs.partialCopyableInterface.isAssignableFrom(fieldType)) {
-				currentBlock.assign(newField, nullSafe(fieldRef, this.apiConstructs.castOnDemand(fieldType, fieldRef.invoke(this.apiConstructs.copyMethod).arg(fieldPathVar).arg(this.includeParam))));
+				currentBlock.assign(newField, nullSafe(fieldRef, this.apiConstructs.castOnDemand(fieldType, fieldRef.invoke(this.apiConstructs.copyMethodName).arg(fieldPathVar).arg(this.includeParam))));
 			} else if (this.apiConstructs.copyableInterface.isAssignableFrom(fieldType)) {
-				currentBlock.assign(newField, nullSafe(fieldRef, this.apiConstructs.castOnDemand(fieldType, fieldRef.invoke(this.apiConstructs.copyMethod))));
+				currentBlock.assign(newField, nullSafe(fieldRef, this.apiConstructs.castOnDemand(fieldType, fieldRef.invoke(this.apiConstructs.copyMethodName))));
 			} else if (this.apiConstructs.cloneableInterface.isAssignableFrom(fieldType)) {
-				currentBlock.assign(newField, nullSafe(fieldRef, this.apiConstructs.castOnDemand(fieldType, fieldRef.invoke(this.apiConstructs.cloneMethod))));
+				currentBlock.assign(newField, nullSafe(fieldRef, this.apiConstructs.castOnDemand(fieldType, fieldRef.invoke(this.apiConstructs.cloneMethodName))));
 			} else {
 				currentBlock.assign(newField, fieldRef);
 			}
@@ -120,13 +120,13 @@ class PartialCopyGenerator {
 				final JClass elementType = fieldType.getTypeParameters().get(0);
 				if (this.apiConstructs.partialCopyableInterface.isAssignableFrom(elementType)) {
 					final JForEach forLoop = this.apiConstructs.loop(currentBlock, fieldRef, elementType, newField, elementType);
-					forLoop.body().invoke(newField, "add").arg(nullSafe(forLoop.var(), this.apiConstructs.castOnDemand(elementType, forLoop.var().invoke(this.apiConstructs.copyMethod).arg(fieldPathVar).arg(this.includeParam))));
+					forLoop.body().invoke(newField, "add").arg(nullSafe(forLoop.var(), this.apiConstructs.castOnDemand(elementType, forLoop.var().invoke(this.apiConstructs.copyMethodName).arg(fieldPathVar).arg(this.includeParam))));
 				} else if (this.apiConstructs.copyableInterface.isAssignableFrom(elementType)) {
 					final JForEach forLoop = this.apiConstructs.loop(currentBlock, fieldRef, elementType, newField, elementType);
-					forLoop.body().invoke(newField, "add").arg(nullSafe(forLoop.var(), this.apiConstructs.castOnDemand(elementType, forLoop.var().invoke(this.apiConstructs.copyMethod))));
+					forLoop.body().invoke(newField, "add").arg(nullSafe(forLoop.var(), this.apiConstructs.castOnDemand(elementType, forLoop.var().invoke(this.apiConstructs.copyMethodName))));
 				} else if (this.apiConstructs.cloneableInterface.isAssignableFrom(elementType)) {
 					final JForEach forLoop = this.apiConstructs.loop(currentBlock, fieldRef, elementType, newField, elementType);
-					forLoop.body().invoke(newField, "add").arg(nullSafe(forLoop.var(), this.apiConstructs.castOnDemand(elementType, forLoop.var().invoke(this.apiConstructs.cloneMethod))));
+					forLoop.body().invoke(newField, "add").arg(nullSafe(forLoop.var(), this.apiConstructs.castOnDemand(elementType, forLoop.var().invoke(this.apiConstructs.cloneMethodName))));
 				} else {
 					currentBlock.assign(newField, nullSafe(fieldRef, this.apiConstructs.newArrayList(elementType).arg(fieldRef)));
 				}
@@ -137,11 +137,11 @@ class PartialCopyGenerator {
 				}
 
 			} else if (this.apiConstructs.partialCopyableInterface.isAssignableFrom(fieldType)) {
-				currentBlock.assign(newField, nullSafe(fieldRef, this.apiConstructs.castOnDemand(fieldType, fieldRef.invoke(this.apiConstructs.copyMethod).arg(fieldPathVar).arg(this.includeParam))));
+				currentBlock.assign(newField, nullSafe(fieldRef, this.apiConstructs.castOnDemand(fieldType, fieldRef.invoke(this.apiConstructs.copyMethodName).arg(fieldPathVar).arg(this.includeParam))));
 			} else if (this.apiConstructs.copyableInterface.isAssignableFrom(fieldType)) {
-				currentBlock.assign(newField, nullSafe(fieldRef, this.apiConstructs.castOnDemand(fieldType, fieldRef.invoke(this.apiConstructs.copyMethod))));
+				currentBlock.assign(newField, nullSafe(fieldRef, this.apiConstructs.castOnDemand(fieldType, fieldRef.invoke(this.apiConstructs.copyMethodName))));
 			} else if (this.apiConstructs.cloneableInterface.isAssignableFrom(fieldType)) {
-				currentBlock.assign(newField, nullSafe(fieldRef, this.apiConstructs.castOnDemand(fieldType, fieldRef.invoke(this.apiConstructs.cloneMethod))));
+				currentBlock.assign(newField, nullSafe(fieldRef, this.apiConstructs.castOnDemand(fieldType, fieldRef.invoke(this.apiConstructs.cloneMethodName))));
 			} else {
 				currentBlock.assign(newField, fieldRef);
 			}

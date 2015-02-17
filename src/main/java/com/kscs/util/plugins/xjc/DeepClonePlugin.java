@@ -90,7 +90,7 @@ public class DeepClonePlugin extends AbstractPlugin {
 			}
 		});
 
-		final JMethod cloneMethod = definedClass.method(JMod.PUBLIC, definedClass, apiConstructs.cloneMethod);
+		final JMethod cloneMethod = definedClass.method(JMod.PUBLIC, definedClass, apiConstructs.cloneMethodName);
 		cloneMethod.annotate(Override.class);
 
 		final JBlock outer;
@@ -109,7 +109,7 @@ public class DeepClonePlugin extends AbstractPlugin {
 			body = tryBlock.body();
 		}
 
-		final JVar newObjectVar = body.decl(JMod.FINAL, definedClass, "newObject", JExpr.cast(definedClass, JExpr._super().invoke(apiConstructs.cloneMethod)));
+		final JVar newObjectVar = body.decl(JMod.FINAL, definedClass, "newObject", JExpr.cast(definedClass, JExpr._super().invoke(apiConstructs.cloneMethodName)));
 		for (final FieldOutline fieldOutline : classOutline.getDeclaredFields()) {
 			final JFieldVar field = PluginUtil.getDeclaredField(fieldOutline);
 			if (field != null) {
@@ -121,7 +121,7 @@ public class DeepClonePlugin extends AbstractPlugin {
 						final JClass elementType = fieldType.getTypeParameters().get(0);
 						if (apiConstructs.cloneableInterface.isAssignableFrom(elementType)) {
 							final JForEach forLoop = apiConstructs.loop(body, fieldRef, elementType, newField, elementType);
-							forLoop.body().invoke(newField, "add").arg(nullSafe(forLoop.var(), apiConstructs.castOnDemand(elementType, forLoop.var().invoke(apiConstructs.cloneMethod))));
+							forLoop.body().invoke(newField, "add").arg(nullSafe(forLoop.var(), apiConstructs.castOnDemand(elementType, forLoop.var().invoke(apiConstructs.cloneMethodName))));
 						} else {
 							body.assign(newField, nullSafe(fieldRef, apiConstructs.newArrayList(elementType).arg(fieldRef)));
 						}
@@ -132,7 +132,7 @@ public class DeepClonePlugin extends AbstractPlugin {
 						}
 					}
 					if (apiConstructs.cloneableInterface.isAssignableFrom(fieldType)) {
-						body.assign(newField, nullSafe(fieldRef, apiConstructs.castOnDemand(fieldType, JExpr._this().ref(field).invoke(apiConstructs.cloneMethod))));
+						body.assign(newField, nullSafe(fieldRef, apiConstructs.castOnDemand(fieldType, JExpr._this().ref(field).invoke(apiConstructs.cloneMethodName))));
 					} else {
 						// body.assign(newField, JExpr._this().ref(field));
 					}
