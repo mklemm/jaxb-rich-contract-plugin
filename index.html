@@ -1,16 +1,13 @@
-<!DOCTYPE html>
-<html>
-
-  <head>
-    <meta charset='utf-8'>
-    <meta http-equiv="X-UA-Compatible" content="chrome=1">
-    <meta name="description" content="Jaxb2-rich-contract-plugin : Implements some JAXB plugins to generate advanced contract scenarios from XSD">
-
-    <link rel="stylesheet" type="text/css" media="screen" href="stylesheets/stylesheet.css">
-
-    <title>Jaxb2-rich-contract-plugin</title>
-  </head>
-
+<?xml version="1.0" encoding="UTF-8"?>
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+		<meta content="chrome=1" http-equiv="X-UA-Compatible" />
+		<meta
+			content="Jaxb2-rich-contract-plugin : Implements some JAXB plugins to generate advanced contract scenarios from XSD"
+			name="description" />
+		<link href="stylesheets/stylesheet.css" media="screen" rel="stylesheet" type="text/css" />
+		<title>jaxb2-rich-contract-plugin</title>
+	</head>
   <body>
 
     <!-- HEADER -->
@@ -339,26 +336,26 @@ and indexed properties as mandated by JavaBeans are generally considered "out of
 <p>Other options supported:</p>
 
 <h4>
-<a id="-setter-throwsyn" class="anchor" href="#-setter-throwsyn" aria-hidden="true"><span class="octicon octicon-link"></span></a>
+<a id="setter-throwsyn" class="anchor" href="#-setter-throwsyn" aria-hidden="true"><span class="octicon octicon-link"></span></a>
 <code>-setter-throws=</code>y/n</h4>
 
 <p>Generate the setter method with "throws PropertyVetoException" if constrained properties are
 used. If no, only a RuntimeException is thrown on a PropertyVeto event. Default: n</p>
 
 <h4>
-<a id="-constrainedyn" class="anchor" href="#-constrainedyn" aria-hidden="true"><span class="octicon octicon-link"></span></a>
+<a id="constrainedyn" class="anchor" href="#-constrainedyn" aria-hidden="true"><span class="octicon octicon-link"></span></a>
 <code>-constrained=</code>y/n</h4>
 
 <p>Generate constrained properties, where a listener can inhibit the property change. Default: y</p>
 
 <h4>
-<a id="-boundyn" class="anchor" href="#-boundyn" aria-hidden="true"><span class="octicon octicon-link"></span></a>
+<a id="boundyn" class="anchor" href="#-boundyn" aria-hidden="true"><span class="octicon octicon-link"></span></a>
 <code>-bound=</code>y/n</h4>
 
 <p>Generate bound properties. Default: y</p>
 
 <h4>
-<a id="-generate-toolsyn" class="anchor" href="#-generate-toolsyn" aria-hidden="true"><span class="octicon octicon-link"></span></a>
+<a id="generate-toolsyn" class="anchor" href="#-generate-toolsyn" aria-hidden="true"><span class="octicon octicon-link"></span></a>
 <code>-generate-tools=</code>y/n</h4>
 
 <p>To support Collection-specific change events and behavior, additional classes are required.
@@ -450,13 +447,13 @@ in generated lists.</p>
 Options:</p>
 
 <h4>
-<a id="-constructoryn" class="anchor" href="#-constructoryn" aria-hidden="true"><span class="octicon octicon-link"></span></a>
+<a id="constructoryn" class="anchor" href="#-constructoryn" aria-hidden="true"><span class="octicon octicon-link"></span></a>
 <code>-constructor=</code>y/n</h4>
 
 <p>Generates a copy constructor.</p>
 
 <h4>
-<a id="-narrowyn" class="anchor" href="#-narrowyn" aria-hidden="true"><span class="octicon octicon-link"></span></a>
+<a id="narrowyn" class="anchor" href="#-narrowyn" aria-hidden="true"><span class="octicon octicon-link"></span></a>
 <code>-narrow=</code>y/n</h4>
 
 <p>If copy constructors are created, they are generated in such a way that, in order to copy descendant objects,
@@ -465,13 +462,13 @@ tree that contains only the "narrowest" possible representation. For properties 
 abstract type, their <code>clone()</code>-Methods will be called instead, resulting in an exact runtime copy. Default: no.</p>
 
 <h4>
-<a id="-partialyn" class="anchor" href="#-partialyn" aria-hidden="true"><span class="octicon octicon-link"></span></a>
+<a id="partialyn" class="anchor" href="#-partialyn" aria-hidden="true"><span class="octicon octicon-link"></span></a>
 <code>-partial=</code>y/n</h4>
 
 <p>Create partial clone method and - if constructor generation is selected, a partial copy constructor. (see above)</p>
 
 <h4>
-<a id="-generatetoolsyn" class="anchor" href="#-generatetoolsyn" aria-hidden="true"><span class="octicon octicon-link"></span></a>
+<a id="generatetoolsyn" class="anchor" href="#-generatetoolsyn" aria-hidden="true"><span class="octicon octicon-link"></span></a>
 <code>-generateTools=</code>y/n</h4>
 
 <p>Generate prerequisite classes like e.g. <code>com.kscs.util.jaxb.Copyable</code> and <code>com.kscs.util.jaxb.PropertyPath</code> as source files into the generated source
@@ -514,7 +511,7 @@ their references are copied over, they are not cloned.</p></li>
 Options:</p>
 
 <h4>
-<a id="-clonethrowsyn" class="anchor" href="#-clonethrowsyn" aria-hidden="true"><span class="octicon octicon-link"></span></a>
+<a id="clonethrowsyn" class="anchor" href="#-clonethrowsyn" aria-hidden="true"><span class="octicon octicon-link"></span></a>
 <code>-cloneThrows=</code>y/n</h4>
 
 <p>Declare "clone()"-Method to throw "CloneNotSupportedException" any of the cloneable child
@@ -613,14 +610,14 @@ The fluent-builder plugin lets you initialise properties of such a type - if it 
 <p>Options:</p>
 
 <h4>
-<a id="-narrowyn-1" class="anchor" href="#-narrowyn-1" aria-hidden="true"><span class="octicon octicon-link"></span></a>
+<a id="narrowyn-1" class="anchor" href="#-narrowyn-1" aria-hidden="true"><span class="octicon octicon-link"></span></a>
 <code>-narrow=</code>y/n</h4>
 
 <p>When creating a builder via <code>copyOf()</code>, the narrowest possible copy of the input object is instantiated.
 See also the documentation on <code>-Xclone</code> for a discussion.</p>
 
 <h4>
-<a id="-copypartialyn" class="anchor" href="#-copypartialyn" aria-hidden="true"><span class="octicon octicon-link"></span></a>
+<a id="copypartialyn" class="anchor" href="#-copypartialyn" aria-hidden="true"><span class="octicon octicon-link"></span></a>
 <code>-copyPartial=</code>y/n</h4>
 
 <p>If set to true, generates a <code>copyOf()</code>-Method that takes an additional <code>PropertyPath</code> parameter to limit
@@ -656,28 +653,28 @@ Without <code>-extended</code>, the constants are simply string constants holdin
 <p>Options:</p>
 
 <h4>
-<a id="-extendedyn-n" class="anchor" href="#-extendedyn-n" aria-hidden="true"><span class="octicon octicon-link"></span></a>
+<a id="extendedyn-n" class="anchor" href="#-extendedyn-n" aria-hidden="true"><span class="octicon octicon-link"></span></a>
 <code>-extended=</code>y/n (n)</h4>
 
 <p>If "y", extended property information (see above) will be generated, if "n", only string constants are generated for each property.
 Default: n</p>
 
 <h4>
-<a id="-camel-caseyn-n" class="anchor" href="#-camel-caseyn-n" aria-hidden="true"><span class="octicon octicon-link"></span></a>
+<a id="camel-caseyn-n" class="anchor" href="#-camel-caseyn-n" aria-hidden="true"><span class="octicon octicon-link"></span></a>
 <code>-camel-case=</code>y/n (n)</h4>
 
 <p>If "y", generates the constant fields with exactly the same name as the properties they are describing.
 If "n" (the default), they will be generated according to the java naming convention for constants.</p>
 
 <h4>
-<a id="-meta-class-name-propinfo" class="anchor" href="#-meta-class-name-propinfo" aria-hidden="true"><span class="octicon octicon-link"></span></a>
+<a id="meta-class-name-propinfo" class="anchor" href="#-meta-class-name-propinfo" aria-hidden="true"><span class="octicon octicon-link"></span></a>
 <code>-meta-class-name=</code> ("PropInfo")</h4>
 
 <p>Specifies the name of the generated nested meta info class. By default, this is "PropInfo", but
 because naming conflicts are likely, you can choose a different name here.</p>
 
 <h4>
-<a id="-generate-toolsyn-y" class="anchor" href="#-generate-toolsyn-y" aria-hidden="true"><span class="octicon octicon-link"></span></a>
+<a id="generate-toolsyn-y" class="anchor" href="#-generate-toolsyn-y" aria-hidden="true"><span class="octicon octicon-link"></span></a>
 <code>-generate-tools=</code>y/n (y)</h4>
 
 <p>As with some of the other plugins, the code generated with the <code>-extended</code> option set requires an
