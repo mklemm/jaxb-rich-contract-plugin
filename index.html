@@ -39,7 +39,7 @@ Currently, there are 5 plugin classes:</p>
 
 <ol>
 <li>
-<strong><a href="#group-interface">group-interface</a></strong>: When using <code>&lt;attribute-group&gt;</code> or <code>&lt;group&gt;</code> elements in an XSD, they are transformed as interface
+<strong><a href="#group-contract">group-contract</a></strong>: When using <code>&lt;attribute-group&gt;</code> or <code>&lt;group&gt;</code> elements in an XSD, they are transformed as interface
 definitions, and any complexTypes using the groups will be generated as classes implementing this interface.</li>
 <li>
 <strong><a href="#constrained-properties">constrained-properties</a></strong>: Will generate a complexTypes element members as bound and/or constrained properties as per
@@ -267,7 +267,7 @@ The following example shows all possible options reflecting their default values
 </ul>
 
 <h2>
-<a id="group-interface" class="anchor" href="#group-interface" aria-hidden="true"><span class="octicon octicon-link"></span></a>group-interface</h2>
+<a id="group-contract" class="anchor" href="#group-contract" aria-hidden="true"><span class="octicon octicon-link"></span></a>group-contract</h2>
 
 <h3>
 <a id="motivation" class="anchor" href="#motivation" aria-hidden="true"><span class="octicon octicon-link"></span></a>Motivation</h3>
@@ -293,10 +293,7 @@ if the fluent-builder plugin is also activated.</p>
 
 <h3>
 <a id="usage-1" class="anchor" href="#usage-1" aria-hidden="true"><span class="octicon octicon-link"></span></a>Usage</h3>
-
-<p>See below on how to add the jaxb2-rich-contract-plugin to your plugin path when building your project with maven.
-group-interface is activated by adding the <code>-Xgroup-contract</code> command-line option to your XJC invocation.
-For group-interface, there are currently no further command line options.</p>
+          <p>Please refer to the <a href="plugin-usage_en.xhtml#group-contract">generated usage info</a>.</p>
 
 <h3>
 <a id="bugs" class="anchor" href="#bugs" aria-hidden="true"><span class="octicon octicon-link"></span></a>Bugs</h3>
@@ -330,41 +327,9 @@ and indexed properties as mandated by JavaBeans are generally considered "out of
 
 <h3>
 <a id="usage-2" class="anchor" href="#usage-2" aria-hidden="true"><span class="octicon octicon-link"></span></a>Usage</h3>
+<p>Please refer to the <a href="plugin-usage_en.xhtml#constrained-properties">generated usage info</a>.</p>
 
-<p>Activate the plugin by giving command-line option <code>-Xconstrained-properties</code> to XJC.</p>
-
-<p>Other options supported:</p>
-
-<h4>
-<a id="setter-throwsyn" class="anchor" href="#-setter-throwsyn" aria-hidden="true"><span class="octicon octicon-link"></span></a>
-<code>-setter-throws=</code>y/n</h4>
-
-<p>Generate the setter method with "throws PropertyVetoException" if constrained properties are
-used. If no, only a RuntimeException is thrown on a PropertyVeto event. Default: n</p>
-
-<h4>
-<a id="constrainedyn" class="anchor" href="#-constrainedyn" aria-hidden="true"><span class="octicon octicon-link"></span></a>
-<code>-constrained=</code>y/n</h4>
-
-<p>Generate constrained properties, where a listener can inhibit the property change. Default: y</p>
-
-<h4>
-<a id="boundyn" class="anchor" href="#-boundyn" aria-hidden="true"><span class="octicon octicon-link"></span></a>
-<code>-bound=</code>y/n</h4>
-
-<p>Generate bound properties. Default: y</p>
-
-<h4>
-<a id="generate-toolsyn" class="anchor" href="#-generate-toolsyn" aria-hidden="true"><span class="octicon octicon-link"></span></a>
-<code>-generate-tools=</code>y/n</h4>
-
-<p>To support Collection-specific change events and behavior, additional classes are required.
-If you set this option to "yes", these auxiliary classes will be generated into the source
-code along with the generated JAXB classes. If you set this to "no", you will have to include
-the plugin artifact into the runtime classpath of your application.</p>
-
-<h3>
-<a id="limitations" class="anchor" href="#limitations" aria-hidden="true"><span class="octicon octicon-link"></span></a>Limitations</h3>
+<h3><a id="limitations" class="anchor" href="#limitations" aria-hidden="true"><span class="octicon octicon-link"></span></a>Limitations</h3>
 
 <ul>
 <li><p>The JavaBeans standard is only loosely implemented in the generated classes.</p></li>
@@ -442,38 +407,7 @@ in generated lists.</p>
 
 <h3>
 <a id="usage-3" class="anchor" href="#usage-3" aria-hidden="true"><span class="octicon octicon-link"></span></a>Usage</h3>
-
-<p>Plugin activation: <code>-Xcopy</code>.
-Options:</p>
-
-<h4>
-<a id="constructoryn" class="anchor" href="#-constructoryn" aria-hidden="true"><span class="octicon octicon-link"></span></a>
-<code>-constructor=</code>y/n</h4>
-
-<p>Generates a copy constructor.</p>
-
-<h4>
-<a id="narrowyn" class="anchor" href="#-narrowyn" aria-hidden="true"><span class="octicon octicon-link"></span></a>
-<code>-narrow=</code>y/n</h4>
-
-<p>If copy constructors are created, they are generated in such a way that, in order to copy descendant objects,
-they call the copy constructors of any descendant property types found in the tree. This will result in an object
-tree that contains only the "narrowest" possible representation. For properties declared with an
-abstract type, their <code>clone()</code>-Methods will be called instead, resulting in an exact runtime copy. Default: no.</p>
-
-<h4>
-<a id="partialyn" class="anchor" href="#-partialyn" aria-hidden="true"><span class="octicon octicon-link"></span></a>
-<code>-partial=</code>y/n</h4>
-
-<p>Create partial clone method and - if constructor generation is selected, a partial copy constructor. (see above)</p>
-
-<h4>
-<a id="generatetoolsyn" class="anchor" href="#-generatetoolsyn" aria-hidden="true"><span class="octicon octicon-link"></span></a>
-<code>-generateTools=</code>y/n</h4>
-
-<p>Generate prerequisite classes like e.g. <code>com.kscs.util.jaxb.Copyable</code> and <code>com.kscs.util.jaxb.PropertyPath</code> as source files into the generated source
-packages. If you say 'no' here, you will have to add the jaxb2-rich-contract-plugin jar to your
-compile- and runtime classpath.</p>
+          <p>Please refer to the <a href="plugin-usage_en.xhtml#copy">generated usage info</a>.</p>
 
 <h3>
 <a id="limitations-1" class="anchor" href="#limitations-1" aria-hidden="true"><span class="octicon octicon-link"></span></a>Limitations</h3>
@@ -506,26 +440,7 @@ their references are copied over, they are not cloned.</p></li>
 
 <h3>
 <a id="usage-4" class="anchor" href="#usage-4" aria-hidden="true"><span class="octicon octicon-link"></span></a>Usage</h3>
-
-<p>Plugin activation: <code>-Xclone</code>.
-Options:</p>
-
-<h4>
-<a id="clonethrowsyn" class="anchor" href="#-clonethrowsyn" aria-hidden="true"><span class="octicon octicon-link"></span></a>
-<code>-cloneThrows=</code>y/n</h4>
-
-<p>Declare "clone()"-Method to throw "CloneNotSupportedException" any of the cloneable child
-objects have a "clone" method that declares <code>CloneNotSupportedException</code> being thrown.
-The JDK spec says objects should declare their "clone" method with "throws CloneNotSuppoertedException"
-in order to enable subclasses to inhibit cloning even if their superclass declares "Cloneable".
-In pratice, however, this doesn't make much sense and is against object-oriented principles.
-All classes implementing <code>Cloneable</code> should really be cloneable and NOT throw
-a <code>CloneNotSupportedException</code>.
-Ordinary Exceptions during cloning are rethrown as <code>RuntimeExceptions</code>,
-if this is set to "no", this is also true for any exceptions thrown by descendant objects,
-no matter whether they are <code>CloneNotSupported</code>or anything else. If this is "yes", any possible
-<code>CloneNotSupportedException</code> will be declared in the throws clause. This option will not
-affect generated "partial" clone methods. Default: no.</p>
+          <p>Please refer to the <a href="plugin-usage_en.xhtml#clone">generated usage info</a>.</p>
 
 <h2>
 <a id="immutable" class="anchor" href="#immutable" aria-hidden="true"><span class="octicon octicon-link"></span></a>immutable</h2>
@@ -551,8 +466,7 @@ as is needed for JAXB, but modifies the public interface so objects appear immut
 
 <h3>
 <a id="usage-5" class="anchor" href="#usage-5" aria-hidden="true"><span class="octicon octicon-link"></span></a>Usage</h3>
-
-<p>Plugin activation: <code>-Ximmutable</code></p>
+          <p>Please refer to the <a href="plugin-usage_en.xhtml#immutable">generated usage info</a>.</p>
 
 <h3>
 <a id="limitations-2" class="anchor" href="#limitations-2" aria-hidden="true"><span class="octicon octicon-link"></span></a>Limitations</h3>
@@ -604,25 +518,7 @@ The fluent-builder plugin lets you initialise properties of such a type - if it 
 
 <h3>
 <a id="usage-6" class="anchor" href="#usage-6" aria-hidden="true"><span class="octicon octicon-link"></span></a>Usage</h3>
-
-<p>Plugin activation: <code>-Xfluent-builder</code></p>
-
-<p>Options:</p>
-
-<h4>
-<a id="narrowyn-1" class="anchor" href="#-narrowyn-1" aria-hidden="true"><span class="octicon octicon-link"></span></a>
-<code>-narrow=</code>y/n</h4>
-
-<p>When creating a builder via <code>copyOf()</code>, the narrowest possible copy of the input object is instantiated.
-See also the documentation on <code>-Xclone</code> for a discussion.</p>
-
-<h4>
-<a id="copypartialyn" class="anchor" href="#-copypartialyn" aria-hidden="true"><span class="octicon octicon-link"></span></a>
-<code>-copyPartial=</code>y/n</h4>
-
-<p>If set to true, generates a <code>copyOf()</code>-Method that takes an additional <code>PropertyPath</code> parameter to limit
-the copying to a certain depth or certain nodes in the object tree.</p>
-
+          <p>Please refer to the <a href="plugin-usage_en.xhtml#fluent-builder">generated usage info</a>.</p>
 <h3>
 <a id="limitations-3" class="anchor" href="#limitations-3" aria-hidden="true"><span class="octicon octicon-link"></span></a>Limitations</h3>
 
@@ -648,40 +544,8 @@ Without <code>-extended</code>, the constants are simply string constants holdin
 <h3>
 <a id="usage-7" class="anchor" href="#usage-7" aria-hidden="true"><span class="octicon octicon-link"></span></a>Usage</h3>
 
-<p>Plugin activation: <code>-Xmeta</code></p>
+          <p>Please refer to the <a href="plugin-usage_en.xhtml#meta">generated usage info</a>.</p>
 
-<p>Options:</p>
-
-<h4>
-<a id="extendedyn-n" class="anchor" href="#-extendedyn-n" aria-hidden="true"><span class="octicon octicon-link"></span></a>
-<code>-extended=</code>y/n (n)</h4>
-
-<p>If "y", extended property information (see above) will be generated, if "n", only string constants are generated for each property.
-Default: n</p>
-
-<h4>
-<a id="camel-caseyn-n" class="anchor" href="#-camel-caseyn-n" aria-hidden="true"><span class="octicon octicon-link"></span></a>
-<code>-camel-case=</code>y/n (n)</h4>
-
-<p>If "y", generates the constant fields with exactly the same name as the properties they are describing.
-If "n" (the default), they will be generated according to the java naming convention for constants.</p>
-
-<h4>
-<a id="meta-class-name-propinfo" class="anchor" href="#-meta-class-name-propinfo" aria-hidden="true"><span class="octicon octicon-link"></span></a>
-<code>-meta-class-name=</code> ("PropInfo")</h4>
-
-<p>Specifies the name of the generated nested meta info class. By default, this is "PropInfo", but
-because naming conflicts are likely, you can choose a different name here.</p>
-
-<h4>
-<a id="generate-toolsyn-y" class="anchor" href="#-generate-toolsyn-y" aria-hidden="true"><span class="octicon octicon-link"></span></a>
-<code>-generate-tools=</code>y/n (y)</h4>
-
-<p>As with some of the other plugins, the code generated with the <code>-extended</code> option set requires an
-additional helper class at compile time. If you say "y" here (the default), this helper class is
-generated as part of the generated code, if also the <code>-extended</code> option is set to "y".
-If you use <code>-extended</code> but say "no" here, you will have to add the plugin artifact to the compile (and run)-time
-classpath of your generated code.</p>
       </section>
     </div>
 

@@ -5,152 +5,185 @@
     </head>
     <body>
         <section>
+            <a name="fluent-builder"/>
             <h1>fluent-builder</h1>
             <p>Generates an inner fluent builder for JAXB classes. Optionally, copy constructor and partial clone functionality can be generated.</p>
             <h2>Options</h2>
             <dl>
-                <dt>-generateTools=<span class="choice">{y|n}</span>
+                <dt>
+                    <a name="fluent-builder.generateTools"/>-generateTools=<span class="choice">{y|n}</span>
                     <span class="default">y</span>
                 </dt>
                 <dd>Generate utility classes as static source code artifacts. If no, the plugin JAR must be in compile- and runtime classpath.</dd>
-                <dt>-narrow=<span class="choice">{y|n}</span>
+                <dt>
+                    <a name="fluent-builder.narrow"/>-narrow=<span class="choice">{y|n}</span>
                     <span class="default">n</span>
                 </dt>
                 <dd>Uses copy constructors for all child nodes in the object tree as long as they are available. This will cause the new instance to be as narrow as possible to the declared types.
 Abstract types and types not generated from this XSD-modle will always be copied by their "clone()"-method.</dd>
-                <dt>-copyPartial=<span class="choice">{y|n}</span>
+                <dt>
+                    <a name="fluent-builder.copyPartial"/>-copyPartial=<span class="choice">{y|n}</span>
                     <span class="default">y</span>
                 </dt>
                 <dd>Generates an additional 'copyOf'-method  that takes a PropertyTree instance to restrict the copy operation to selected nodes in the object tree.</dd>
-                <dt>-selectorClassName=<span class="choice">&lt;string&gt;</span>
+                <dt>
+                    <a name="fluent-builder.selectorClassName"/>-selectorClassName=<span class="choice">&lt;string&gt;</span>
                     <span class="default">Selector</span>
                 </dt>
                 <dd>Name of the generated nested "Selector" builder class, used to build up a property tree for partial copy functionality. This setting will only have an effect if the "deep-copy-plugin" isn't also active. If it is, the "copy" plugin's settings will take precedence.</dd>
-                <dt>-rootSelectorClassName=<span class="choice">&lt;string&gt;</span>
+                <dt>
+                    <a name="fluent-builder.rootSelectorClassName"/>-rootSelectorClassName=<span class="choice">&lt;string&gt;</span>
                     <span class="default">Select</span>
                 </dt>
                 <dd>Name of the generated nested static "Select" entry point class to be used by client code for the "partial copy" feature. This setting will only have an effect if the "deep-copy-plugin" isn't also active. If it is, the "copy" plugin's settings will take precedence.</dd>
-                <dt>-builderClassName=<span class="choice">&lt;string&gt;</span>
+                <dt>
+                    <a name="fluent-builder.builderClassName"/>-builderClassName=<span class="choice">&lt;string&gt;</span>
                     <span class="default">Builder</span>
                 </dt>
                 <dd>Name of the generated nested builder class. Can be set to handle naming conflicts.</dd>
-                <dt>-newBuilderMethodName=<span class="choice">&lt;string&gt;</span>
+                <dt>
+                    <a name="fluent-builder.newBuilderMethodName"/>-newBuilderMethodName=<span class="choice">&lt;string&gt;</span>
                     <span class="default">builder</span>
                 </dt>
                 <dd>Name of the generated static method to instantiate a new fluent builder. Can be set to handle naming conflicts.</dd>
             </dl>
         </section>
         <section>
+            <a name="immutable"/>
             <h1>immutable</h1>
             <p>Makes XJC generate immutable classes. "set"-methods are being transformed to "protected" access, collections are exposed as "collections.unmodifiableCollection".</p>
         </section>
         <section>
+            <a name="group-contract"/>
             <h1>group-contract</h1>
             <p>Transforms &lt;group&gt; and &lt;attributeGroup&gt; XSD definitions to java interface declarations, and makes complexTypes using the group implement this interface.</p>
             <h2>Options</h2>
             <dl>
-                <dt>-declareSetters=<span class="choice">{y|n}</span>
+                <dt>
+                    <a name="group-contract.declareSetters"/>-declareSetters=<span class="choice">{y|n}</span>
                     <span class="default">y</span>
                 </dt>
                 <dd>Also generate property setter methods in interface declarations.</dd>
-                <dt>-declareBuilderInterface=<span class="choice">{y|n}</span>
+                <dt>
+                    <a name="group-contract.declareBuilderInterface"/>-declareBuilderInterface=<span class="choice">{y|n}</span>
                     <span class="default">y</span>
                 </dt>
                 <dd>If the "fluent builder plugin" (-Xfluent-builder) is also active, generate interface for the internal builder classes as well.</dd>
-                <dt>-upstreamEpisodeFile=<span class="choice">&lt;string&gt;</span>
+                <dt>
+                    <a name="group-contract.upstreamEpisodeFile"/>-upstreamEpisodeFile=<span class="choice">&lt;string&gt;</span>
                     <span class="default">/META-INF/jaxb-interfaces.episode</span>
                 </dt>
                 <dd>Use the given resource file to obtain information about interfaces defined in an upstream module (refer to "-episode" option of XJC).</dd>
-                <dt>-downstreamEpisodeFile=<span class="choice">&lt;string&gt;</span>
+                <dt>
+                    <a name="group-contract.downstreamEpisodeFile"/>-downstreamEpisodeFile=<span class="choice">&lt;string&gt;</span>
                     <span class="default">/META-INF/jaxb-interfaces.episode</span>
                 </dt>
                 <dd>Generate "episode" file for downstream modules in the given resource location.</dd>
             </dl>
         </section>
         <section>
+            <a name="clone"/>
             <h1>clone</h1>
             <p>Generates Cloneable JAXB classes.</p>
             <h2>Options</h2>
             <dl>
-                <dt>-cloneThrows=<span class="choice">{y|n}</span>
+                <dt>
+                    <a name="clone.cloneThrows"/>-cloneThrows=<span class="choice">{y|n}</span>
                     <span class="default">y</span>
                 </dt>
                 <dd>declare CloneNotSupportedException to be thrown by 'clone()' (yes), or suppress throws clause and swallow exception (no).</dd>
             </dl>
         </section>
         <section>
+            <a name="copy"/>
             <h1>copy</h1>
             <p>Generates Copyable JAXB classes. Optionally, copy constructor and partial copy functionality can be generated.</p>
             <h2>Options</h2>
             <dl>
-                <dt>-partial=<span class="choice">{y|n}</span>
+                <dt>
+                    <a name="copy.partial"/>-partial=<span class="choice">{y|n}</span>
                     <span class="default">y</span>
                 </dt>
                 <dd>Generates an additional 'createCopy'-method and copy-constructor (if constructors are to generated at all) that takes a PropertyTree instance to restrict the copy operation to selected nodes in the object tree.</dd>
-                <dt>-generateTools=<span class="choice">{y|n}</span>
+                <dt>
+                    <a name="copy.generateTools"/>-generateTools=<span class="choice">{y|n}</span>
                     <span class="default">y</span>
                 </dt>
                 <dd>Generate utility classes as source code. If you say "no" here, you will have to add the plugin JAR to the runtime classpath of the generated class domain.</dd>
-                <dt>-constructor=<span class="choice">{y|n}</span>
+                <dt>
+                    <a name="copy.constructor"/>-constructor=<span class="choice">{y|n}</span>
                     <span class="default">y</span>
                 </dt>
                 <dd>Generates a copy constructor on each of the classes generated from the current XSD model.</dd>
-                <dt>-narrow=<span class="choice">{y|n}</span>
+                <dt>
+                    <a name="copy.narrow"/>-narrow=<span class="choice">{y|n}</span>
                     <span class="default">n</span>
                 </dt>
                 <dd>Uses copy constructors for all child nodes in the object tree as long as they are available. This will cause the new instance to be as narrow as possible to the declared types.</dd>
-                <dt>-selectorClassName=<span class="choice">&lt;string&gt;</span>
+                <dt>
+                    <a name="copy.selectorClassName"/>-selectorClassName=<span class="choice">&lt;string&gt;</span>
                     <span class="default">Selector</span>
                 </dt>
                 <dd>Name of the generated nested "Selector" builder class, used to build up a property tree for partial copy functionality. This setting will also affect the "fluent-builder" plugin if it is active and set to "copy-partial=y".</dd>
-                <dt>-rootSelectorClassName=<span class="choice">&lt;string&gt;</span>
+                <dt>
+                    <a name="copy.rootSelectorClassName"/>-rootSelectorClassName=<span class="choice">&lt;string&gt;</span>
                     <span class="default">Select</span>
                 </dt>
                 <dd>Name of the generated nested static "Select" entry point class to be used by client code for the "partial copy" feature. This setting will also affect the "fluent-builder" plugin if it is active and set to "copy-partial=y".</dd>
             </dl>
         </section>
         <section>
+            <a name="constrained-properties"/>
             <h1>constrained-properties</h1>
             <p>Generate bound properties for JAXB serializable classes.</p>
             <h2>Options</h2>
             <dl>
-                <dt>-constrained=<span class="choice">{y|n}</span>
+                <dt>
+                    <a name="constrained-properties.constrained"/>-constrained=<span class="choice">{y|n}</span>
                     <span class="default">y</span>
                 </dt>
                 <dd>switch "constrained" property contract generation on/off. Default: yes</dd>
-                <dt>-bound=<span class="choice">{y|n}</span>
+                <dt>
+                    <a name="constrained-properties.bound"/>-bound=<span class="choice">{y|n}</span>
                     <span class="default">y</span>
                 </dt>
                 <dd>switch "bound" property contract generation on/off. Default: yes</dd>
-                <dt>-setterThrows=<span class="choice">{y|n}</span>
+                <dt>
+                    <a name="constrained-properties.setterThrows"/>-setterThrows=<span class="choice">{y|n}</span>
                     <span class="default">n</span>
                 </dt>
                 <dd>Declare setXXX methods to throw PropertyVetoException (yes), or rethrow as RuntimeException (no). Default: no</dd>
-                <dt>-generateTools=<span class="choice">{y|n}</span>
+                <dt>
+                    <a name="constrained-properties.generateTools"/>-generateTools=<span class="choice">{y|n}</span>
                     <span class="default">y</span>
                 </dt>
                 <dd>Generate helper classes needed for collection change event detection. Turn off in modules that import other generated modules. Default: yes</dd>
             </dl>
         </section>
         <section>
+            <a name="meta"/>
             <h1>meta</h1>
             <p>XJC plugin to generate meta data for generated JAXB classes. Generates an inner class with static fieldcontaining information about each of the defined properties.</p>
             <h2>Options</h2>
             <dl>
-                <dt>-generateTools=<span class="choice">{y|n}</span>
+                <dt>
+                    <a name="meta.generateTools"/>-generateTools=<span class="choice">{y|n}</span>
                     <span class="default">y</span>
                 </dt>
                 <dd>Generate helper class used to represent extended metadata as source code.
 If this is set to "n" and "-extended=y", the plugin JAR will have to be in the runtime classpath of the client application.</dd>
-                <dt>-extended=<span class="choice">{y|n}</span>
+                <dt>
+                    <a name="meta.extended"/>-extended=<span class="choice">{y|n}</span>
                     <span class="default">n</span>
                 </dt>
                 <dd>Generate extended meta data for each property: Name, type, multiplicity, default value.</dd>
-                <dt>-camelCase=<span class="choice">{y|n}</span>
+                <dt>
+                    <a name="meta.camelCase"/>-camelCase=<span class="choice">{y|n}</span>
                     <span class="default">n</span>
                 </dt>
                 <dd>Generate names of constant met afields like field names, instead of Java constant name convention.</dd>
-                <dt>-metaClassName=<span class="choice">&lt;string&gt;</span>
+                <dt>
+                    <a name="meta.metaClassName"/>-metaClassName=<span class="choice">&lt;string&gt;</span>
                     <span class="default">PropInfo</span>
                 </dt>
                 <dd>Name of the generated meta-information nested class.</dd>
