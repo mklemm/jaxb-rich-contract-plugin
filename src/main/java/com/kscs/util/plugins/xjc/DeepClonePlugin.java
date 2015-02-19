@@ -24,9 +24,9 @@
 
 package com.kscs.util.plugins.xjc;
 
-import com.kscs.util.plugins.xjc.common.AbstractPlugin;
-import com.kscs.util.plugins.xjc.common.Opt;
-import com.kscs.util.plugins.xjc.common.PluginUtil;
+import com.kscs.util.plugins.xjc.base.AbstractPlugin;
+import com.kscs.util.plugins.xjc.base.Opt;
+import com.kscs.util.plugins.xjc.base.PluginUtil;
 import com.sun.codemodel.JBlock;
 import com.sun.codemodel.JCatchBlock;
 import com.sun.codemodel.JClass;
@@ -46,14 +46,14 @@ import com.sun.tools.xjc.outline.Outline;
 import org.xml.sax.ErrorHandler;
 import org.xml.sax.SAXException;
 
-import static com.kscs.util.plugins.xjc.common.PluginUtil.nullSafe;
+import static com.kscs.util.plugins.xjc.base.PluginUtil.nullSafe;
 
 /**
  * XJC Plugin to generate Object.clone() implementation method
  */
 public class DeepClonePlugin extends AbstractPlugin {
 	@Opt
-	private boolean cloneThrows = false;
+	private boolean cloneThrows = true;
 
 	public boolean isCloneThrows() {
 		return this.cloneThrows;

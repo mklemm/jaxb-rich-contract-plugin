@@ -22,44 +22,68 @@
  * THE SOFTWARE.
  */
 
-package com.kscs.util.plugins.xjc.common;
+body {
+    font-family: sans-serif;
+}
 
-import java.lang.reflect.Field;
+p {
+    margin-top: 0;
+    margin-left: 8pt;
+    margin-right: 8pt;
+}
 
-/**
- * @author Mirko Klemm 2015-02-13
- */
-public class BooleanOption extends Option<Boolean> {
-	public BooleanOption(final String name, final AbstractPlugin plugin, final Field field) {
-		super(name, plugin, field, "{y|n}");
-	}
+h1:before {
+    color: gray;
+    content: "-X";
+}
+h1 {
+    font-weight: bold;
+    font-size: 18pt;
+    color: brown;
+    padding: 2pt;
+    margin-bottom: 0;
+}
 
-	@Override
-	public void setStringValue(final String s) {
-		set(parseBoolean(s));
-	}
+h2 {
+    font-weight: bold;
+    color: saddlebrown;
+    font-size: 12pt;
+    font-variant-caps: small-caps;
+    padding: 2pt;
+    margin-bottom: 0;
+}
+dl {
+    margin-top: 0;
+    margin-left: 10pt;
+    margin-right: 10pt;
+}
+dt {
+    color: peru;
+}
 
-	@Override
-	public String getStringValue() {
-		return get() ? "y" : "n";
-	}
+dd {
+    padding-bottom: 8pt;
+}
 
-	private  static Boolean parseBoolean(final String arg) {
-		final boolean argTrue = isTrue(arg);
-		final boolean argFalse = isFalse(arg);
-		if (!argTrue && !argFalse) {
-			return null;
-		} else {
-			return argTrue;
-		}
-	}
+span.default {
+    width: 60%;
+    float: right;
+    text-align: right;
+    font-style: italic;
+}
 
-	private static boolean isTrue(final String arg) {
-		return arg.endsWith("y") || arg.endsWith("true") || arg.endsWith("on") || arg.endsWith("yes");
-	}
+span.default:before {
+    color:gray;
+    font-style: normal;
+    content: '(default: "';
+}
+span.default:after {
+    color:gray;
+    font-style: normal;
+    content: '")';
+}
 
-	private static boolean isFalse(final String arg) {
-		return arg.endsWith("n") || arg.endsWith("false") || arg.endsWith("off") || arg.endsWith("no");
-	}
-
+span.choice {
+    font-style: italic;
+    color: coral;
 }

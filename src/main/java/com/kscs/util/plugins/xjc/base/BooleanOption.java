@@ -22,20 +22,44 @@
  * THE SOFTWARE.
  */
 
-package com.kscs.util.plugins.xjc.common;
+package com.kscs.util.plugins.xjc.base;
 
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
+import java.lang.reflect.Field;
 
 /**
- * Denotes a field of a plugin class as
- * a plugin argument parsed from the XJC command line
  * @author Mirko Klemm 2015-02-13
  */
-@Retention(RetentionPolicy.RUNTIME)
-@Target(ElementType.FIELD)
-public @interface Opt {
-	String value() default "";
+public class BooleanOption extends Option<Boolean> {
+	public BooleanOption(final String name, final AbstractPlugin plugin, final Field field) {
+		super(name, plugin, field, "{y|n}");
+	}
+
+	@Override
+	public void setStringValue(final String s) {
+		set(parseBoolean(s));
+	}
+
+	@Override
+	public String getStringValue() {
+		return get() ? "y" : "n";
+	}
+
+	private  static Boolean parseBoolean(final String arg) {
+		final boolean argTrue = isTrue(arg);
+		final boolean argFalse = isFalse(arg);
+		if (!argTrue && !argFalse) {
+			return null;
+		} else {
+			return argTrue;
+		}
+	}
+
+	private static boolean isTrue(final String arg) {
+		return arg.endsWith("y") || arg.endsWith("true") || arg.endsWith("on") || arg.endsWith("yes");
+	}
+
+	private static boolean isFalse(final String arg) {
+		return arg.endsWith("n") || arg.endsWith("false") || arg.endsWith("off") || arg.endsWith("no");
+	}
+
 }

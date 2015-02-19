@@ -21,20 +21,21 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package com.kscs.util.plugins.xjc;
 
-import java.util.List;
-import com.kscs.util.plugins.xjc.base.PropertyOutline;
-import com.sun.codemodel.JClass;
+package com.kscs.util.plugins.xjc.base;
+
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
 /**
- * @author mirko 2014-05-29
+ * Denotes a field of a plugin class as
+ * a plugin argument parsed from the XJC command line
+ * @author Mirko Klemm 2015-02-13
  */
-public interface TypeOutline {
-	List<PropertyOutline> getDeclaredFields();
-
-	TypeOutline getSuperClass();
-	JClass getImplClass();
-
-
+@Retention(RetentionPolicy.RUNTIME)
+@Target(ElementType.FIELD)
+public @interface Opt {
+	String value() default "";
 }

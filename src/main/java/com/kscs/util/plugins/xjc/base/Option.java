@@ -22,7 +22,7 @@
  * THE SOFTWARE.
  */
 
-package com.kscs.util.plugins.xjc.common;
+package com.kscs.util.plugins.xjc.base;
 
 import java.lang.reflect.Field;
 import com.sun.xml.bind.api.impl.NameConverter;

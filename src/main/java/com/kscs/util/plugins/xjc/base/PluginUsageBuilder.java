@@ -21,28 +21,44 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
+package com.kscs.util.plugins.xjc.base;
 
-package com.kscs.util.plugins.xjc.common;
-
-import java.lang.reflect.Field;
+import java.util.ResourceBundle;
 
 /**
- * @author Mirko Klemm 2015-02-13
+ * Generates a formatted output of plugin usage information
+ *
+ * @author mirko 2014-04-03
  */
-public class StringOption extends Option<String> {
+public abstract class PluginUsageBuilder {
+	protected final ResourceBundle baseResourceBundle;
+	protected final ResourceBundle resourceBundle;
+	protected final String keyBase;
+	protected boolean firstOption = true;
 
-	public StringOption(final String name, final AbstractPlugin plugin, final Field field) {
-		super(name, plugin, field, "<string>");
+	public PluginUsageBuilder(final ResourceBundle baseResourceBundle, final ResourceBundle resourceBundle) {
+		this.baseResourceBundle = baseResourceBundle;
+		this.resourceBundle = resourceBundle;
+		this.keyBase = "usage";
 	}
 
-	@Override
-	public void setStringValue(final String s) {
-		set(s);
+	public abstract PluginUsageBuilder addMain(final String optionName);
+
+	public abstract <T> PluginUsageBuilder addOption(final Option<?> option);
+
+	protected static String transformName(final String xmlName) {
+		final StringBuilder sb = new StringBuilder();
+		boolean first = true;
+		for (final String word : xmlName.split("\\-")) {
+			if (first) {
+				sb.append(word);
+				first = false;
+			} else {
+				sb.append(word.substring(0, 1).toUpperCase()).append(word.substring(1));
+			}
+		}
+		return sb.toString();
 	}
 
-	@Override
-	public String getStringValue() {
-		return get();
-	}
 
 }

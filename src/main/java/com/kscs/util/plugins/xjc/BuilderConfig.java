@@ -22,20 +22,10 @@
  * THE SOFTWARE.
  */
 
-package com.kscs.util.plugins.xjc.common;
-
-import com.sun.codemodel.JFieldVar;
-import com.sun.codemodel.JType;
+package com.kscs.util.plugins.xjc;
 
 /**
- * @author Mirko Klemm 2015-01-28
+ * @author Mirko Klemm 2015-02-17
  */
-public interface PropertyOutline {
-	String getBaseName();
-	String getFieldName();
-	JType getRawType();
-	JType getElementType();
-	JFieldVar getFieldVar();
-	boolean hasGetter();
-	boolean isCollection();
+public class BuilderConfig {
 }

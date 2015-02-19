@@ -21,20 +21,15 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package com.kscs.util.plugins.xjc;
 
-import java.util.List;
-import com.kscs.util.plugins.xjc.base.PropertyOutline;
-import com.sun.codemodel.JClass;
+package com.kscs.util.plugins.xjc.base;
 
 /**
- * @author mirko 2014-05-29
+ * @author Mirko Klemm 2015-02-11
  */
-public interface TypeOutline {
-	List<PropertyOutline> getDeclaredFields();
-
-	TypeOutline getSuperClass();
-	JClass getImplClass();
-
-
+public final class Namespaces {
+	public static final String XS_NS = "http://www.w3.org/2001/XMLSchema";
+	public static final String XML_NS = "http://www.w3.org/XML/1998/namespace";
+	public static final String KSCS_BINDINGS_NS = "http://www.kscs.com/util/jaxb/bindings";
+	public static final String JAXB_NS = "http://java.sun.com/xml/ns/jaxb";
 }

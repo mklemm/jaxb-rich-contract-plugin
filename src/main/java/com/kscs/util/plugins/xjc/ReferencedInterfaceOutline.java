@@ -25,7 +25,7 @@
 package com.kscs.util.plugins.xjc;
 
 import java.util.List;
-import com.kscs.util.plugins.xjc.common.PropertyOutline;
+import com.kscs.util.plugins.xjc.base.PropertyOutline;
 import com.sun.codemodel.JClass;
 
 /**

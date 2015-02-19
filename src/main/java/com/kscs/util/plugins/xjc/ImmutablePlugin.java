@@ -24,9 +24,9 @@
 
 package com.kscs.util.plugins.xjc;
 
-import com.kscs.util.plugins.xjc.common.AbstractPlugin;
-import com.kscs.util.plugins.xjc.common.PluginUtil;
-import com.kscs.util.plugins.xjc.common.PropertyOutline;
+import com.kscs.util.plugins.xjc.base.AbstractPlugin;
+import com.kscs.util.plugins.xjc.base.PluginUtil;
+import com.kscs.util.plugins.xjc.base.PropertyOutline;
 import com.sun.codemodel.JBlock;
 import com.sun.codemodel.JClass;
 import com.sun.codemodel.JConditional;

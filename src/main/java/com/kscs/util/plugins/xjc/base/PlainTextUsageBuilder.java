@@ -21,7 +21,8 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package com.kscs.util.plugins.xjc.common;
+
+package com.kscs.util.plugins.xjc.base;
 
 import java.io.PrintWriter;
 import java.io.StringWriter;
@@ -30,37 +31,29 @@ import java.util.List;
 import java.util.ResourceBundle;
 
 /**
- * Generates a formatted output of plugin usage information
- *
- * @author mirko 2014-04-03
+ * @author Mirko Klemm 2015-02-18
  */
-public class PluginUsageBuilder {
+public class PlainTextUsageBuilder extends PluginUsageBuilder {
 	private static final int MAX_LINE_LENGTH = 80;
 	private static final int INDENT_MAX_LINE_LENGTH = 70;
 	private final StringWriter stringWriter = new StringWriter();
 	private final PrintWriter writer = new PrintWriter(this.stringWriter);
-	private final ResourceBundle baseResourceBundle;
-	private final ResourceBundle resourceBundle;
-	private final String keyBase;
-	private boolean firstOption = true;
 
-	public PluginUsageBuilder(final ResourceBundle baseResourceBundle, final ResourceBundle resourceBundle) {
-		this.baseResourceBundle = baseResourceBundle;
-		this.resourceBundle = resourceBundle;
-		this.keyBase = "usage";
+	public PlainTextUsageBuilder(final ResourceBundle baseResourceBundle, final ResourceBundle resourceBundle) {
+		super(baseResourceBundle, resourceBundle);
 	}
 
-	public PluginUsageBuilder addMain(final String optionName) {
+	public PlainTextUsageBuilder addMain(final String optionName) {
 		this.writer.print(this.baseResourceBundle.getString(this.keyBase + ".usage"));
 		this.writer.println(": -X" + optionName);
 		this.writer.println();
-		for (final String line : chopLines(PluginUsageBuilder.MAX_LINE_LENGTH, this.resourceBundle.getString(this.keyBase))) {
+		for (final String line : chopLines(PlainTextUsageBuilder.MAX_LINE_LENGTH, this.resourceBundle.getString(this.keyBase))) {
 			this.writer.println(line);
 		}
 		return this;
 	}
 
-	public <T> PluginUsageBuilder addOption(final Option<?> option) {
+	public <T> PlainTextUsageBuilder addOption(final Option<?> option) {
 		if(this.firstOption) {
 			this.firstOption = false;
 			this.writer.println("\n" + this.baseResourceBundle.getString(this.keyBase + ".options") + ":");
@@ -69,27 +62,12 @@ public class PluginUsageBuilder {
 		this.writer.println();
 		this.writer.print("\t-");
 		this.writer.println(option.getName() + "=" + option.getChoice()+ " (" + option.getStringValue() + ")");
-		for (final String line : chopLines(PluginUsageBuilder.INDENT_MAX_LINE_LENGTH, this.resourceBundle.getString(key))) {
+		for (final String line : chopLines(PlainTextUsageBuilder.INDENT_MAX_LINE_LENGTH, this.resourceBundle.getString(key))) {
 			this.writer.print("\t\t");
 			this.writer.println(line);
 		}
 		this.writer.println();
 		return this;
-	}
-
-
-	private static String transformName(final String xmlName) {
-		final StringBuilder sb = new StringBuilder();
-		boolean first = true;
-		for (final String word : xmlName.split("\\-")) {
-			if (first) {
-				sb.append(word);
-				first = false;
-			} else {
-				sb.append(word.substring(0, 1).toUpperCase()).append(word.substring(1));
-			}
-		}
-		return sb.toString();
 	}
 
 	private static List<String> chopLines(final int maxLineLength, final String input) {
@@ -122,7 +100,6 @@ public class PluginUsageBuilder {
 		if(sb != null) result.add(sb.toString());
 		return result;
 	}
-
 
 	public String build() {
 		this.writer.close();

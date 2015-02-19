@@ -22,14 +22,27 @@
  * THE SOFTWARE.
  */
 
-package com.kscs.util.plugins.xjc.common;
+package com.kscs.util.plugins.xjc.base;
+
+import java.lang.reflect.Field;
 
 /**
- * @author Mirko Klemm 2015-02-11
+ * @author Mirko Klemm 2015-02-13
  */
-public final class Namespaces {
-	public static final String XS_NS = "http://www.w3.org/2001/XMLSchema";
-	public static final String XML_NS = "http://www.w3.org/XML/1998/namespace";
-	public static final String KSCS_BINDINGS_NS = "http://www.kscs.com/util/jaxb/bindings";
-	public static final String JAXB_NS = "http://java.sun.com/xml/ns/jaxb";
+public class StringOption extends Option<String> {
+
+	public StringOption(final String name, final AbstractPlugin plugin, final Field field) {
+		super(name, plugin, field, "<string>");
+	}
+
+	@Override
+	public void setStringValue(final String s) {
+		set(s);
+	}
+
+	@Override
+	public String getStringValue() {
+		return get();
+	}
+
 }

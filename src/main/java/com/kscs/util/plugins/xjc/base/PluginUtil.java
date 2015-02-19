@@ -22,7 +22,7 @@
  * THE SOFTWARE.
  */
 
-package com.kscs.util.plugins.xjc.common;
+package com.kscs.util.plugins.xjc.base;
 
 import java.util.Iterator;
 import com.kscs.util.plugins.xjc.ApiConstructs;

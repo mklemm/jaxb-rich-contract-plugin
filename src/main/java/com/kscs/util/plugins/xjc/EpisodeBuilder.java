@@ -32,7 +32,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import com.kscs.util.plugins.xjc.common.Namespaces;
+import com.kscs.util.plugins.xjc.base.Namespaces;
 import com.sun.codemodel.JDefinedClass;
 import com.sun.codemodel.fmt.JTextFile;
 import com.sun.tools.xjc.outline.ClassOutline;

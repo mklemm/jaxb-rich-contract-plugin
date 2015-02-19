@@ -1,4 +1,4 @@
-package com.kscs.util.plugins.xjc.common;
+package com.kscs.util.plugins.xjc.base;
 
 /**
  * @param <T>

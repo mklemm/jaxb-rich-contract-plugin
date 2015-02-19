@@ -29,9 +29,9 @@ import com.kscs.util.jaxb.PartialCopyable;
 import com.kscs.util.jaxb.PropertyTree;
 import com.kscs.util.jaxb.PropertyTreeUse;
 import com.kscs.util.jaxb.Selector;
-import com.kscs.util.plugins.xjc.common.AbstractPlugin;
-import com.kscs.util.plugins.xjc.common.Opt;
-import com.kscs.util.plugins.xjc.common.PluginUtil;
+import com.kscs.util.plugins.xjc.base.AbstractPlugin;
+import com.kscs.util.plugins.xjc.base.Opt;
+import com.kscs.util.plugins.xjc.base.PluginUtil;
 import com.sun.codemodel.JBlock;
 import com.sun.codemodel.JCatchBlock;
 import com.sun.codemodel.JClass;
@@ -53,7 +53,7 @@ import com.sun.tools.xjc.outline.Outline;
 import org.xml.sax.ErrorHandler;
 import org.xml.sax.SAXException;
 
-import static com.kscs.util.plugins.xjc.common.PluginUtil.nullSafe;
+import static com.kscs.util.plugins.xjc.base.PluginUtil.nullSafe;
 
 /**
  * XJC Plugin to generate copy and partial copy methods
@@ -63,6 +63,10 @@ public class DeepCopyPlugin extends AbstractPlugin {
 	@Opt private boolean generateTools = true;
 	@Opt("constructor") private boolean generateConstructor = true;
 	@Opt private boolean narrow = false;
+	@Opt
+	private String selectorClassName = "Selector";
+	@Opt
+	private final String rootSelectorClassName = "Select";
 
 	@Override
 	public String getOptionName() {
@@ -84,7 +88,7 @@ public class DeepCopyPlugin extends AbstractPlugin {
 				apiConstructs.writeSourceFile(PropertyTree.class);
 				apiConstructs.writeSourceFile(Selector.class);
 			}
-			final SelectorGenerator selectorGenerator = new SelectorGenerator(apiConstructs, Selector.class, "Selector", "Select", null, null, apiConstructs.cloneGraphClass);
+			final SelectorGenerator selectorGenerator = new SelectorGenerator(apiConstructs, Selector.class, this.selectorClassName, this.rootSelectorClassName, null, null, apiConstructs.cloneGraphClass);
 			selectorGenerator.generateMetaFields();
 		}
 

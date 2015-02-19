@@ -1,6 +1,8 @@
 jaxb2-rich-contract-plugin
 ==========================
 
+<span style="color: red; font-weight: bold">Note: The information in this file may be outdated, refer to (http://mklemm.github.io/jaxb2-rich-contract-plugin) for the most recent documentation!</span>
+
 Current Version: 1.5.1
 
 This module is a collection of several plugins for the JAXB2 (Java API for XML binding) "XSD to Java Compiler" (XJC).
@@ -58,10 +60,10 @@ http://maven.klemm-scs.com/release
 
 Add this repository to your pom.xml:
 
-	<pluginRepositories>
-		<pluginRepository>
+	<repositories>
+		<repository>
 			<releases>
-		        <enabled>false</enabled>
+		        <enabled>true</enabled>
 		        <updatePolicy>always</updatePolicy>
 		        <checksumPolicy>warn</checksumPolicy>
 		    </releases>
@@ -69,8 +71,8 @@ Add this repository to your pom.xml:
 			<name>JAXB2 XJC Plugin Repository</name>
 			<url>http://maven.klemm-scs.com/release</url>
 			<layout>default</layout>
-		</pluginRepository>
-	</pluginRepositories>
+		</repository>
+	</repositories>
 	
 
 
@@ -104,7 +106,7 @@ The following example shows all possible options reflecting their default values
                     <removeOldOutput>true</removeOldOutput>
                     <args>
 						<arg>-Xclone</arg>
-							<arg>-cloneThrows=n</arg>
+							<arg>-cloneThrows=y</arg>
 						<arg>-Xconstrained-properties</arg>
 							<arg>-constrained=y</arg>
 							<arg>-bound=y</arg>
@@ -114,11 +116,17 @@ The following example shows all possible options reflecting their default values
 							<arg>-generateTools=y</arg>
 							<arg>-narrow=n</arg>
 							<arg>-copyPartial=y</arg>
+							<arg>-selectorClassName=Selector</arg>
+							<arg>-rootSelectorClassName=Select</arg>
+							<arg>-builderClassName=Builder</arg>
+							<arg>-newBuilderMethodName=builder</arg>
 						<arg>-Xcopy</arg>
 							<arg>-partial=y</arg>
 							<arg>-generateTools=y</arg>
 							<arg>-constructor=y</arg>
 							<arg>-narrow=n</arg>
+							<arg>-selectorClassName=Selector</arg>
+							<arg>-rootSelectorClassName=Select</arg>
 						<arg>-Xgroup-contract</arg>
 							<arg>-declareSetters=y</arg>
 							<arg>-declareBuilderInterface=y</arg>

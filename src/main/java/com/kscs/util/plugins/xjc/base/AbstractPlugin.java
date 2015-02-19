@@ -22,7 +22,7 @@
  * THE SOFTWARE.
  */
 
-package com.kscs.util.plugins.xjc.common;
+package com.kscs.util.plugins.xjc.base;
 
 import java.io.IOException;
 import java.io.PrintStream;
@@ -34,6 +34,8 @@ import java.util.ResourceBundle;
 import com.sun.tools.xjc.BadCommandLineException;
 import com.sun.tools.xjc.Options;
 import com.sun.tools.xjc.Plugin;
+import org.w3c.dom.Document;
+import org.w3c.dom.Node;
 
 /**
  * Common base class for plugins, manages command line parsing,
@@ -42,7 +44,7 @@ import com.sun.tools.xjc.Plugin;
  * @author Mirko Klemm 2015-02-07
  */
 public abstract class AbstractPlugin extends Plugin {
-	private static final ResourceBundle BASE_RESOURCE_BUNDLE = ResourceBundle.getBundle(AbstractPlugin.class.getName());
+	private final ResourceBundle baseResourceBundle = ResourceBundle.getBundle(AbstractPlugin.class.getName());
 	private final ResourceBundle resourceBundle;
 	private final List<Option<?>> options;
 
@@ -70,7 +72,7 @@ public abstract class AbstractPlugin extends Plugin {
 	}
 
 	private static String arg(final String s) {
-		return "<arg>-" + s + "</arg>";
+		return "&lt;<span class=\"pl-ent\">arg</span>&gt;-" + s + "&lt;/<span class=\"pl-ent\">arg</span>&gt;";
 	}
 
 	private static String tab(final int tabAmount) {
@@ -100,7 +102,7 @@ public abstract class AbstractPlugin extends Plugin {
 						option.setStringValue(args[i]);
 						count += 2;
 					} else {
-						throw new BadCommandLineException(MessageFormat.format(AbstractPlugin.BASE_RESOURCE_BUNDLE.getString("exception.missingArgument"), option.getName()));
+						throw new BadCommandLineException(MessageFormat.format(this.baseResourceBundle.getString("exception.missingArgument"), option.getName()));
 					}
 				} else {
 					if (option.tryParse(args[i])) {
@@ -114,12 +116,21 @@ public abstract class AbstractPlugin extends Plugin {
 
 	@Override
 	public String getUsage() {
-		final PluginUsageBuilder pluginUsageBuilder = new PluginUsageBuilder(AbstractPlugin.BASE_RESOURCE_BUNDLE, this.resourceBundle);
+		final PlainTextUsageBuilder pluginUsageBuilder = new PlainTextUsageBuilder(this.baseResourceBundle, this.resourceBundle);
 		pluginUsageBuilder.addMain(getOptionName().substring(1));
 		for (final Option<?> option : this.options) {
 			pluginUsageBuilder.addOption(option);
 		}
 		return pluginUsageBuilder.build();
+	}
+
+	public Document getUsageHtml(final Node parent) {
+		final HtmlUsageBuilder pluginUsageBuilder = new HtmlUsageBuilder(this.baseResourceBundle, this.resourceBundle);
+		pluginUsageBuilder.addMain(getOptionName().substring(1));
+		for (final Option<?> option : this.options) {
+			pluginUsageBuilder.addOption(option);
+		}
+		return pluginUsageBuilder.build(parent);
 	}
 
 	public void printInvocation(final PrintStream w, final int tabAmount) {

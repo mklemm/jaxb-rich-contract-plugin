@@ -22,7 +22,7 @@
  * THE SOFTWARE.
  */
 
-package com.kscs.util.plugins.xjc.common;
+package com.kscs.util.plugins.xjc.base;
 
 import com.kscs.util.plugins.xjc.BoundPropertiesPlugin;
 import com.kscs.util.plugins.xjc.DeepClonePlugin;

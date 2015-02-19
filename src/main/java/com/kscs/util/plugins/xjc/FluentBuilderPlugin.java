@@ -30,8 +30,8 @@ import com.kscs.util.jaxb.BuilderUtilities;
 import com.kscs.util.jaxb.PropertyTree;
 import com.kscs.util.jaxb.PropertyTreeUse;
 import com.kscs.util.jaxb.Selector;
-import com.kscs.util.plugins.xjc.common.AbstractPlugin;
-import com.kscs.util.plugins.xjc.common.Opt;
+import com.kscs.util.plugins.xjc.base.AbstractPlugin;
+import com.kscs.util.plugins.xjc.base.Opt;
 import com.sun.codemodel.ClassType;
 import com.sun.codemodel.JClassAlreadyExistsException;
 import com.sun.codemodel.JDefinedClass;
@@ -56,9 +56,11 @@ public class FluentBuilderPlugin extends AbstractPlugin {
 	@Opt
 	private String selectorClassName = "Selector";
 	@Opt
+	private final String rootSelectorClassName = "Select";
+	@Opt
 	private String builderClassName = ApiConstructs.BUILDER_CLASS_NAME;
 	@Opt
-	private String newBuilderMethodName = ApiConstructs.BUILDER_METHOD_NAME;
+	private String newBuilderMethodName = ApiConstructs.NEW_BUILDER_METHOD_NAME;
 
 	@Override
 	public String getOptionName() {
@@ -83,7 +85,7 @@ public class FluentBuilderPlugin extends AbstractPlugin {
 				apiConstructs.writeSourceFile(Selector.class);
 			}
 			if (apiConstructs.findPlugin(DeepCopyPlugin.class) == null) {
-				final SelectorGenerator selectorGenerator = new SelectorGenerator(apiConstructs, Selector.class, "Selector", "Select", null, null, apiConstructs.cloneGraphClass);
+				final SelectorGenerator selectorGenerator = new SelectorGenerator(apiConstructs, Selector.class, this.selectorClassName, this.rootSelectorClassName, null, null, apiConstructs.cloneGraphClass);
 				selectorGenerator.generateMetaFields();
 			}
 		}

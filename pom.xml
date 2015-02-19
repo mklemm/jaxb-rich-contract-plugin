@@ -23,4 +23,28 @@
 		<tag>HEAD</tag>
 	</scm>
 
+	<build>
+		<plugins>
+			<plugin>
+			      <groupId>org.codehaus.mojo</groupId>
+			      <artifactId>exec-maven-plugin</artifactId>
+			      <version>1.3.2</version>
+			      <executions>
+			        <execution>
+			          <id>build-dump</id>
+			          <phase>process-classes</phase>
+			          <goals>
+			            <goal>java</goal>
+			          </goals>
+			        </execution>
+			      </executions>
+			      <configuration>
+			        <mainClass>com.kscs.util.plugins.xjc.UsagePrinter</mainClass>
+					  <arguments>
+						  <argument>../jaxb2-rich-contract-plugin-pages/plugin-usage.xhtml</argument>
+					  </arguments>
+			      </configuration>
+			    </plugin>
+		</plugins>
+	</build>
 </project>
