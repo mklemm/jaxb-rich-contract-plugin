@@ -65,7 +65,7 @@ public class UsagePrinter {
 	private static void printUsage(final StreamResult sr, final Locale locale) throws TransformerException {
 		final Locale defaultLocale = Locale.getDefault();
 		Locale.setDefault(locale);
-		final Element body = HtmlUsageBuilder.createBody(RES.getString("title"), "usage.css", true);
+		final Element body = HtmlUsageBuilder.createBody(RES.getString("title"), "stylesheets/usage.css", true);
 		new FluentBuilderPlugin().getUsageHtml(body);
 		new ImmutablePlugin().getUsageHtml(body);
 		new GroupInterfacePlugin().getUsageHtml(body);

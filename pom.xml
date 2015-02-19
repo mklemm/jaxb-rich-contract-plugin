@@ -8,13 +8,22 @@
 	<version>1.5.2-SNAPSHOT</version>
 
 	<parent>
-		<groupId>com.kscs.util</groupId>
+		<groupId>com.klemm-scs.util</groupId>
 		<artifactId>jaxb-plugin-parent</artifactId>
-		<version>1.0.0</version>
+		<version>1.0.1</version>
 	</parent>
 
-	<name>JAXB 2.2 extended contract generation plugin</name>
+	<name>JAXB XJC extended contract generation plugin</name>
 	<packaging>jar</packaging>
+	<description>
+		Provides a number of plugins for the JAXB (Java API for XML binding)
+		XML-Schema-to-Java compiler (XJC), that enhance the generated source code
+		with various and configurable aspects, like "fluent builder" patterns,
+		generating interface contracts from group and attributeGroup declarations,
+		generating JavaBeans(TM) bound and constrained properties, copy methods and -constructors,
+		selective object graph copying, meta data generation etc.
+	</description>
+	<url>http://mklemm.github.io/jaxb2-rich-contract-plugin</url>
 
 	<scm>
 		<connection>scm:git:https://github.com/mklemm/jaxb2-rich-contract-plugin.git</connection>
@@ -41,7 +50,7 @@
 			      <configuration>
 			        <mainClass>com.kscs.util.plugins.xjc.UsagePrinter</mainClass>
 					  <arguments>
-						  <argument>../jaxb2-rich-contract-plugin-pages/plugin-usage.xhtml</argument>
+						  <argument>src/site/resources/plugin-usage.html</argument>
 					  </arguments>
 			      </configuration>
 			    </plugin>

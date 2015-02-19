@@ -32,7 +32,8 @@ public interface PartialCopyable<T extends PartialCopyable<T>> {
 
 	/**
 	 * Clones this instances partially, the parts
-	 * will be defined by {@param propertyTree}
+	 * will be defined by <tt>propertyTree</tt>
+	 *
 	 * @param propertyTree Defines which parts of the object tree will be cloned or excluded
 	 * @param propertyTreeUse Defines how the clone graph will be used: To include or to exclude properties.
 	 * @return A copy of the original object.
@@ -41,7 +42,8 @@ public interface PartialCopyable<T extends PartialCopyable<T>> {
 
 	/**
 	 * Clones this instances partially, the parts
-	 * to be EXCLUDED will be defined by {@param propertyTree}
+	 * to be EXCLUDED will be defined by <tt>propertyTree</tt>
+	 *
 	 * @param propertyTree Defines which parts of the object tree will be excluded
 	 * @return A copy of the original object.
 	 */
@@ -49,8 +51,9 @@ public interface PartialCopyable<T extends PartialCopyable<T>> {
 
 	/**
 	 * Clones this instances partially, the parts
-	 * to be INCLUDED will be defined by {@param propertyTree},
+	 * to be INCLUDED will be defined by <tt>propertyTree</tt>,
 	 * all other parts will be excluded.
+	 *
 	 * @param propertyTree Defines which parts of the object tree will be included in the clone
 	 * @return A copy of the original object.
 	 */
