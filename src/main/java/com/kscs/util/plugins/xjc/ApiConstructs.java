@@ -38,9 +38,9 @@ import com.kscs.util.jaxb.Copyable;
 import com.kscs.util.jaxb.PartialCopyable;
 import com.kscs.util.jaxb.PropertyTree;
 import com.kscs.util.jaxb.PropertyTreeUse;
-import com.kscs.util.jaxb.TransformerPath;
 import com.sun.codemodel.JAssignmentTarget;
 import com.sun.codemodel.JBlock;
+import com.sun.codemodel.JCatchBlock;
 import com.sun.codemodel.JClass;
 import com.sun.codemodel.JCodeModel;
 import com.sun.codemodel.JConditional;
@@ -50,7 +50,9 @@ import com.sun.codemodel.JFieldRef;
 import com.sun.codemodel.JForEach;
 import com.sun.codemodel.JInvocation;
 import com.sun.codemodel.JPackage;
+import com.sun.codemodel.JTryBlock;
 import com.sun.codemodel.JType;
+import com.sun.codemodel.JVar;
 import com.sun.codemodel.fmt.JStaticJavaFile;
 import com.sun.tools.xjc.Options;
 import com.sun.tools.xjc.Plugin;
@@ -70,8 +72,7 @@ public class ApiConstructs {
 	public static final String PRODUCT_INSTANCE_NAME = "product";
 	public static final String ADD_METHOD_PREFIX = "add";
 	public static final String WITH_METHOD_PREFIX = "with";
-	private static final String AS_LIST = "asList";
-	private static final String UNMODIFIABLE_LIST = "unmodifiableList";
+	public static final String NEW_OBJECT_VAR_NAME = "_newObject";
 	public static final String ADD_ALL = "addAll";
 	public static final String GET_BUILDER = "getBuilder";
 	public static final String CLONE_METHOD_NAME = "clone";
@@ -80,27 +81,23 @@ public class ApiConstructs {
 	public static final String COPY_ONLY_METHOD_NAME = "copyOnly";
 	public static final String BUILD_COPY_METHOD_NAME = "copyOf";
 	public static final String NEW_BUILDER_METHOD_NAME = "builder";
-
+	private static final String AS_LIST = "asList";
+	private static final String UNMODIFIABLE_LIST = "unmodifiableList";
 	public final JCodeModel codeModel;
 	public final JClass arrayListClass;
 	public final JClass listClass;
 	public final JClass iterableClass;
 	public final JClass collectionClass;
-	private final JClass collectionsClass;
-	private final JClass arraysClass;
 	public final Options opt;
 	public final JClass cloneableInterface;
 	public final Outline outline;
 	public final ErrorHandler errorHandler;
-	private final Map<String, ClassOutline> classes;
 	public final Map<QName, ClassOutline> classesBySchemaComponent;
-	private final Map<String, EnumOutline> enums;
 	public final JClass partialCopyableInterface;
 	public final JClass copyableInterface;
 	public final JClass builderUtilitiesClass;
 	public final JClass stringClass;
 	public final JClass voidClass;
-	private final JClass transformerPathClass;
 	public final JClass cloneGraphClass;
 	public final JExpression excludeConst;
 	public final JExpression includeConst;
@@ -110,6 +107,11 @@ public class ApiConstructs {
 	public final String copyOnlyMethodName;
 	public final String buildCopyMethodName;
 	public final String newBuilderMethodName;
+	public final String newObjectVarName;
+	private final JClass collectionsClass;
+	private final JClass arraysClass;
+	private final Map<String, ClassOutline> classes;
+	private final Map<String, EnumOutline> enums;
 
 	ApiConstructs(final Outline outline, final Options opt, final ErrorHandler errorHandler) {
 		this.outline = outline;
@@ -130,7 +132,6 @@ public class ApiConstructs {
 		this.enums = new HashMap<>(outline.getEnums().size());
 		this.builderUtilitiesClass = this.codeModel.ref(BuilderUtilities.class);
 		this.cloneGraphClass = this.codeModel.ref(PropertyTree.class);
-		this.transformerPathClass = this.codeModel.ref(TransformerPath.class);
 		this.stringClass = this.codeModel.ref(String.class);
 		this.voidClass = this.codeModel.ref(Void.class);
 		for (final ClassOutline classOutline : this.outline.getClasses()) {
@@ -148,6 +149,22 @@ public class ApiConstructs {
 		this.copyOnlyMethodName = ApiConstructs.COPY_ONLY_METHOD_NAME;
 		this.buildCopyMethodName = ApiConstructs.BUILD_COPY_METHOD_NAME;
 		this.newBuilderMethodName = ApiConstructs.NEW_BUILDER_METHOD_NAME;
+		this.newObjectVarName = ApiConstructs.NEW_OBJECT_VAR_NAME;
+	}
+
+	private boolean cloneThrows(final Class<? extends Cloneable> cloneableClass) {
+		if (cloneableClass.getSuperclass() == null) {
+			// java.lang.Object.clone() throws CloneNotSupportedException
+			return true;
+		} else {
+			try {
+				final Method cloneMethod = cloneableClass.getMethod(this.cloneMethodName);
+				final Class<?>[] exceptionTypes = cloneMethod.getExceptionTypes();
+				return (exceptionTypes.length > 0 && CloneNotSupportedException.class.isAssignableFrom(exceptionTypes[0]));
+			} catch (final NoSuchMethodException e) {
+				return false;
+			}
+		}
 	}
 
 	public JInvocation asList(final JExpression expression) {
@@ -167,6 +184,7 @@ public class ApiConstructs {
 		return false;
 	}
 
+	@SuppressWarnings("unchecked")
 	public <P extends Plugin> P findPlugin(final Class<P> pluginClass) {
 		for (final Plugin plugin : this.opt.activePlugins) {
 			if (pluginClass.isInstance(plugin)) {
@@ -192,31 +210,11 @@ public class ApiConstructs {
 		return this.enums.get(typeSpec.fullName());
 	}
 
-	public boolean cloneThrows(final JType cloneableType, final boolean cloneThrows) {
-		try {
-			if ("java.lang.Object".equals(cloneableType.fullName())) {
-				return false;
-			} else if (getClassOutline(cloneableType) != null) {
-				return cloneThrows;
-			} else if (cloneableType.isReference()) {
-				final Class<?> runtimeClass = Class.forName(cloneableType.fullName());
-				final Method cloneMethod = runtimeClass.getMethod("clone");
-				return cloneMethod.getExceptionTypes() != null && cloneMethod.getExceptionTypes().length > 0 && cloneMethod.getExceptionTypes()[0].equals(CloneNotSupportedException.class);
-			} else {
-				return false;
-			}
-		} catch (final ClassNotFoundException cnfx) {
-			return false;
-		} catch (final NoSuchMethodException e) {
-			return false;
-		}
-	}
-
 	public JForEach loop(final JBlock block, final JFieldRef source, final JType sourceElementType, final JAssignmentTarget target, final JType targetElementType) {
 		final JConditional ifNull = block._if(source.eq(JExpr._null()));
 		ifNull._then().assign(target, JExpr._null());
 		ifNull._else().assign(target, JExpr._new(this.arrayListClass.narrow(targetElementType)));
-		return ifNull._else().forEach(sourceElementType, "item", source);
+		return ifNull._else().forEach(sourceElementType, "_item", source);
 	}
 
 	public JInvocation newArrayList(final JClass elementType) {
@@ -255,5 +253,24 @@ public class ApiConstructs {
 		final JPackage jPackage = this.outline.getCodeModel()._package(classToBeWritten.getPackage().getName());
 		final JStaticJavaFile javaFile = new JStaticJavaFile(jPackage, classToBeWritten.getSimpleName(), ApiConstructs.class.getResource(resourcePath), null);
 		jPackage.addResourceFile(javaFile);
+	}
+
+	@SuppressWarnings("unchecked")
+	JBlock catchCloneNotSupported(final JBlock body, final JClass elementType) {
+		final Class<? extends Cloneable> elementRuntimeClass;
+		try {
+			elementRuntimeClass = (Class<? extends Cloneable>) Class.forName(elementType.binaryName());
+		} catch (final ClassNotFoundException e) {
+			return body;
+		}
+		if (!cloneThrows(elementRuntimeClass)) {
+			return body;
+		} else {
+			final JTryBlock tryBlock = body._try();
+			final JCatchBlock catchBlock = tryBlock._catch(this.codeModel.ref(CloneNotSupportedException.class));
+			final JVar exceptionVar = catchBlock.param("e");
+			catchBlock.body()._throw(JExpr._new(this.codeModel.ref(RuntimeException.class)).arg(exceptionVar));
+			return tryBlock.body();
+		}
 	}
 }
