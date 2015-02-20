@@ -8,7 +8,14 @@
 	<body>
 		<menu name="Project Info">
 			<item name="Overview" href="description.html"/>
-			<item name="Usage" href="plugin-usage_en.html"/>
+		</menu>
+		<menu name="XJC Plugin Options">
+			<item name="fluent-builder" href="plugin-usage_en.html#fluent-builder"/>
+			<item name="group-contract" href="plugin-usage_en.html#group-contract"/>
+			<item name="clone" href="plugin-usage_en.html#clone"/>
+			<item name="copy" href="plugin-usage_en.html#copy"/>
+			<item name="constrained-properties" href="plugin-usage_en.html#constrained-properties"/>
+			<item name="meta" href="plugin-usage_en.html#meta"/>
 		</menu>
 		<menu ref="modules"/>
 		<menu ref="reports"/>
