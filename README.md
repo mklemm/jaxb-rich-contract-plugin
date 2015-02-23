@@ -1,19 +1,13 @@
-
-[Source](http://mklemm.github.io/jaxb2-rich-contract-plugin/ "Permalink to jaxb2-rich-contract-plugin")
-
 # jaxb2-rich-contract-plugin
-
-[View on GitHub][1]
-
-# Jaxb2-rich-contract-plugin
 
 ## Implements some JAXB plugins to generate advanced contract scenarios from XSD
 
-[Download this project as a .zip file][2] [Download this project as a tar.gz file][3]
-
-#  jaxb2-rich-contract-plugin
-
 Current Version: 1.5.2
+
+
+[Download this project as a .zip file][2]
+
+[Download this project as a tar.gz file][3]
 
 Get it with Maven (Now hosted on maven central!):
 
