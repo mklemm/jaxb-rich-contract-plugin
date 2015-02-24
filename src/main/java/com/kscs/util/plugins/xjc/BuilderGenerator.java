@@ -144,7 +144,7 @@ class BuilderGenerator {
 			generateWithMethodJavadoc(withValueMethod, param);
 
 			final JMethod withBuilderMethod = this.builderClass.method(JMod.PUBLIC, builderWithMethodReturnType, ApiConstructs.WITH_METHOD_PREFIX + propertyName);
-			generateWithBuilderMethodJavadoc(withBuilderMethod, propertyName);
+			generateWithBuilderMethodJavadoc(withBuilderMethod, fieldOutline);
 
 			if (this.implement) {
 				final JFieldVar builderField = this.builderClass.field(JMod.PRIVATE, builderFieldElementType, fieldName);
@@ -212,7 +212,7 @@ class BuilderGenerator {
 			final JClass builderListClass = this.apiConstructs.listClass.narrow(builderFieldElementType);
 
 			final JMethod addMethod = this.builderClass.method(JMod.PUBLIC, builderWithMethodReturnType, ApiConstructs.ADD_METHOD_PREFIX + propertyName);
-			generateAddBuilderMethodJavadoc(addMethod, propertyName);
+			generateAddBuilderMethodJavadoc(addMethod, fieldOutline);
 
 			if (this.implement) {
 				final JFieldVar builderField = this.builderClass.field(JMod.PRIVATE, builderListClass, fieldName);
@@ -293,7 +293,7 @@ class BuilderGenerator {
 				if (childBuilderOutline != null && !childBuilderOutline.getClassOutline().getImplClass().isAbstract()) {
 					final JClass builderFieldElementType = childBuilderOutline.getDefinedBuilderClass().narrow(this.builderType.wildcard());
 					final JMethod addMethod = this.builderClass.method(JMod.PUBLIC, builderFieldElementType, ApiConstructs.ADD_METHOD_PREFIX + superPropertyName);
-					generateAddBuilderMethodJavadoc(addMethod, superPropertyName);
+					generateAddBuilderMethodJavadoc(addMethod, superFieldOutline);
 					if (this.implement) {
 						addMethod.annotate(Override.class);
 						addMethod.body()._return(JExpr.cast(builderFieldElementType, JExpr._super().invoke(addMethod)));
@@ -336,7 +336,7 @@ class BuilderGenerator {
 			if (childBuilderOutline != null && !childBuilderOutline.getClassOutline().getImplClass().isAbstract()) {
 				final JClass builderFieldElementType = childBuilderOutline.getDefinedBuilderClass().narrow(this.builderType.wildcard());
 				final JMethod addMethod = this.builderClass.method(JMod.PUBLIC, builderFieldElementType, ApiConstructs.WITH_METHOD_PREFIX + superPropertyName);
-				generateWithBuilderMethodJavadoc(addMethod, superPropertyName);
+				generateWithBuilderMethodJavadoc(addMethod, superFieldOutline);
 				if (this.implement) {
 					addMethod.body()._return(JExpr.cast(builderFieldElementType, JExpr._super().invoke(addMethod)));
 				}
@@ -658,21 +658,25 @@ class BuilderGenerator {
 	}
 
 	private void generateAddMethodJavadoc(final JMethod method, final JVar param) {
-		final String propertyName = this.apiConstructs.outline.getModel().getNameConverter().toPropertyName(param.name());
+		final String propertyName = param.name();
 		method.javadoc().append(MessageFormat.format(this.resources.getString("comment.addMethod"), propertyName))
 								.addParam(param).append(MessageFormat.format(this.resources.getString("comment.addMethod.param"), propertyName));
 	}
 	private void generateWithMethodJavadoc(final JMethod method, final JVar param) {
-		final String propertyName = this.apiConstructs.outline.getModel().getNameConverter().toPropertyName(param.name());
+		final String propertyName = param.name();
 		method.javadoc().append(MessageFormat.format(this.resources.getString("comment.withMethod"), propertyName))
 								.addParam(param).append(MessageFormat.format(this.resources.getString("comment.withMethod.param"), propertyName));
 	}
-	private void generateAddBuilderMethodJavadoc(final JMethod method, final String propertyName) {
-		method.javadoc().append(MessageFormat.format(this.resources.getString("comment.addBuilderMethod"), propertyName))
-								.addReturn().append(MessageFormat.format(this.resources.getString("comment.addBuilderMethod.return"), propertyName));
+	private void generateAddBuilderMethodJavadoc(final JMethod method, final PropertyOutline propertyOutline) {
+		final String propertyName = propertyOutline.getFieldName();
+		final String endMethodClassName = method.type().erasure().fullName();
+		method.javadoc().append(MessageFormat.format(this.resources.getString("comment.addBuilderMethod"), propertyName, endMethodClassName))
+								.addReturn().append(MessageFormat.format(this.resources.getString("comment.addBuilderMethod.return"), propertyName, endMethodClassName));
 	}
-	private void generateWithBuilderMethodJavadoc(final JMethod method, final String propertyName) {
-		method.javadoc().append(MessageFormat.format(this.resources.getString("comment.withBuilderMethod"), propertyName))
-								.addReturn().append(MessageFormat.format(this.resources.getString("comment.withBuilderMethod.return"), propertyName));
+	private void generateWithBuilderMethodJavadoc(final JMethod method, final PropertyOutline propertyOutline) {
+		final String propertyName = propertyOutline.getFieldName();
+		final String endMethodClassName = method.type().erasure().fullName();
+		method.javadoc().append(MessageFormat.format(this.resources.getString("comment.withBuilderMethod"), propertyName, endMethodClassName))
+								.addReturn().append(MessageFormat.format(this.resources.getString("comment.withBuilderMethod.return"), propertyName, endMethodClassName));
 	}
 }
