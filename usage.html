@@ -183,8 +183,8 @@
 <pre>    &lt;build&gt;
         &lt;plugins&gt;
             &lt;plugin&gt;
-                &lt;groupid&gt;org.jvnet.jaxb2.maven2&lt;/groupid&gt;
-                &lt;artifactid&gt;maven-jaxb2-plugin&lt;/artifactid&gt;
+                &lt;groupId&gt;org.jvnet.jaxb2.maven2&lt;/groupId&gt;
+                &lt;artifactId&gt;maven-jaxb2-plugin&lt;/artifactId&gt;
                 &lt;version&gt;0.11.0&lt;/version&gt;
                 &lt;executions&gt;
                     &lt;execution&gt;
@@ -196,13 +196,13 @@
                     &lt;/execution&gt;
                 &lt;/executions&gt;
                 &lt;configuration&gt;
-                    &lt;schemaincludes&gt;
-                        &lt;schemainclude&gt;**/*.xsd&lt;/schemainclude&gt;
-                    &lt;/schemaincludes&gt;
+                    &lt;schemaIncludes&gt;
+                        &lt;schemaInclude&gt;**/*.xsd&lt;/schemaInclude&gt;
+                    &lt;/schemaIncludes&gt;
                     &lt;strict&gt;true&lt;/strict&gt;
                     &lt;verbose&gt;true&lt;/verbose&gt;
                     &lt;extension&gt;true&lt;/extension&gt;
-                    &lt;removeoldoutput&gt;true&lt;/removeoldoutput&gt;
+                    &lt;removeOldOutput&gt;true&lt;/removeOldOutput&gt;
                     &lt;args&gt;
                         &lt;arg&gt;-Xclone&lt;/arg&gt;
                             &lt;arg&gt;-cloneThrows=y&lt;/arg&gt;
@@ -241,8 +241,8 @@
                     &lt;/args&gt;
                     &lt;plugins&gt;
                         &lt;plugin&gt;
-                            &lt;groupid&gt;com.klemm-scs.util&lt;/groupid&gt;
-                            &lt;artifactid&gt;jaxb2-rich-contract-plugin&lt;/artifactid&gt;
+                            &lt;groupId&gt;com.klemm-scs.util&lt;/groupId&gt;
+                            &lt;artifactId&gt;jaxb2-rich-contract-plugin&lt;/artifactId&gt;
                             &lt;version&gt;1.5.2&lt;/version&gt;
                         &lt;/plugin&gt;
                     &lt;/plugins&gt;
@@ -250,18 +250,18 @@
                         &lt;!-- Put this in if your default JAXB version is 2.1 or lower,
                         or if &amp;quot;tools.jar&amp;quot; isn't in your classpath --&gt;
                         &lt;dependency&gt;
-                            &lt;groupid&gt;org.glassfish.jaxb&lt;/groupid&gt;
-                            &lt;artifactid&gt;jaxb-runtime&lt;/artifactid&gt;
+                            &lt;groupId&gt;org.glassfish.jaxb&lt;/groupId&gt;
+                            &lt;artifactId&gt;jaxb-runtime&lt;/artifactId&gt;
                             &lt;version&gt;2.2.11&lt;/version&gt;
                         &lt;/dependency&gt;
                         &lt;dependency&gt;
-                            &lt;groupid&gt;org.glassfish.jaxb&lt;/groupid&gt;
-                            &lt;artifactid&gt;jaxb-core&lt;/artifactid&gt;
+                            &lt;groupId&gt;org.glassfish.jaxb&lt;/groupId&gt;
+                            &lt;artifactId&gt;jaxb-core&lt;/artifactId&gt;
                             &lt;version&gt;2.2.11&lt;/version&gt;
                         &lt;/dependency&gt;
                         &lt;dependency&gt;
-                            &lt;groupid&gt;org.glassfish.jaxb&lt;/groupid&gt;
-                            &lt;artifactid&gt;jaxb-xjc&lt;/artifactid&gt;
+                            &lt;groupId&gt;org.glassfish.jaxb&lt;/groupId&gt;
+                            &lt;artifactId&gt;jaxb-xjc&lt;/artifactId&gt;
                             &lt;version&gt;2.2.11&lt;/version&gt;
                         &lt;/dependency&gt;
                     &lt;/dependencies&gt;
@@ -271,7 +271,7 @@
     &lt;/build&gt;
 </pre></div>
 <p>Note: the <tt>&lt;extension/&gt;</tt> flag must be set to &#x201c;true&#x201d; in order to make XJC accept any extensions at all.</p>
-<p>Note: jaxb2-rich-contract-plugin implements JAXB and XJC APIs version 2.2. You most likely will have to add the dependencies to these libraries to your classpath effective at XJC runtime. See the <tt>dependencies</tt> element above on how to do this.</p></div></div></div>
+<p>Note: jaxb2-rich-contract-plugin implements JAXB and XJC APIs version 2.2. You most likely will have to add the dependencies to these libraries to your classpath effective at XJC runtime. See the <tt>&lt;dependencies&gt;</tt> element above on how to do this.</p></div></div></div>
                   </div>
             </div>
           </div>
