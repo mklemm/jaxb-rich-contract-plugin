@@ -36,6 +36,7 @@ import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.Locale;
 import java.util.ResourceBundle;
+import java.util.regex.Pattern;
 import com.kscs.util.plugins.xjc.BoundPropertiesPlugin;
 import com.kscs.util.plugins.xjc.DeepClonePlugin;
 import com.kscs.util.plugins.xjc.DeepCopyPlugin;
@@ -54,6 +55,7 @@ import org.w3c.dom.Node;
  * @author Mirko Klemm 2015-02-19
  */
 public class PluginDocPrinter {
+	public static final Pattern INDEX_PATTERN = Pattern.compile("^\\[\\d\\]: .*$");
 	public static final ResourceBundle RES = ResourceBundle.getBundle(PluginDocPrinter.class.getName());
 	public static final java.util.List<AbstractPlugin> PLUGINS = Arrays.asList(
 			new FluentBuilderPlugin(),
@@ -88,10 +90,16 @@ public class PluginDocPrinter {
 		for (final String filename : Arrays.asList("index", "getting", "history", "usage")) {
 			final Path path = directory.resolve(filename + ".md");
 			for (final String line : Files.readAllLines(path, Charset.forName("UTF-8"))) {
-				p.println(line);
+				if(!PluginDocPrinter.INDEX_PATTERN.matcher(line).matches()) {
+					p.println(line);
+				}
 			}
 		}
 		printMarkdown(Locale.ROOT, new StreamSink(p));
+		int i = 1;
+		for(final AbstractPlugin plugin: PluginDocPrinter.PLUGINS) {
+			p.printf("[%d]: #%s\n", i++, plugin.getOptionName().substring(1));
+		}
 	}
 
 	private static void printMarkdown(final Sink sink) {
