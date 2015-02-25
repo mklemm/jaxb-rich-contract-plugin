@@ -8,9 +8,9 @@
 	<version>1.5.4-SNAPSHOT</version>
 
 	<parent>
-		<groupId>com.klemm-scs.util</groupId>
+		<groupId>net.codesup.util</groupId>
 		<artifactId>jaxb-plugin-parent</artifactId>
-		<version>1.0.2</version>
+		<version>1.0.3-SNAPSHOT</version>
 	</parent>
 
 	<name>JAXB XJC extended contract generation plugin</name>

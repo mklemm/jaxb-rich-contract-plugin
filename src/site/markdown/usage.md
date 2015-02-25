@@ -76,9 +76,9 @@ You should add "maven-jaxb2-plugin" to your `<build>` configuration. Then add "j
                     </args>
                     <plugins>
                         <plugin>
-                            <groupId>com.klemm-scs.util</groupId>
+                            <groupId>net.codesup.util</groupId>
                             <artifactId>jaxb2-rich-contract-plugin</artifactId>
-                            <version>1.5.2</version>
+                            <version>1.5.4</version>
                         </plugin>
                     </plugins>
                     <dependencies>

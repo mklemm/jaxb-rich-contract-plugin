@@ -29,4 +29,6 @@
 	* Added maven "site" hosted on github pages
 	* Improvements to javadoc comment generation
 	* Improvements to documentation
-
+* **1.5.4**:
+	* Updates to generated documentation
+	* changed groupId to net.codesup.util
