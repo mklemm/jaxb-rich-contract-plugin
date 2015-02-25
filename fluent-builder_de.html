@@ -169,13 +169,26 @@
 <p>fluent-builder creates a static inner class for every generated class representing the builder, and a static method on the generated class to create a builder.</p>
 <p>If the &#x201c;immutable&#x201d; plugin is also activated, publicly exposed collections will be immutable, too.</p>
 <p>Example use in code:</p>
-<p>ttMyElement newElement = MyElement.builder().withPropertyA(&#x2026;).withPropertyB(&#x2026;).addCollectionPropertyA(&#x2026;).build();</p>
+
+<div class="source">
+<pre>    MyElement newElement = MyElement.builder().withPropertyA(...).withPropertyB(...).addCollectionPropertyA(...).build();
+</pre></div>
 <p>In addition, new instances can be created as copies of existing instances using the builder, with an optional modification by other builder methods:</p>
-<p>ttMyElement newElement = MyElement.copyOf(oldElement).withPropertyA(&#x2026;).withPropertyB(&#x2026;).build();</p>
+
+<div class="source">
+<pre>    MyElement newElement = MyElement.copyOf(oldElement).withPropertyA(...).withPropertyB(...).build();
+</pre></div>
 <p>The &#x201c;partial&#x201d; copy introduced in the &#x201c;clone&#x201d; plugin will work here as well:</p>
-<p>ttPropertyTree selection = MyElement.Select.root().propertyA().propertyAB().build(); ttMyElement newElement = MyElement.copyExcept(oldElement, selection).withPropertyA(&#x2026;).withPropertyB(&#x2026;).build();</p>
+
+<div class="source">
+<pre>    PropertyTree selection = MyElement.Select.root().propertyA().propertyAB().build();
+    MyElement newElement = MyElement.copyExcept(oldElement, selection).withPropertyA(...).withPropertyB(...).build();
+</pre></div>
 <p>Often, properties of generated classes represent containment or references to generated classes in the same model. The fluent-builder plugin lets you initialise properties of such a type - if it isn&#x2019;t an abstract type - by using sub-builders (&#x201c;chained&#x201d; builders) in the following way, given that both A and B are types defined in the XSD model, and A has a property of type B, and B has three properties of type String, x,y, and z:</p>
-<p>ttA newA = A.builder().withB().withX(&#x201c;x&#x201d;).withY(&#x201c;y&#x201d;).withZ(&#x201c;z&#x201d;).end().build();</p>
+
+<div class="source">
+<pre>    A newA = A.builder().withB().withX(&quot;x&quot;).withY(&quot;y&quot;).withZ(&quot;z&quot;).end().build();
+</pre></div>
 <p>Of course, this plugin is most useful if <tt>immutable</tt> is also activated.</p></div>
 <div class="section">
 <h3>Limitations<a name="Limitations"></a></h3>
