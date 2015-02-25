@@ -1,11 +1,14 @@
 package com.kscs.util.jaxb;
 
-import com.kscs.jaxb2.contract.test.*;
-import org.junit.Assert;
-import org.junit.Test;
-
 import javax.xml.bind.JAXB;
 import java.io.File;
+import com.kscs.jaxb2.contract.test.CompanyMember;
+import com.kscs.jaxb2.contract.test.DerivedType;
+import com.kscs.jaxb2.contract.test.IdentifyingProperties;
+import com.kscs.jaxb2.contract.test.Tourist;
+import com.kscs.jaxb2.contract.test.Worker;
+import org.junit.Assert;
+import org.junit.Test;
 
 /**
  * Test for the FluentBuilderPlugin
@@ -129,22 +132,6 @@ public class FluentBuilderPluginTest {
 		Assert.assertNull(propertyPath.get("departureDate"));
 	}
 
-	@Test
-	public void testTransformerPath() {
-		final TransformerPath propertyPath = Tourist.Transform._root(new PropertyTransformer<Void,Tourist>(){
-
-			@Override
-			public Tourist transform(final PropertyInfo<Void, Tourist> propertyInfo, final Void sourceInstance, final Tourist sourcePropertyValue) {
-				return null;
-			}
-		}).address(new PropertyTransformer<Tourist,Address>() {
-
-			@Override
-			public Address transform(final PropertyInfo<Tourist, Address> propertyInfo, final Tourist sourceInstance, final Address sourcePropertyValue) {
-				return null;
-			}
-		}).build();
-	}
 
 	@Test
 	public void testBuilderInterface() {

@@ -4,7 +4,7 @@
 		 xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 
-	<groupId>com.kscs.util</groupId>
+	<groupId>net.codesup.util</groupId>
 	<artifactId>jaxb2-rich-contract-plugin-test</artifactId>
 	<version>1.0.0-SNAPSHOT</version>
 
@@ -21,26 +21,14 @@
 	</dependencies>
 
 	<build>
-		<pluginManagement>
-			<plugins>
-				<plugin>
-					<groupId>org.apache.maven.plugins</groupId>
-					<artifactId>maven-compiler-plugin</artifactId>
-					<configuration>
-						<source>1.6</source>
-						<target>1.6</target>
-					</configuration>
-				</plugin>
-			</plugins>
-		</pluginManagement>
 		<plugins>
 			<plugin>
 				<groupId>org.jvnet.jaxb2.maven2</groupId>
-				<artifactId>maven-jaxb22-plugin</artifactId>
-				<version>0.8.3</version>
+				<artifactId>maven-jaxb2-plugin</artifactId>
+				<version>0.11.0</version>
 				<executions>
 					<execution>
-						<id>xsd-generate-2.2</id>
+						<id>xsd-generate</id>
 						<phase>generate-sources</phase>
 						<goals>
 							<goal>generate</goal>
@@ -52,18 +40,13 @@
 						<arg>-Ximmutable</arg>
                         <arg>-Xfluent-builder</arg>
 						<arg>-Xclone</arg>
-						<arg>-clone-throws=n</arg>
-						<arg>-copy-constructor=y</arg>
-						<arg>-partial-clone=y</arg>
-						<arg>-generate-tools=y</arg>
-						<!-- arg>-Xconstrained-properties</arg -->
 						<arg>-Xgroup-contract</arg>
 					</args>
 					<plugins>
 						<plugin>
-							<groupId>com.kscs.util</groupId>
+							<groupId>net.codesup.util</groupId>
 							<artifactId>jaxb2-rich-contract-plugin</artifactId>
-							<version>1.2.0-SNAPSHOT</version>
+							<version>1.5.5-SNAPSHOT</version>
 						</plugin>
 						<plugin>
 							<groupId>net.java.dev.jaxb2-commons</groupId>
