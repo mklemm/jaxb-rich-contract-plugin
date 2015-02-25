@@ -9,7 +9,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="Date-Revision-yyyymmdd" content="20150225" />
     <meta http-equiv="Content-Language" content="en" />
-    <title>jaxb2-rich-contract-plugin - About</title>
+    <title>jaxb2-rich-contract-plugin - immutable</title>
     <link rel="stylesheet" href="./css/apache-maven-fluido-1.3.1.min.css" />
     <link rel="stylesheet" href="./css/site.css" />
     <link rel="stylesheet" href="./css/print.css" media="print" />
@@ -130,90 +130,13 @@
         meta</a>
             </li>
                               <li class="nav-header">Project Documentation</li>
-                                                                                                                                                                                                                                                                              
+                                                                                                                                                                                                                                                                    
       <li>
   
                           <a href="project-info.html" title="Project Information">
-          <i class="icon-chevron-down"></i>
+          <i class="icon-chevron-right"></i>
         Project Information</a>
-                    <ul class="nav nav-list">
-                    
-      <li>
-  
-                          <a href="dependencies.html" title="Dependencies">
-          <i class="none"></i>
-        Dependencies</a>
-            </li>
-                    
-      <li>
-  
-                          <a href="dependency-convergence.html" title="Dependency Convergence">
-          <i class="none"></i>
-        Dependency Convergence</a>
-            </li>
-                    
-      <li>
-  
-                          <a href="dependency-info.html" title="Dependency Information">
-          <i class="none"></i>
-        Dependency Information</a>
-            </li>
-                    
-      <li>
-  
-                          <a href="distribution-management.html" title="Distribution Management">
-          <i class="none"></i>
-        Distribution Management</a>
-            </li>
-                    
-      <li class="active">
-  
-            <a href="#"><i class="none"></i>About</a>
-          </li>
-                    
-      <li>
-  
-                          <a href="license.html" title="Project License">
-          <i class="none"></i>
-        Project License</a>
-            </li>
-                    
-      <li>
-  
-                          <a href="plugin-management.html" title="Plugin Management">
-          <i class="none"></i>
-        Plugin Management</a>
-            </li>
-                    
-      <li>
-  
-                          <a href="plugins.html" title="Project Plugins">
-          <i class="none"></i>
-        Project Plugins</a>
-            </li>
-                    
-      <li>
-  
-                          <a href="team-list.html" title="Project Team">
-          <i class="none"></i>
-        Project Team</a>
-            </li>
-                    
-      <li>
-  
-                          <a href="source-repository.html" title="Source Repository">
-          <i class="none"></i>
-        Source Repository</a>
-            </li>
-                    
-      <li>
-  
-                          <a href="project-summary.html" title="Project Summary">
-          <i class="none"></i>
-        Project Summary</a>
-            </li>
-              </ul>
-        </li>
+                  </li>
             </ul>
                 
                     
@@ -236,13 +159,26 @@
         <div id="bodyColumn"  class="span9" >
                                   
             <div class="section">
-<h2>About JAXB XJC extended contract generation plugin<a name="About_JAXB_XJC_extended_contract_generation_plugin"></a></h2><a name="About_JAXB_XJC_extended_contract_generation_plugin"></a>
-<p>Provides a number of plugins for the JAXB (Java API for XML binding)
-		XML-Schema-to-Java compiler (XJC), that enhance the generated source code
-		with various and configurable aspects, like &quot;fluent builder&quot; patterns,
-		generating interface contracts from group and attributeGroup declarations,
-		generating JavaBeans(TM) bound and constrained properties, copy methods and -constructors,
-		selective object graph copying, meta data generation etc.</p></div>
+<h2>immutable<a name="immutable"></a></h2>
+<div class="section">
+<h3>Motivation<a name="Motivation"></a></h3>
+<p>Generally it is advisable to make your business classes immutable as much as possible, to minimise side effects and allow for functional programming patterns.</p></div>
+<div class="section">
+<h3>Function<a name="Function"></a></h3>
+<p>This plugin simply makes all &#x201c;setXXX&#x201d; methods &#x201c;protected&#x201d;, thus preventing API consumers to modify state of instances of generated classes after they have been created. This only makes sense together with another plugin that allows for initialization of the instances, like e.g. the included <tt>fluent-builder</tt> plugin. For collection-valued properties, <tt>-Ximmutable</tt> wraps all collections in a <tt>Collections.unmodifiableCollection</tt>, so collections are also made immutable. Because JAXB serialization has a number of constraints regarding the internals of JAXB serializable objects, it wasn&#x2019;t advisable to just remove the setter methods or replace the collections with unmodifiable collections. So, a bit of additional code will be created that leaves the old &#x201c;mutable&#x201d; structure of the class intact as much as is needed for JAXB, but modifies the public interface so objects appear immutable to client code.</p></div>
+<div class="section">
+<h3>Limitations<a name="Limitations"></a></h3>
+
+<ul>
+  
+<li>Access level &#x201c;protected&#x201d; may not be strict enough to prevent state changes.</li>
+  
+<li>If you activate plugins like &#x201c;fluent-api&#x201d; or the like, these plugins may circumvent the protection provided by the <tt>immutable</tt> plugin.</li>
+</ul></div>
+<div class="section">
+<h3>Usage<a name="Usage"></a></h3>
+<div class="section">
+<h4>-Ximmutable<a name="a-Ximmutable"></a></h4></div></div></div>
                   </div>
             </div>
           </div>

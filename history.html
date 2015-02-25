@@ -9,7 +9,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="Date-Revision-yyyymmdd" content="20150225" />
     <meta http-equiv="Content-Language" content="en" />
-    <title>jaxb2-rich-contract-plugin - About</title>
+    <title>jaxb2-rich-contract-plugin - Version History</title>
     <link rel="stylesheet" href="./css/apache-maven-fluido-1.3.1.min.css" />
     <link rel="stylesheet" href="./css/site.css" />
     <link rel="stylesheet" href="./css/print.css" media="print" />
@@ -73,12 +73,10 @@
         Download</a>
             </li>
                 
-      <li>
+      <li class="active">
   
-                          <a href="history.html" title="Version History">
-          <i class="none"></i>
-        Version History</a>
-            </li>
+            <a href="#"><i class="none"></i>Version History</a>
+          </li>
                 
       <li>
   
@@ -130,90 +128,13 @@
         meta</a>
             </li>
                               <li class="nav-header">Project Documentation</li>
-                                                                                                                                                                                                                                                                              
+                                                                                                                                                                                                                                                                    
       <li>
   
                           <a href="project-info.html" title="Project Information">
-          <i class="icon-chevron-down"></i>
+          <i class="icon-chevron-right"></i>
         Project Information</a>
-                    <ul class="nav nav-list">
-                    
-      <li>
-  
-                          <a href="dependencies.html" title="Dependencies">
-          <i class="none"></i>
-        Dependencies</a>
-            </li>
-                    
-      <li>
-  
-                          <a href="dependency-convergence.html" title="Dependency Convergence">
-          <i class="none"></i>
-        Dependency Convergence</a>
-            </li>
-                    
-      <li>
-  
-                          <a href="dependency-info.html" title="Dependency Information">
-          <i class="none"></i>
-        Dependency Information</a>
-            </li>
-                    
-      <li>
-  
-                          <a href="distribution-management.html" title="Distribution Management">
-          <i class="none"></i>
-        Distribution Management</a>
-            </li>
-                    
-      <li class="active">
-  
-            <a href="#"><i class="none"></i>About</a>
-          </li>
-                    
-      <li>
-  
-                          <a href="license.html" title="Project License">
-          <i class="none"></i>
-        Project License</a>
-            </li>
-                    
-      <li>
-  
-                          <a href="plugin-management.html" title="Plugin Management">
-          <i class="none"></i>
-        Plugin Management</a>
-            </li>
-                    
-      <li>
-  
-                          <a href="plugins.html" title="Project Plugins">
-          <i class="none"></i>
-        Project Plugins</a>
-            </li>
-                    
-      <li>
-  
-                          <a href="team-list.html" title="Project Team">
-          <i class="none"></i>
-        Project Team</a>
-            </li>
-                    
-      <li>
-  
-                          <a href="source-repository.html" title="Source Repository">
-          <i class="none"></i>
-        Source Repository</a>
-            </li>
-                    
-      <li>
-  
-                          <a href="project-summary.html" title="Project Summary">
-          <i class="none"></i>
-        Project Summary</a>
-            </li>
-              </ul>
-        </li>
+                  </li>
             </ul>
                 
                     
@@ -236,13 +157,64 @@
         <div id="bodyColumn"  class="span9" >
                                   
             <div class="section">
-<h2>About JAXB XJC extended contract generation plugin<a name="About_JAXB_XJC_extended_contract_generation_plugin"></a></h2><a name="About_JAXB_XJC_extended_contract_generation_plugin"></a>
-<p>Provides a number of plugins for the JAXB (Java API for XML binding)
-		XML-Schema-to-Java compiler (XJC), that enhance the generated source code
-		with various and configurable aspects, like &quot;fluent builder&quot; patterns,
-		generating interface contracts from group and attributeGroup declarations,
-		generating JavaBeans(TM) bound and constrained properties, copy methods and -constructors,
-		selective object graph copying, meta data generation etc.</p></div>
+<div class="section">
+<h3>Version History<a name="Version_History"></a></h3>
+
+<ul>
+  
+<li><b>1.0.0</b>: Initial Version</li>
+  
+<li><b>1.0.1</b>: Added constrained-property plugin</li>
+  
+<li><b>1.0.2</b>: Added partial clone method generation</li>
+  
+<li><b>1.0.3</b>: Improvements in partial clone</li>
+  
+<li><b>1.0.4</b>: Added fluent builder and immutable plugins</li>
+  
+<li><b>1.0.5</b>: Added chainable fluent builder support</li>
+  
+<li><b>1.1.0</b>: New: <tt>-Ximmutable</tt>, Copy constructor support, fluent-builder copy from instance support, general fixes. Removed option to generate fluent builders without chained builder support.</li>
+  
+<li><b>1.1.1</b>: New: Type-safe selector support for partial clone/copy logic.</li>
+  
+<li><b>1.1.2</b>: Big fixes in selector logic</li>
+  
+<li><b>1.1.3</b>: Minor bug fixes in fluent-builder</li>
+  
+<li><b>1.1.4</b>: Fixed an error in fluent-builder where an initialization method wasn&#x2019;t properly overridden in derived builder classes, leading to the wrong builder type being returned when using chained sub-builders.</li>
+  
+<li><b>1.1.5</b>: Fixed error in Release Build process</li>
+  
+<li><b>1.1.6</b>: Fixed bug in group-contract plugin: Property names customised via binding info were generated incorrectly in the interface definitions.</li>
+  
+<li><b>1.2.0</b>: Major changes to the logic of partial cloning. The partial clone <tt>PropertyTree</tt> pattern replaces the previous <tt>PropertyPath</tt>, which had pretty unclear semantics. The new <tt>PropertyTree</tt> builders now just create a property tree, and on invocation of the &#x201c;clone()&#x201d; or &#x201c;copyOf()&#x201d; methods or the copy constructor, it is decided by an additional parameter whether the property tree should be considered an exclusion or an inclusion pattern. Additionally, the group-interface plugin has been modified to create interfaces also for the fluent builders, if the fluent-builder plugin is activated.</li>
+  
+<li><b>1.2.3</b>: Added &#x201c;Copyable&#x201d; interface and &#x201c;createCopy&#x201d; method which does the same thing as the &#x201c;clone()&#x201d; method, but doesn&#x2019;t suffer from the defective-by-design java.lang.Cloneable contract. It is planned to als add a &#x201c;copyFrom&#x201d; method to copy the state of another object into an existing object.</li>
+  
+<li><b>1.3.1</b>: Made fluent-builder plugin work in an &#x201c;episode&#x201d; (modular generation and compilation) context by also integrating compiled classes on the XJC classpath in the search for base and property classes.</li>
+  
+<li><b>1.3.6</b>: Also made group-interface work in an &#x201c;episode&#x201d; context, and fixed bug where empty interfaces were created if no implementation class for them could be found in the current module.</li>
+  
+<li><b>1.4.0</b>: group-interface is using its own episode file to maintain relationships to definitions in upstream modules. Command-line options for a specific plugin must now be given immediately after the plugin activation option (&#x201c;-X&#x2026;&#x201d;). This way, name conflicts between plugin options are avoided. Static source files are generated via the JCodeModel.addResourceFile API, so a bug where the source files ended up in the root of the project tree should be fixed now. group-interface and fluent-builder now are working together more reliably.</li>
+  
+<li><b>1.5.0</b>: Added new Plugin &#x201c;-Xmeta&#x201d; to generate an inner class containing static meta information about the properties of a class. Internally, a common base class for plugins was extracted to help in command-line parsing and command-line documentation.</li>
+  
+<li><b>1.5.1</b>: Major updates to documentation, improvements to <tt>-Xmeta</tt> to expose static information about XSD definitions of properties.</li>
+  
+<li><b>1.5.2</b>:
+  
+<ul>
+    
+<li>Now hosted on Central</li>
+    
+<li>More updates to documentation</li>
+    
+<li>Customization of names of many generated source elements</li>
+    
+<li>Improved handling of CloneNotSupportedException in clone, copy, and fluent-builder plugins</li>
+  </ul></li>
+</ul></div></div>
                   </div>
             </div>
           </div>

@@ -9,7 +9,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="Date-Revision-yyyymmdd" content="20150225" />
     <meta http-equiv="Content-Language" content="en" />
-    <title>jaxb2-rich-contract-plugin - About</title>
+    <title>jaxb2-rich-contract-plugin - group-contract</title>
     <link rel="stylesheet" href="./css/apache-maven-fluido-1.3.1.min.css" />
     <link rel="stylesheet" href="./css/site.css" />
     <link rel="stylesheet" href="./css/print.css" media="print" />
@@ -130,90 +130,13 @@
         meta</a>
             </li>
                               <li class="nav-header">Project Documentation</li>
-                                                                                                                                                                                                                                                                              
+                                                                                                                                                                                                                                                                    
       <li>
   
                           <a href="project-info.html" title="Project Information">
-          <i class="icon-chevron-down"></i>
+          <i class="icon-chevron-right"></i>
         Project Information</a>
-                    <ul class="nav nav-list">
-                    
-      <li>
-  
-                          <a href="dependencies.html" title="Dependencies">
-          <i class="none"></i>
-        Dependencies</a>
-            </li>
-                    
-      <li>
-  
-                          <a href="dependency-convergence.html" title="Dependency Convergence">
-          <i class="none"></i>
-        Dependency Convergence</a>
-            </li>
-                    
-      <li>
-  
-                          <a href="dependency-info.html" title="Dependency Information">
-          <i class="none"></i>
-        Dependency Information</a>
-            </li>
-                    
-      <li>
-  
-                          <a href="distribution-management.html" title="Distribution Management">
-          <i class="none"></i>
-        Distribution Management</a>
-            </li>
-                    
-      <li class="active">
-  
-            <a href="#"><i class="none"></i>About</a>
-          </li>
-                    
-      <li>
-  
-                          <a href="license.html" title="Project License">
-          <i class="none"></i>
-        Project License</a>
-            </li>
-                    
-      <li>
-  
-                          <a href="plugin-management.html" title="Plugin Management">
-          <i class="none"></i>
-        Plugin Management</a>
-            </li>
-                    
-      <li>
-  
-                          <a href="plugins.html" title="Project Plugins">
-          <i class="none"></i>
-        Project Plugins</a>
-            </li>
-                    
-      <li>
-  
-                          <a href="team-list.html" title="Project Team">
-          <i class="none"></i>
-        Project Team</a>
-            </li>
-                    
-      <li>
-  
-                          <a href="source-repository.html" title="Source Repository">
-          <i class="none"></i>
-        Source Repository</a>
-            </li>
-                    
-      <li>
-  
-                          <a href="project-summary.html" title="Project Summary">
-          <i class="none"></i>
-        Project Summary</a>
-            </li>
-              </ul>
-        </li>
+                  </li>
             </ul>
                 
                     
@@ -236,13 +159,34 @@
         <div id="bodyColumn"  class="span9" >
                                   
             <div class="section">
-<h2>About JAXB XJC extended contract generation plugin<a name="About_JAXB_XJC_extended_contract_generation_plugin"></a></h2><a name="About_JAXB_XJC_extended_contract_generation_plugin"></a>
-<p>Provides a number of plugins for the JAXB (Java API for XML binding)
-		XML-Schema-to-Java compiler (XJC), that enhance the generated source code
-		with various and configurable aspects, like &quot;fluent builder&quot; patterns,
-		generating interface contracts from group and attributeGroup declarations,
-		generating JavaBeans(TM) bound and constrained properties, copy methods and -constructors,
-		selective object graph copying, meta data generation etc.</p></div>
+<h2>group-contract<a name="group-contract"></a></h2>
+<div class="section">
+<h3>Motivation<a name="Motivation"></a></h3>
+<p>Out of the box, the only polymorphism supported by classes generated from an XSD is the <tt>&lt;extension/&gt;</tt> notion, transformed directly into an inheritance relationship by XJC. However, pure inheritance relationships are often inflexible and do not always reflect the intention of generating a &#x201c;contract&#x201d; that implementing classes must follow. With this plugin, it is possible for your application code to treat classes using one or more specific model or attribute groups in a common way. Objects can be initialised or used via the interface.</p></div>
+<div class="section">
+<h3>Function<a name="Function"></a></h3>
+<p>For definition of contracts, two additional XSD constructs, the <tt>&lt;group&gt;</tt> and <tt>&lt;attributeGroup&gt;</tt>, are readily available in XSD, but they&#x2019;re currently ignored by standard XJC and simply treated as an inclusion of elements or attributes into a generated class definition. The group-interface plugin changes that and generates an <tt>interface</tt> definition for each <tt>&lt;group&gt;</tt> or <tt>&lt;attributeGroup&gt;</tt> found in your model, defines the attributes or elements declared in the groups as get and set methods on the interface, and makes each generated class using the group or attributeGroup implement this interface. New in version 1.2: The group-interface plugin will generate interfaces for the generated fluent builder classes, if the fluent-builder plugin is also activated.</p></div>
+<div class="section">
+<h3>Bugs<a name="Bugs"></a></h3>
+<p>Currently none known</p></div>
+<div class="section">
+<h3>Aktivierung<a name="Aktivierung"></a></h3>
+<div class="section">
+<h4>-Xgroup-contract<a name="a-Xgroup-contract"></a></h4></div>
+<div class="section">
+<h4>Optionen<a name="Optionen"></a></h4>
+<div class="section">
+<h5>-declareSetters=<tt>{y|n}</tt> (y)<a name="a-declareSettersyn_y"></a></h5>
+<p>Auch die Setter-Methoden in den generierten Interfaces deklarieren. Wenn nein, werden nur Getter deklariert.</p></div>
+<div class="section">
+<h5>-declareBuilderInterface=<tt>{y|n}</tt> (y)<a name="a-declareBuilderInterfaceyn_y"></a></h5>
+<p>Wenn das &#x201c;fluent builder plugin&#x201d; (-Xfluent-builder) ebenfalls aktive ist, generiere auch Interfaces f&#xfc;r die inneren Builder-Klassen.</p></div>
+<div class="section">
+<h5>-upstreamEpisodeFile=<tt>&lt;string&gt;</tt> (/META-INF/jaxb-interfaces.episode)<a name="a-upstreamEpisodeFilestring_META-INFjaxb-interfaces.episode"></a></h5>
+<p>Suche die angegebene &#x201c;episode&#x201d;-Datei (Resource-Pfad), um Informationen &#xfc;ber interfaces zu erhalten, die in Modulen definiert wurden, von denen dieses hier abh&#xe4;ngig ist (siehe &#x201c;-episode&#x201d;-Mechanismus in der XJC-Dokumentation).</p></div>
+<div class="section">
+<h5>-downstreamEpisodeFile=<tt>&lt;string&gt;</tt> (/META-INF/jaxb-interfaces.episode)<a name="a-downstreamEpisodeFilestring_META-INFjaxb-interfaces.episode"></a></h5>
+<p>Generiere &#x201c;episode&#x201d;-Datei f&#xfc;r abh&#xe4;ngige Module an der angegebene Stelle (Resource-Pfad).</p></div></div></div></div>
                   </div>
             </div>
           </div>
