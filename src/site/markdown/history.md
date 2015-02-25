@@ -25,4 +25,8 @@
     * More updates to documentation
     * Customization of names of many generated source elements
     * Improved handling of CloneNotSupportedException in clone, copy, and fluent-builder plugins
+* **1.5.3**:
+	* Added maven "site" hosted on github pages
+	* Improvements to javadoc comment generation
+	* Improvements to documentation
 

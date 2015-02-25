@@ -1,6 +1,6 @@
 ### How to get it
 
-Current Version: 1.5.2
+Current Version: 1.5.3
 
 [Full documentation on GitHub](http://mklemm.github.io/jaxb2-rich-contract-plugin)
 
