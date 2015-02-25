@@ -11,7 +11,7 @@
 	<parent>
 		<groupId>com.klemm-scs.util</groupId>
 		<artifactId>jaxb-plugin-parent</artifactId>
-		<version>1.0.2-SNAPSHOT</version>
+		<version>1.0.2</version>
 	</parent>
 
 	<name>JAXB XJC extended contract generation plugin</name>
@@ -29,7 +29,7 @@
 	<scm>
 		<connection>scm:git:https://github.com/mklemm/jaxb2-rich-contract-plugin.git</connection>
 		<developerConnection>scm:git:https://github.com/mklemm/jaxb2-rich-contract-plugin.git</developerConnection>
-		<url>https://github.com/mklemm/jaxb2-rich-contract-plugin.git</url>
+		<url>http://mklemm.github.io/jaxb2-rich-contract-plugin</url>
 		<tag>HEAD</tag>
 	</scm>
 
@@ -55,6 +55,10 @@
 						<argument>README.md</argument>
 					</arguments>
 				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>com.github.github</groupId>
+				<artifactId>site-maven-plugin</artifactId>
 			</plugin>
 		</plugins>
 	</build>

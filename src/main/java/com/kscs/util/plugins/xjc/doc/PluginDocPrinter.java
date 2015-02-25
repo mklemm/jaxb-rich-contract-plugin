@@ -85,7 +85,7 @@ public class PluginDocPrinter {
 	}
 
 	private static void printReadme(final Path directory, final PrintStream p) throws IOException {
-		for (final String filename : Arrays.asList("overview", "getting", "history", "usage")) {
+		for (final String filename : Arrays.asList("index", "getting", "history", "usage")) {
 			final Path path = directory.resolve(filename + ".md");
 			for (final String line : Files.readAllLines(path, Charset.forName("UTF-8"))) {
 				p.println(line);
