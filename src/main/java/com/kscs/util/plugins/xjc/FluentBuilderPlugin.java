@@ -67,8 +67,6 @@ public class FluentBuilderPlugin extends AbstractPlugin {
 		return "Xfluent-builder";
 	}
 
-
-
 	@Override
 	public boolean run(final Outline outline, final Options opt, final ErrorHandler errorHandler) throws SAXException {
 		final Map<String, BuilderOutline> builderClasses = new LinkedHashMap<>(outline.getClasses().size());

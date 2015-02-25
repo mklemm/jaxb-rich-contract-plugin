@@ -24,58 +24,9 @@
 
 package com.kscs.util.plugins.xjc.base;
 
-import com.kscs.util.plugins.xjc.BoundPropertiesPlugin;
-import com.kscs.util.plugins.xjc.DeepClonePlugin;
-import com.kscs.util.plugins.xjc.DeepCopyPlugin;
-import com.kscs.util.plugins.xjc.FluentBuilderPlugin;
-import com.kscs.util.plugins.xjc.GroupInterfacePlugin;
-import com.kscs.util.plugins.xjc.ImmutablePlugin;
-import com.kscs.util.plugins.xjc.MetaPlugin;
-import org.junit.Test;
-
 /**
  * @author Mirko Klemm 2015-02-15
  */
 public class AbstractPluginTest {
-	@Test
-		public void testPluginUsageFluentBuilder() {
-			final FluentBuilderPlugin plugin = new FluentBuilderPlugin();
-			plugin.printInvocation(System.out, 6);
-		}
 
-		@Test
-		public void testPluginUsageImmutable() {
-			final ImmutablePlugin plugin = new ImmutablePlugin();
-			plugin.printInvocation(System.out, 6);
-		}
-
-		@Test
-		public void testPluginUsageGroupContract() {
-			final GroupInterfacePlugin plugin = new GroupInterfacePlugin();
-			plugin.printInvocation(System.out, 6);
-		}
-
-		@Test
-		public void testPluginUsageDeepClone() {
-			final DeepClonePlugin plugin = new DeepClonePlugin();
-			plugin.printInvocation(System.out, 6);
-		}
-
-		@Test
-		public void testPluginUsageDeepCopy() {
-			final DeepCopyPlugin plugin = new DeepCopyPlugin();
-			plugin.printInvocation(System.out, 6);
-		}
-
-		@Test
-		public void testPluginUsageBoundProperties() {
-			final BoundPropertiesPlugin plugin = new BoundPropertiesPlugin();
-			plugin.printInvocation(System.out, 6);
-		}
-
-		@Test
-		public void testPluginUsageMeta() {
-			final MetaPlugin plugin = new MetaPlugin();
-			plugin.printInvocation(System.out, 6);
-		}
 }

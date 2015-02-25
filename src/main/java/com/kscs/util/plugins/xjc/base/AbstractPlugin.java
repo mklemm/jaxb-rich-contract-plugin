@@ -25,7 +25,6 @@
 package com.kscs.util.plugins.xjc.base;
 
 import java.io.IOException;
-import java.io.PrintStream;
 import java.lang.reflect.Field;
 import java.text.MessageFormat;
 import java.util.ArrayList;
@@ -34,8 +33,6 @@ import java.util.ResourceBundle;
 import com.sun.tools.xjc.BadCommandLineException;
 import com.sun.tools.xjc.Options;
 import com.sun.tools.xjc.Plugin;
-import org.w3c.dom.Document;
-import org.w3c.dom.Node;
 
 /**
  * Common base class for plugins, manages command line parsing,
@@ -44,11 +41,12 @@ import org.w3c.dom.Node;
  * @author Mirko Klemm 2015-02-07
  */
 public abstract class AbstractPlugin extends Plugin {
-	private final ResourceBundle baseResourceBundle = ResourceBundle.getBundle(AbstractPlugin.class.getName());
+	private final ResourceBundle baseResourceBundle;
 	private final ResourceBundle resourceBundle;
 	private final List<Option<?>> options;
 
 	protected AbstractPlugin() {
+		this.baseResourceBundle = ResourceBundle.getBundle(AbstractPlugin.class.getName());
 		this.resourceBundle = ResourceBundle.getBundle(getClass().getName());
 		this.options = buildOptions(this, getClass());
 	}
@@ -71,17 +69,6 @@ public abstract class AbstractPlugin extends Plugin {
 		return options;
 	}
 
-	private static String arg(final String s) {
-		return "&lt;<span class=\"pl-ent\">arg</span>&gt;-" + s + "&lt;/<span class=\"pl-ent\">arg</span>&gt;";
-	}
-
-	private static String tab(final int tabAmount) {
-		final StringBuilder sb = new StringBuilder();
-		for (int i = 0; i < tabAmount; i++) {
-			sb.append("\t");
-		}
-		return sb.toString();
-	}
 
 	@Override
 	public int parseArgument(final Options opt, final String[] args, final int i) throws BadCommandLineException, IOException {
@@ -124,23 +111,6 @@ public abstract class AbstractPlugin extends Plugin {
 		return pluginUsageBuilder.build();
 	}
 
-	public Document getUsageHtml(final Node parent) {
-		final HtmlUsageBuilder pluginUsageBuilder = new HtmlUsageBuilder(this.baseResourceBundle, this.resourceBundle);
-		pluginUsageBuilder.addMain(getOptionName().substring(1));
-		for (final Option<?> option : this.options) {
-			pluginUsageBuilder.addOption(option);
-		}
-		return pluginUsageBuilder.build(parent);
-	}
-
-	public void printInvocation(final PrintStream w, final int tabAmount) {
-		w.print(tab(tabAmount));
-		w.println(arg(getOptionName()));
-		for (final Option option : this.options) {
-			w.print(tab(tabAmount + 1));
-			w.println(arg(option.getName() + "=" + option.getStringValue()));
-		}
-	}
 
 	protected String getMessage(final String key, final Object... args) {
 		return MessageFormat.format(this.resourceBundle.getString(key), args);
@@ -148,5 +118,9 @@ public abstract class AbstractPlugin extends Plugin {
 
 	protected String getMessage(final String key) {
 		return this.resourceBundle.getString(key);
+	}
+
+	public List<Option<?>> getOptions() {
+		return this.options;
 	}
 }

@@ -6,16 +6,19 @@
 		<version>1.3.1</version>
 	</skin>
 	<body>
-		<menu name="Project Info">
-			<item name="Overview" href="description.html"/>
+		<menu name="Getting Started">
+			<item name="Overview" href="overview.html"/>
+			<item name="Download" href="getting.html"/>
+			<item name="Version History" href="history.html"/>
+			<item name="Usage" href="usage.html"/>
 		</menu>
 		<menu name="XJC Plugin Options">
-			<item name="fluent-builder" href="plugin-usage_en.html#fluent-builder"/>
-			<item name="group-contract" href="plugin-usage_en.html#group-contract"/>
-			<item name="clone" href="plugin-usage_en.html#clone"/>
-			<item name="copy" href="plugin-usage_en.html#copy"/>
-			<item name="constrained-properties" href="plugin-usage_en.html#constrained-properties"/>
-			<item name="meta" href="plugin-usage_en.html#meta"/>
+			<item name="fluent-builder" href="fluent-builder.html"/>
+			<item name="group-contract" href="group-contract.html"/>
+			<item name="clone" href="clone.html"/>
+			<item name="copy" href="copy.html"/>
+			<item name="constrained-properties" href="constrained-properties.html"/>
+			<item name="meta" href="meta.html"/>
 		</menu>
 		<menu ref="modules"/>
 		<menu ref="reports"/>

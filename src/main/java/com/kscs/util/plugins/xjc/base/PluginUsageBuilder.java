@@ -24,6 +24,10 @@
 package com.kscs.util.plugins.xjc.base;
 
 import java.util.ResourceBundle;
+import java.util.SortedSet;
+import java.util.TreeSet;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * Generates a formatted output of plugin usage information
@@ -31,12 +35,13 @@ import java.util.ResourceBundle;
  * @author mirko 2014-04-03
  */
 public abstract class PluginUsageBuilder {
+	protected static Pattern TITLE_PATTERN = Pattern.compile("doc\\.(\\d)\\.title\\.(\\w+)");
 	protected final ResourceBundle baseResourceBundle;
 	protected final ResourceBundle resourceBundle;
 	protected final String keyBase;
 	protected boolean firstOption = true;
 
-	public PluginUsageBuilder(final ResourceBundle baseResourceBundle, final ResourceBundle resourceBundle) {
+	protected PluginUsageBuilder(final ResourceBundle baseResourceBundle, final ResourceBundle resourceBundle) {
 		this.baseResourceBundle = baseResourceBundle;
 		this.resourceBundle = resourceBundle;
 		this.keyBase = "usage";
@@ -60,5 +65,38 @@ public abstract class PluginUsageBuilder {
 		return sb.toString();
 	}
 
+	protected SortedSet<Section> getSections() {
+		final SortedSet<Section> sections = new TreeSet<>();
+		for(final String titleKey : this.baseResourceBundle.keySet()) {
+			final Matcher matcher = PluginUsageBuilder.TITLE_PATTERN.matcher(titleKey);
+			if(matcher.matches()) {
+				final int index = Integer.parseInt(matcher.group(1));
+				final String sectionName = matcher.group(2);
+				final String title = this.baseResourceBundle.getString(titleKey);
+				final String bodyKey = "doc." + sectionName;
+				if(!title.isEmpty() &&this.resourceBundle.containsKey(bodyKey)) {
+					sections.add(new Section(index, title,  this.resourceBundle.getString(bodyKey)));
+				}
+			}
+		}
+		return sections;
+	}
+
+	protected class Section implements Comparable<Section> {
+		protected final int index;
+		protected final String title;
+		protected final String body;
+
+		public Section(final int index, final String title, final String body) {
+			this.index = index;
+			this.title = title;
+			this.body = body;
+		}
+
+		@Override
+		public int compareTo(final Section o) {
+			return this.index > o.index ? 1 : (this.index == o.index ? 0 : -1);
+		}
+	}
 
 }
