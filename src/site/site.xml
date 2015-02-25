@@ -7,7 +7,7 @@
 	</skin>
 	<body>
 		<menu name="Getting Started">
-			<item name="Overview" href="overview.html"/>
+			<item name="Overview" href="index.html"/>
 			<item name="Download" href="getting.html"/>
 			<item name="Version History" href="history.html"/>
 			<item name="Usage" href="usage.html"/>

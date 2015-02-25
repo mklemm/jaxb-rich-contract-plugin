@@ -82,8 +82,8 @@ You should add "maven-jaxb2-plugin" to your `<build>` configuration. Then add "j
     <build>
         <plugins>
             <plugin>
-                <groupid>org.jvnet.jaxb2.maven2</groupid>
-                <artifactid>maven-jaxb2-plugin</artifactid>
+                <groupId>org.jvnet.jaxb2.maven2</groupId>
+                <artifactId>maven-jaxb2-plugin</artifactId>
                 <version>0.11.0</version>
                 <executions>
                     <execution>
@@ -95,13 +95,13 @@ You should add "maven-jaxb2-plugin" to your `<build>` configuration. Then add "j
                     </execution>
                 </executions>
                 <configuration>
-                    <schemaincludes>
-                        <schemainclude>**/*.xsd</schemainclude>
-                    </schemaincludes>
+                    <schemaIncludes>
+                        <schemaInclude>**/*.xsd</schemaInclude>
+                    </schemaIncludes>
                     <strict>true</strict>
                     <verbose>true</verbose>
                     <extension>true</extension>
-                    <removeoldoutput>true</removeoldoutput>
+                    <removeOldOutput>true</removeOldOutput>
                     <args>
                         <arg>-Xclone</arg>
                             <arg>-cloneThrows=y</arg>
@@ -140,8 +140,8 @@ You should add "maven-jaxb2-plugin" to your `<build>` configuration. Then add "j
                     </args>
                     <plugins>
                         <plugin>
-                            <groupid>com.klemm-scs.util</groupid>
-                            <artifactid>jaxb2-rich-contract-plugin</artifactid>
+                            <groupId>com.klemm-scs.util</groupId>
+                            <artifactId>jaxb2-rich-contract-plugin</artifactId>
                             <version>1.5.2</version>
                         </plugin>
                     </plugins>
@@ -149,18 +149,18 @@ You should add "maven-jaxb2-plugin" to your `<build>` configuration. Then add "j
                         <!-- Put this in if your default JAXB version is 2.1 or lower,
                         or if &quot;tools.jar&quot; isn't in your classpath -->
                         <dependency>
-                            <groupid>org.glassfish.jaxb</groupid>
-                            <artifactid>jaxb-runtime</artifactid>
+                            <groupId>org.glassfish.jaxb</groupId>
+                            <artifactId>jaxb-runtime</artifactId>
                             <version>2.2.11</version>
                         </dependency>
                         <dependency>
-                            <groupid>org.glassfish.jaxb</groupid>
-                            <artifactid>jaxb-core</artifactid>
+                            <groupId>org.glassfish.jaxb</groupId>
+                            <artifactId>jaxb-core</artifactId>
                             <version>2.2.11</version>
                         </dependency>
                         <dependency>
-                            <groupid>org.glassfish.jaxb</groupid>
-                            <artifactid>jaxb-xjc</artifactid>
+                            <groupId>org.glassfish.jaxb</groupId>
+                            <artifactId>jaxb-xjc</artifactId>
                             <version>2.2.11</version>
                         </dependency>
                     </dependencies>
@@ -171,7 +171,7 @@ You should add "maven-jaxb2-plugin" to your `<build>` configuration. Then add "j
 ```
 Note: the `<extension/>` flag must be set to "true" in order to make XJC accept any extensions at all.
 
-Note: jaxb2-rich-contract-plugin implements JAXB and XJC APIs version 2.2. You most likely will have to add the dependencies to these libraries to your classpath effective at XJC runtime. See the `dependencies` element above on how to do this.
+Note: jaxb2-rich-contract-plugin implements JAXB and XJC APIs version 2.2. You most likely will have to add the dependencies to these libraries to your classpath effective at XJC runtime. See the `<dependencies>` element above on how to do this.
 
 
 ## fluent-builder
