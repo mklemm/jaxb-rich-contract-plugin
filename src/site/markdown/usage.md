@@ -109,3 +109,4 @@ Note: the `<extension/>` flag must be set to "true" in order to make XJC accept 
 
 Note: jaxb2-rich-contract-plugin implements JAXB and XJC APIs version 2.2. You most likely will have to add the dependencies to these libraries to your classpath effective at XJC runtime. See the `dependencies` element above on how to do this.
 
+

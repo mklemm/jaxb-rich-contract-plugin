@@ -14,7 +14,11 @@ This module is a collection of several plugins for the JAXB2 (Java API for XML b
 6. **[fluent-builder](fluent-builder.html)**: Generates a builder class for every class generated. Builders are implemented as inner classes, static methods are provided for a fluent builder pattern in the form `MyClass.builder().withPropertyA(...).withPropertyB(...).build()`. Builders also contain "copy..." methods to initialize the builder from another instance. Partial copying is also supported in the same way as in **clone**. This is particularly useful together with `-Ximmutable` (see above), but not usable together with `-Xconstrained-properties` (see below).
 7. **[meta](meta.html)**: Generates a nested class representing a static metamodel of the generated classes. In the "enhanced" version, this contains information about the type and the XSD element from which the property was generated, in "simple" mode, there are only constants for the property names.
 
+### How to get it
+
 Current Version: 1.5.2
+
+[Full documentation on GitHub](http://mklemm.github.io/jaxb2-rich-contract-plugin)
 
 [Get the source on GitHub](https://github.com/mklemm/jaxb2-rich-contract-plugin)
 
@@ -57,6 +61,7 @@ Get it with Maven (Now hosted on maven central):
     * More updates to documentation
     * Customization of names of many generated source elements
     * Improved handling of CloneNotSupportedException in clone, copy, and fluent-builder plugins
+
 ###  Usage
 
 ####  General
@@ -168,6 +173,7 @@ Note: the `<extension/>` flag must be set to "true" in order to make XJC accept 
 
 Note: jaxb2-rich-contract-plugin implements JAXB and XJC APIs version 2.2. You most likely will have to add the dependencies to these libraries to your classpath effective at XJC runtime. See the `dependencies` element above on how to do this.
 
+
 ## fluent-builder
 ### Motivation
 There already is the widely used "fluent-api" plugin for XJC. That, however isn't a real builder pattern since there is no strict programmatic distinction between initialization and state change in fluent-api.
@@ -181,20 +187,20 @@ If the "immutable" plugin is also activated, publicly exposed collections will b
 
 Example use in code:
 
-ttMyElement newElement = MyElement.builder().withPropertyA(...).withPropertyB(...).addCollectionPropertyA(...).build();
+		MyElement newElement = MyElement.builder().withPropertyA(...).withPropertyB(...).addCollectionPropertyA(...).build();
 
 In addition, new instances can be created as copies of existing instances using the builder, with an optional modification by other builder methods:
 
-ttMyElement newElement = MyElement.copyOf(oldElement).withPropertyA(...).withPropertyB(...).build();
+		MyElement newElement = MyElement.copyOf(oldElement).withPropertyA(...).withPropertyB(...).build();
 
 The "partial" copy introduced in the "clone" plugin will work here as well:
 
-ttPropertyTree selection = MyElement.Select.root().propertyA().propertyAB().build();
-ttMyElement newElement = MyElement.copyExcept(oldElement, selection).withPropertyA(...).withPropertyB(...).build();
+		PropertyTree selection = MyElement.Select.root().propertyA().propertyAB().build();
+		MyElement newElement = MyElement.copyExcept(oldElement, selection).withPropertyA(...).withPropertyB(...).build();
 
 Often, properties of generated classes represent containment or references to generated classes in the same model. The fluent-builder plugin lets you initialise properties of such a type - if it isn't an abstract type - by using sub-builders ("chained" builders) in the following way, given that both A and B are types defined in the XSD model, and A has a property of type B, and B has three properties of type String, x,y, and z:
 
-ttA newA = A.builder().withB().withX("x").withY("y").withZ("z").end().build();
+		A newA = A.builder().withB().withX("x").withY("y").withZ("z").end().build();
 
 Of course, this plugin is most useful if `immutable` is also activated.
 

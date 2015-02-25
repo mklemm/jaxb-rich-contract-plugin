@@ -25,3 +25,4 @@
     * More updates to documentation
     * Customization of names of many generated source elements
     * Improved handling of CloneNotSupportedException in clone, copy, and fluent-builder plugins
+
