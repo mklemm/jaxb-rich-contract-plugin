@@ -24,7 +24,9 @@
 
 package com.kscs.util.plugins.xjc;
 
+import java.util.Iterator;
 import com.kscs.util.plugins.xjc.base.AbstractPlugin;
+import com.kscs.util.plugins.xjc.base.Opt;
 import com.kscs.util.plugins.xjc.base.PluginUtil;
 import com.kscs.util.plugins.xjc.base.PropertyOutline;
 import com.sun.codemodel.JBlock;
@@ -48,6 +50,8 @@ import org.xml.sax.SAXException;
  * XJC Plugin to make generated classes immutable
  */
 public class ImmutablePlugin extends AbstractPlugin {
+	@Opt
+	private String constructorAccess = "public";
 
 	@Override
 	public String getOptionName() {
@@ -79,6 +83,25 @@ public class ImmutablePlugin extends AbstractPlugin {
 					final JMethod setterMethod = definedClass.getMethod(setterName, new JType[]{fieldOutline.getRawType()});
 					if (setterMethod != null) {
 						setterMethod.mods().setProtected();
+					}
+				}
+				if(!"public".equalsIgnoreCase(this.constructorAccess)) {
+					final Iterator<JMethod> constructors = definedClass.constructors();
+					if(!constructors.hasNext()) {
+						// generate protected/private no-arg constructor
+						final JMethod constructor = definedClass.constructor("private".equalsIgnoreCase(this.constructorAccess) ? JMod.PRIVATE : JMod.PROTECTED);
+						constructor.javadoc().append(getMessage("comment.constructor"));
+						constructor.body().directStatement("// " + getMessage("comment.constructor"));
+					}
+					while(constructors.hasNext()) {
+						final JMethod constructor = constructors.next();
+						if(constructor.params().isEmpty() && (constructor.mods().getValue() & JMod.PUBLIC) == JMod.PUBLIC) {
+							if ("private".equals(this.constructorAccess.toLowerCase())) {
+								constructor.mods().setPrivate();
+							} else {
+								constructor.mods().setProtected();
+							}
+						}
 					}
 				}
 			}

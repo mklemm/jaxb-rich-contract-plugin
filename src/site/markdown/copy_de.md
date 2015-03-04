@@ -57,7 +57,7 @@ Erzeugt einen Copy-Konstruktor für jede generierte Klasse des XSD-Modells.
 
 
 ##### -narrow=`{y|n}` (n)
-Für untergeordnete Knoten im zu kopierenden Objektbaum werden ebenfalls die Copy-Konstruktoren der deklarierten Typen verwendet. soweit diese vorhanden sind und die Typen der entsprechenden Instanzen ebenfalls aus dem XSD-Model generierte Klassen sind. Dies erzeugt eine möglichst "schmale" Kopie des Ausgangsobjekts, was in bestimmten Fällen nützlich sein kann. Ein Unterknoten, dessen Typ nicht im aktuellen XSD-Modell deklariert ist, wird immer wie bei der 'createCopy()'-Methode kopiert. Ist diese Option "no", gilt dies auch für generierte Typen. Standard: no.
+Für untergeordnete Knoten im zu kopierenden Objektbaum werden ebenfalls die Copy-Konstruktoren der deklarierten Typen verwendet, soweit diese vorhanden sind und die Typen der entsprechenden Instanzen ebenfalls aus dem XSD-Model generierte Klassen sind. Dies erzeugt eine möglichst "schmale" Kopie des Ausgangsobjekts, was in bestimmten Fällen nützlich sein kann. Ein Unterknoten, dessen Typ nicht im aktuellen XSD-Modell deklariert ist, wird immer wie bei der 'createCopy()'-Methode kopiert. Ist diese Option "no", gilt dies auch für generierte Typen.
 
 
 ##### -selectorClassName=`<string>` (Selector)
@@ -65,6 +65,6 @@ Name der generierten inneren "Selector" Builder-Klasse, die intern zum Aufbau de
 
 
 ##### -rootSelectorClassName=`<string>` (Select)
-Name der generierten inneren "Select" -Klasse, die vom aufrufenden Code als Einstieg in den Aufbau eines Property-Baumes für das partielle Kopieren verwendet werden kann. Diese Einstellung gilt auch für das "Fluent Builder"-Plugin, wenn dieses zusätzlich aktiv ist und dort "copy-partial=y" eingestellt ist.
+Name der generierten inneren "Select" -Klasse, die vom aufrufenden Code als Einstieg in den Aufbau eines Property-Baumes für das partielle Kopieren verwendet werden kann. Diese Einstellung gilt auch für das "Fluent Builder"-Plugin, wenn dieses zusätzlich aktiv ist und dort "-copy-partial=y" eingestellt ist.
 
 
