@@ -41,7 +41,7 @@
                   <li id="publishDate">Last Published: 2015-03-04
                       <span class="divider">|</span>
                    </li>
-                  <li id="projectVersion">Version: 1.5.7-SNAPSHOT
+                  <li id="projectVersion">Version: 1.5.8-SNAPSHOT
                       </li>
                       
                 
@@ -170,23 +170,29 @@
 <p>Example use in code:</p>
 
 <div class="source">
-<pre>    MyElement newElement \= MyElement.builder().withPropertyA(...).withPropertyB(...).addCollectionPropertyA(...).build();\n\n\
+<pre>    MyElement newElement = MyElement.builder().withPropertyA(...).withPropertyB(...).addCollectionPropertyA(...).build();
 </pre></div>
 <p>In addition, new instances can be created as copies of existing instances using the builder, with an optional modification by other builder methods:</p>
 
 <div class="source">
-<pre>    MyElement newElement \= MyElement.copyOf(oldElement).withPropertyA(...).withPropertyB(...).build();\n\n\
+<pre>    MyElement newElement = MyElement.copyOf(oldElement).withPropertyA(...).withPropertyB(...).build();
+</pre></div>
+<p>Or, similar to the java <tt>clone()</tt> method, creating a runtime copy of a reference:</p>
+
+<div class="source">
+<pre>    MyObj myObj = oldObj.newCopyBuilder().with... .build();
 </pre></div>
 <p>The &#x201c;partial&#x201d; copy introduced in the &#x201c;copy&#x201d; plugin will work here as well:</p>
 
 <div class="source">
-<pre>    PropertyTree selection \= MyElement.Select.root().propertyA().propertyAB().build();
-    MyElement newElement \= MyElement.copyExcept(oldElement, selection).withPropertyA(...).withPropertyB(...).build();
+<pre>    PropertyTree selection = MyElement.Select.root().propertyA().propertyAB().build();
+    MyElement newElement = MyElement.copyExcept(oldElement, selection).withPropertyA(...).withPropertyB(...).build();
+    MyObj myObj = oldObj.newCopyBuilder(selection, PropertyTreeUse.EXCLUDE).with.... .build();
 </pre></div>
 <p>Often, properties of generated classes represent containment or references to generated classes in the same model. The fluent-builder plugin lets you initialise properties of such a type (and of types declared in upstream modules via the &#x201c;episode&#x201d; feature) - if it isn&#x2019;t an abstract type - by using sub-builders (&#x201c;chained&#x201d; builders) in the following way, given that both A and B are types defined in the XSD model, and A has a property of type B, and B has three properties of type String, x,y, and z:</p>
 
 <div class="source">
-<pre>    A newA \= A.builder().withB().withX(&quot;x&quot;).withY(&quot;y&quot;).withZ(&quot;z&quot;).end().build();\n\n\
+<pre>    A newA = A.builder().withB().withX(&quot;x&quot;).withY(&quot;y&quot;).withZ(&quot;z&quot;).end().build();
 </pre></div>
 <p>Of course, this plugin is most useful if <tt>immutable</tt> is also activated.</p></div>
 <div class="section">
