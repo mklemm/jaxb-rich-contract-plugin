@@ -511,7 +511,7 @@ class BuilderGenerator {
 		final PartialCopyGenerator cloneGenerator = new PartialCopyGenerator(this.apiConstructs, constructor);
 
 		if (this.classOutline.getSuperClass() != null) {
-			constructor.body().invoke("super").arg(parentBuilderParam).arg(otherParam).arg(copyParam);
+			constructor.body().invoke("super").arg(parentBuilderParam).arg(otherParam).arg(copyParam).arg(cloneGenerator.getPropertyTreeParam()).arg(cloneGenerator.getIncludeParam());
 		} else {
 			constructor.body().assign(JExpr._this().ref(this.parentBuilderField), parentBuilderParam);
 		}

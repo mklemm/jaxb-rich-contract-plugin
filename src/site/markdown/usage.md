@@ -54,6 +54,7 @@ You should add "maven-jaxb2-plugin" to your `<build>` configuration. Then add "j
                             <arg>-rootSelectorClassName=Select</arg>
                             <arg>-builderClassName=Builder</arg>
                             <arg>-newBuilderMethodName=builder</arg>
+                            <arg>-newCopyBuilderMethodName=newCopyBuilder</arg>
                         <arg>-Xcopy</arg>
                             <arg>-partial=y</arg>
                             <arg>-generateTools=y</arg>
@@ -72,13 +73,14 @@ You should add "maven-jaxb2-plugin" to your `<build>` configuration. Then add "j
                             <arg>-camelCase=n</arg>
                             <arg>-metaClassName=PropInfo</arg>
                         <arg>-Ximmutable</arg>
+                            <arg>-constructorAccess=public</arg>
                         <arg>...</arg>
                     </args>
                     <plugins>
                         <plugin>
                             <groupId>net.codesup.util</groupId>
                             <artifactId>jaxb2-rich-contract-plugin</artifactId>
-                            <version>1.5.4</version>
+                            <version>1.5.7</version>
                         </plugin>
                     </plugins>
                     <dependencies>

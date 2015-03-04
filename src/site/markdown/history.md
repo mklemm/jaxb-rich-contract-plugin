@@ -32,3 +32,10 @@
 * **1.5.4**:
 	* Updates to generated documentation
 	* changed groupId to net.codesup.util
+* **1.5.5**:
+	* immutable plugin: Added command line option to specify access level of default constructor
+* **1.5.6**:
+	* Added instance "newCopyBuilder" method generation
+* **1.5.7**:
+	* Fixed bug where partial copying in a builder didn't work
+
