@@ -39,11 +39,9 @@ import javax.xml.xpath.XPathFactory;
 import java.io.Reader;
 import java.io.StringWriter;
 import java.net.URL;
-import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.ResourceBundle;
 import com.kscs.util.plugins.xjc.base.AbstractPlugin;
 import com.kscs.util.plugins.xjc.base.MappingNamespaceContext;
 import com.kscs.util.plugins.xjc.base.Namespaces;
@@ -65,7 +63,6 @@ import org.xml.sax.SAXException;
  * these declarations implement the generated interface.
  */
 public class GroupInterfacePlugin extends AbstractPlugin {
-	private static final ResourceBundle RESOURCE_BUNDLE = ResourceBundle.getBundle(GroupInterfacePlugin.class.getName());
 	private static final XPathFactory X_PATH_FACTORY = XPathFactory.newInstance();
 	@Opt
 	private boolean declareSetters = true;
@@ -142,7 +139,7 @@ public class GroupInterfacePlugin extends AbstractPlugin {
 	 * @param opts Options given to XJC
 	 * @throws BadCommandLineException
 	 */
-	private static void generateDummyGroupUsages(final Options opts) throws BadCommandLineException {
+	private void generateDummyGroupUsages(final Options opts) throws BadCommandLineException {
 		try {
 			final Transformer transformer = GroupInterfacePlugin.TRANSFORMER_FACTORY.newTransformer();
 			final XPath xPath = GroupInterfacePlugin.X_PATH_FACTORY.newXPath();
@@ -183,7 +180,7 @@ public class GroupInterfacePlugin extends AbstractPlugin {
 				opts.addGrammar(newGrammar);
 			}
 		} catch(final Exception e) {
-			throw new BadCommandLineException(MessageFormat.format(GroupInterfacePlugin.RESOURCE_BUNDLE.getString("error.plugin-setup"), e));
+			throw new BadCommandLineException(getMessage("error.plugin-setup", e));
 		}
 	}
 

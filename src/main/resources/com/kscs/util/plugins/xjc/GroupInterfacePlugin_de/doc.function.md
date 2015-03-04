@@ -1,16 +1,3 @@
-## group-contract
-### Motivation
-In most object-oriented programming languages, there are constructs to define a "contract", that concrete implementations of complex
-types will implement. In Java, for example, there is the `interface`, in Scala there are "traits", and so on.
-The XML Schema Definition Language (XSD) in contrast, has no explicit construct to ensure a complex type meets a
-pre-defined contract. There are, however, the `group` and `attributeGroup` elements, that could be considered
-a way to achieve just that: A complexType that uses a `<group>` or an `<attributeGroup>` will expose the
-properties defined in these group definitions. Looking at it that way, you could say that the `complexType`
-"implements" the contract defined by the `group` or `attributeGroup`.
-
-
-
-### Function
 The group-contract plugin now tries to model that case in the generated source code. For every `group`and `attributeGroup`
 definition in the XSD model (or in any upstream XSD model that is included via the "episode" mechanism, for that matter),
 it generates an `interface` definition with all the getter, and optionally setter, methods of the properties defined via
@@ -66,30 +53,4 @@ However, due to the lack of extensibility of the current default episode data st
 has to manage its own "episode" file. There are two command line options to control the  names of the "upstream" episode
 file, i.e. the file name the plugin should look for when using other modules, and the "downstream" file, i.e. the file
 name that should be generated for use by other modules.
-
-
-
-### Bugs
-Currently none known
-
-### Aktivierung
-#### -Xgroup-contract
-
-#### Optionen
-
-##### -declareSetters=`{y|n}` (y)
-Auch die Setter-Methoden in den generierten Interfaces deklarieren. Wenn nein, werden nur Getter deklariert.
-
-
-##### -declareBuilderInterface=`{y|n}` (y)
-Wenn das "fluent builder plugin" (-Xfluent-builder) ebenfalls aktive ist, generiere auch Interfaces für die inneren Builder-Klassen.
-
-
-##### -upstreamEpisodeFile=`<string>` (/META-INF/jaxb-interfaces.episode)
-Suche die angegebene "episode"-Datei (Resource-Pfad), um Informationen über interfaces zu erhalten, die in Modulen definiert wurden, von denen dieses hier abhängig ist (siehe "-episode"-Mechanismus in der XJC-Dokumentation).
-
-
-##### -downstreamEpisodeFile=`<string>` (/META-INF/jaxb-interfaces.episode)
-Generiere "episode"-Datei für abhängige Module an der angegebene Stelle (Resource-Pfad).
-
 

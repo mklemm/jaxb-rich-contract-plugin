@@ -22,68 +22,33 @@
  * THE SOFTWARE.
  */
 
-body {
-    font-family: sans-serif;
-}
+package com.kscs.util.plugins.xjc.base;
 
-p {
-    margin-top: 0;
-    margin-left: 8pt;
-    margin-right: 8pt;
-}
+import java.io.IOException;
+import java.net.URI;
+import java.net.URL;
+import java.nio.file.FileSystem;
+import java.nio.file.FileSystems;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.Collections;
 
-h1:before {
-    color: gray;
-    content: "-X";
-}
-h1 {
-    font-weight: bold;
-    font-size: 18pt;
-    color: brown;
-    padding: 2pt;
-    margin-bottom: 0;
-}
+/**
+ * @author Mirko Klemm 2015-02-26
+ */
+public class ResourceDirectory {
 
-h2 {
-    font-weight: bold;
-    color: saddlebrown;
-    font-size: 12pt;
-    font-variant-caps: small-caps;
-    padding: 2pt;
-    margin-bottom: 0;
-}
-dl {
-    margin-top: 0;
-    margin-left: 10pt;
-    margin-right: 10pt;
-}
-dt {
-    color: peru;
-}
-
-dd {
-    padding-bottom: 8pt;
-}
-
-span.default {
-    width: 60%;
-    float: right;
-    text-align: right;
-    font-style: italic;
-}
-
-span.default:before {
-    color:gray;
-    font-style: normal;
-    content: '(default: "';
-}
-span.default:after {
-    color:gray;
-    font-style: normal;
-    content: '")';
-}
-
-span.choice {
-    font-style: italic;
-    color: coral;
+	public static Path fromResource(final ClassLoader loader, final String resourceDirPath) throws IOException {
+		final URL directoryURL = loader.getResource(resourceDirPath);
+		if(directoryURL == null) {
+			return null;
+		}
+		if("jar".equals(directoryURL.getProtocol())) {
+			final String[] parts = directoryURL.toString().split("!");
+			final FileSystem jarFS = FileSystems.newFileSystem(URI.create(parts[0]), Collections.<String,String>emptyMap());
+			return jarFS.getPath(parts[1]);
+		} else {
+			return Paths.get(directoryURL.getPath());
+		}
+	}
 }

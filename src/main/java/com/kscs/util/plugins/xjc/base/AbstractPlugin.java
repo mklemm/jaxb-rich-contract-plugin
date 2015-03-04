@@ -46,8 +46,8 @@ public abstract class AbstractPlugin extends Plugin {
 	private final List<Option<?>> options;
 
 	protected AbstractPlugin() {
-		this.baseResourceBundle = ResourceBundle.getBundle(AbstractPlugin.class.getName());
-		this.resourceBundle = ResourceBundle.getBundle(getClass().getName());
+		this.baseResourceBundle = PropertyDirectoryResourceBundle.getInstance(AbstractPlugin.class);
+		this.resourceBundle = PropertyDirectoryResourceBundle.getInstance(getClass());
 		this.options = buildOptions(this, getClass());
 	}
 

@@ -48,6 +48,7 @@ import com.kscs.util.plugins.xjc.base.AbstractPlugin;
 import com.kscs.util.plugins.xjc.base.HtmlUsageBuilder;
 import com.kscs.util.plugins.xjc.base.MarkdownPluginUsageBuilder;
 import com.kscs.util.plugins.xjc.base.Option;
+import com.kscs.util.plugins.xjc.base.PropertyDirectoryResourceBundle;
 import org.w3c.dom.Document;
 import org.w3c.dom.Node;
 
@@ -56,7 +57,7 @@ import org.w3c.dom.Node;
  */
 public class PluginDocPrinter {
 	public static final Pattern INDEX_PATTERN = Pattern.compile("^\\[\\d\\]: .*$");
-	public static final ResourceBundle RES = ResourceBundle.getBundle(PluginDocPrinter.class.getName());
+	public static final ResourceBundle RES = PropertyDirectoryResourceBundle.getInstance(PluginDocPrinter.class);
 	public static final java.util.List<AbstractPlugin> PLUGINS = Arrays.asList(
 			new FluentBuilderPlugin(),
 			new ImmutablePlugin(),
@@ -72,8 +73,8 @@ public class PluginDocPrinter {
 
 	protected PluginDocPrinter(final AbstractPlugin plugin, final Locale locale) {
 		this.plugin = plugin;
-		this.baseResourceBundle = ResourceBundle.getBundle(AbstractPlugin.class.getName(), locale);
-		this.resourceBundle = ResourceBundle.getBundle(plugin.getClass().getName(), locale);
+		this.baseResourceBundle = PropertyDirectoryResourceBundle.getInstance(AbstractPlugin.class, locale);
+		this.resourceBundle = PropertyDirectoryResourceBundle.getInstance(plugin.getClass(), locale);
 		this.locale = locale;
 	}
 
