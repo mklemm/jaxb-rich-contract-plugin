@@ -119,7 +119,12 @@ public class GroupInterfacePlugin extends AbstractPlugin {
 		if(this.generator == null) {
 			final URL interfaceEpisodeURL = getClass().getResource(this.upstreamEpisodeFile);
 			final EpisodeBuilder episodeBuilder = new EpisodeBuilder(apiConstructs, this.downstreamEpisodeFile);
-			this.generator = new GroupInterfaceGenerator(apiConstructs, interfaceEpisodeURL, episodeBuilder, this.declareSetters, this.declareBuilderInterface);
+			final FluentBuilderPlugin fluentBuilderPlugin = apiConstructs.findPlugin(FluentBuilderPlugin.class);
+			if(fluentBuilderPlugin != null) {
+				this.generator = new GroupInterfaceGenerator(apiConstructs, interfaceEpisodeURL, episodeBuilder, this.declareSetters, this.declareBuilderInterface, fluentBuilderPlugin.newBuilderMethodName, fluentBuilderPlugin.newCopyBuilderMethodName);
+			} else {
+				this.generator = new GroupInterfaceGenerator(apiConstructs, interfaceEpisodeURL, episodeBuilder, this.declareSetters, false, null, null);
+			}
 			this.generator.generateGroupInterfaceModel();
 			episodeBuilder.build();
 		}

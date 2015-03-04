@@ -132,13 +132,15 @@ class GroupInterfaceGenerator {
 	private final boolean cloneMethodThrows;
 	private final boolean needsCloneMethod;
 	private final boolean needsCopyMethod;
+	private final String newBuilderMethodName;
+	private final String newCopyBuilderMethodName;
 	private final Map<String, List<InterfaceOutline>> interfacesByClass = new HashMap<>();
 	private final EpisodeBuilder episodeBuilder;
 	private final URL upstreamEpisode;
 
 	private Map<QName, ReferencedInterfaceOutline> referencedInterfaces = null;
 
-	public GroupInterfaceGenerator(final ApiConstructs apiConstructs, final URL upstreamEpisode, final EpisodeBuilder episodeBuilder, final boolean declareSetters, final boolean declareBuilderInterface) {
+	public GroupInterfaceGenerator(final ApiConstructs apiConstructs, final URL upstreamEpisode, final EpisodeBuilder episodeBuilder, final boolean declareSetters, final boolean declareBuilderInterface, final String newBuilderMethodName, final String newCopyBuilderMethodName) {
 		this.apiConstructs = apiConstructs;
 		this.immutable = !declareSetters || this.apiConstructs.hasPlugin(ImmutablePlugin.class);
 
@@ -153,6 +155,8 @@ class GroupInterfaceGenerator {
 		this.needsCopyMethod = deepCopyPlugin != null;
 		this.upstreamEpisode = upstreamEpisode;
 		this.episodeBuilder = episodeBuilder;
+		this.newBuilderMethodName = newBuilderMethodName;
+		this.newCopyBuilderMethodName = newCopyBuilderMethodName;
 	}
 
 	private List<PropertyUse> findElementDecls(final XSModelGroupDecl modelGroup) {
@@ -358,7 +362,7 @@ class GroupInterfaceGenerator {
 			}
 
 			for (final BuilderOutline builderOutline : builderOutlines.values()) {
-				final BuilderGenerator builderGenerator = new BuilderGenerator(this.apiConstructs, builderOutlines, builderOutline, false, false);
+				final BuilderGenerator builderGenerator = new BuilderGenerator(this.apiConstructs, builderOutlines, builderOutline, false, false, this.newBuilderMethodName, this.newCopyBuilderMethodName);
 				builderGenerator.buildProperties();
 			}
 		}

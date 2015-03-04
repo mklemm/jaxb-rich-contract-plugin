@@ -60,7 +60,9 @@ public class FluentBuilderPlugin extends AbstractPlugin {
 	@Opt
 	private String builderClassName = ApiConstructs.BUILDER_CLASS_NAME;
 	@Opt
-	private String newBuilderMethodName = ApiConstructs.NEW_BUILDER_METHOD_NAME;
+	protected String newBuilderMethodName = ApiConstructs.NEW_BUILDER_METHOD_NAME;
+	@Opt
+	protected String newCopyBuilderMethodName = ApiConstructs.NEW_COPY_BUILDER_METHOD_NAME;
 
 	@Override
 	public String getOptionName() {
@@ -99,7 +101,7 @@ public class FluentBuilderPlugin extends AbstractPlugin {
 		}
 
 		for (final BuilderOutline builderOutline : builderClasses.values()) {
-			final BuilderGenerator builderGenerator = new BuilderGenerator(apiConstructs, builderClasses, builderOutline, this.copyPartial, this.narrow);
+			final BuilderGenerator builderGenerator = new BuilderGenerator(apiConstructs, builderClasses, builderOutline, this.copyPartial, this.narrow, this.newBuilderMethodName, this.newCopyBuilderMethodName);
 			builderGenerator.buildProperties();
 		}
 		return true;

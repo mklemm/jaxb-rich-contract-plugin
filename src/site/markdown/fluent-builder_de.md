@@ -69,3 +69,7 @@ Name der generierten inneren Builder-Klasse. Kann hier gesetzt werden, um Namens
 Name der generierten statischen Methode zum Erzeugen eines neuen Builders. Kann hier gesetzt werden, um Namenskonflikte zu lösen.
 
 
+##### -newCopyBuilderMethodName=`<string>` (newCopyBuilder)
+Name der generierten Instanzmethode zum Erzeugen eines neuen Builders, der mit dem von dieser Instanz kopierten Zustand initialisiert ist.
+
+

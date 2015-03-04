@@ -57,13 +57,17 @@ class BuilderGenerator {
 	private final boolean copyPartial;
 	private final boolean narrow;
 	private final boolean implement;
+	private final String newBuilderMethodName;
+	private final String newCopyBuilderMethodName;
 
 	private final String builderFieldSuffix = "Builder";
 
 	private final ResourceBundle resources;
 
-	BuilderGenerator(final ApiConstructs apiConstructs, final Map<String, BuilderOutline> builderOutlines, final BuilderOutline builderOutline, final boolean copyPartial, final boolean narrow) {
+	BuilderGenerator(final ApiConstructs apiConstructs, final Map<String, BuilderOutline> builderOutlines, final BuilderOutline builderOutline, final boolean copyPartial, final boolean narrow, final String newBuilderMethodName, final String newCopyBuilderMethodName) {
 		this.apiConstructs = apiConstructs;
+		this.newBuilderMethodName = newBuilderMethodName;
+		this.newCopyBuilderMethodName = newCopyBuilderMethodName;
 		this.builderOutlines = builderOutlines;
 		this.classOutline = builderOutline.getClassOutline();
 		this.definedClass = (JDefinedClass) this.classOutline.getImplClass();
@@ -375,7 +379,7 @@ class BuilderGenerator {
 	}
 
 	JMethod generateBuilderMethod() {
-		final JMethod builderMethod = this.definedClass.method(JMod.PUBLIC | JMod.STATIC, this.builderClass.narrow(Void.class), this.apiConstructs.newBuilderMethodName);
+		final JMethod builderMethod = this.definedClass.method(JMod.PUBLIC | JMod.STATIC, this.builderClass.narrow(Void.class), this.newBuilderMethodName);
 		builderMethod.body()._return(JExpr._new(this.builderClass.narrow(Void.class)).arg(JExpr._null()).arg(JExpr._null()).arg(JExpr.FALSE));
 
 		final JMethod copyOfMethod = this.definedClass.method(JMod.PUBLIC | JMod.STATIC, this.builderClass.narrow(Void.class), this.apiConstructs.buildCopyMethodName);
@@ -393,6 +397,19 @@ class BuilderGenerator {
 			generateConveniencePartialCopyMethod(partialCopyOfMethod, this.apiConstructs.copyOnlyMethodName, this.apiConstructs.includeConst);
 		}
 		return builderMethod;
+	}
+
+	JMethod generateCopyBuilderMethod() {
+		final JMethod copyBuilderMethod = this.definedClass.method(JMod.PUBLIC, this.builderClass.narrow(Void.class), this.newCopyBuilderMethodName);
+		copyBuilderMethod.body()._return(JExpr.invoke(this.apiConstructs.buildCopyMethodName).arg(JExpr._this()));
+
+		if (this.copyPartial) {
+			final JMethod partialCopyBuilderMethod = this.definedClass.method(JMod.PUBLIC, this.builderClass.narrow(Void.class), this.newCopyBuilderMethodName);
+			final JVar propertyPathParam = partialCopyBuilderMethod.param(JMod.FINAL, PropertyTree.class, "_propertyTree");
+			final JVar graphUseParam = partialCopyBuilderMethod.param(JMod.FINAL, PropertyTreeUse.class, "_propertyTreeUse");
+			partialCopyBuilderMethod.body()._return(JExpr.invoke(this.apiConstructs.buildCopyMethodName).arg(JExpr._this()).arg(propertyPathParam).arg(graphUseParam));
+		}
+		return copyBuilderMethod;
 	}
 
 	private JMethod generateConveniencePartialCopyMethod(final JMethod partialCopyOfMethod, final String methodName, final JExpression propertyTreeUseArg) {
@@ -606,6 +623,7 @@ class BuilderGenerator {
 		generateBuildMethod(initMethod);
 		if (this.implement && !this.definedClass.isAbstract()) {
 			generateBuilderMethod();
+			generateCopyBuilderMethod();
 		}
 
 	}

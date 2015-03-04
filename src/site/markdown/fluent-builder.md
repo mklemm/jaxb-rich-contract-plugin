@@ -69,3 +69,7 @@ Name of the generated nested builder class. Can be set to handle naming conflict
 Name of the generated static method to instantiate a new fluent builder. Can be set to handle naming conflicts.
 
 
+##### -newCopyBuilderMethodName=`<string>` (newCopyBuilder)
+Name of the generated instance method to instantiate a new fluent builder intitialized with a copy of the current instance.
+
+

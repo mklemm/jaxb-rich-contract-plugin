@@ -81,6 +81,7 @@ public class ApiConstructs {
 	public static final String COPY_ONLY_METHOD_NAME = "copyOnly";
 	public static final String BUILD_COPY_METHOD_NAME = "copyOf";
 	public static final String NEW_BUILDER_METHOD_NAME = "builder";
+	public static final String NEW_COPY_BUILDER_METHOD_NAME = "newCopyBuilder";
 	private static final String AS_LIST = "asList";
 	private static final String UNMODIFIABLE_LIST = "unmodifiableList";
 	public final JCodeModel codeModel;
@@ -107,6 +108,7 @@ public class ApiConstructs {
 	public final String copyOnlyMethodName;
 	public final String buildCopyMethodName;
 	public final String newBuilderMethodName;
+	public final String newCopyBuilderMethodName;
 	public final String newObjectVarName;
 	private final JClass collectionsClass;
 	private final JClass arraysClass;
@@ -149,6 +151,7 @@ public class ApiConstructs {
 		this.copyOnlyMethodName = ApiConstructs.COPY_ONLY_METHOD_NAME;
 		this.buildCopyMethodName = ApiConstructs.BUILD_COPY_METHOD_NAME;
 		this.newBuilderMethodName = ApiConstructs.NEW_BUILDER_METHOD_NAME;
+		this.newCopyBuilderMethodName = ApiConstructs.NEW_COPY_BUILDER_METHOD_NAME;
 		this.newObjectVarName = ApiConstructs.NEW_OBJECT_VAR_NAME;
 	}
 
