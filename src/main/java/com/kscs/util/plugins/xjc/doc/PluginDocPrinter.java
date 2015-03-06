@@ -154,6 +154,13 @@ public class PluginDocPrinter {
 		return pluginUsageBuilder.build();
 	}
 
+	public static void printMavenArgs() {
+		for(final AbstractPlugin plugin: PLUGINS) {
+			final PluginDocPrinter pluginDocPrinter = new PluginDocPrinter(plugin, Locale.getDefault());
+			pluginDocPrinter.printInvocation(System.out, 6);
+		}
+	}
+
 	public void printInvocation(final PrintStream w, final int tabAmount) {
 		w.print(tab(tabAmount));
 		w.println(arg(this.plugin.getOptionName()));

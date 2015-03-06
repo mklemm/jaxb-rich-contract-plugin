@@ -39,13 +39,6 @@ You should add "maven-jaxb2-plugin" to your `<build>` configuration. Then add "j
                     <extension>true</extension>
                     <removeOldOutput>true</removeOldOutput>
                     <args>
-                        <arg>-Xclone</arg>
-                            <arg>-cloneThrows=y</arg>
-                        <arg>-Xconstrained-properties</arg>
-                            <arg>-constrained=y</arg>
-                            <arg>-bound=y</arg>
-                            <arg>-setterThrows=n</arg>
-                            <arg>-generateTools=y</arg>
                         <arg>-Xfluent-builder</arg>
                             <arg>-generateTools=y</arg>
                             <arg>-narrow=n</arg>
@@ -55,6 +48,17 @@ You should add "maven-jaxb2-plugin" to your `<build>` configuration. Then add "j
                             <arg>-builderClassName=Builder</arg>
                             <arg>-newBuilderMethodName=builder</arg>
                             <arg>-newCopyBuilderMethodName=newCopyBuilder</arg>
+                            <arg>-builderFieldSuffix=_Builder</arg>
+                        <arg>-Ximmutable</arg>
+                            <arg>-constructorAccess=public</arg>
+                        <arg>-Xgroup-contract</arg>
+                            <arg>-declareSetters=y</arg>
+                            <arg>-declareBuilderInterface=y</arg>
+                            <arg>-upstreamEpisodeFile=/META-INF/jaxb-interfaces.episode</arg>
+                            <arg>-downstreamEpisodeFile=/META-INF/jaxb-interfaces.episode</arg>
+                            <arg>-omitTypeClash=y</arg>
+                        <arg>-Xclone</arg>
+                            <arg>-cloneThrows=y</arg>
                         <arg>-Xcopy</arg>
                             <arg>-partial=y</arg>
                             <arg>-generateTools=y</arg>
@@ -62,25 +66,23 @@ You should add "maven-jaxb2-plugin" to your `<build>` configuration. Then add "j
                             <arg>-narrow=n</arg>
                             <arg>-selectorClassName=Selector</arg>
                             <arg>-rootSelectorClassName=Select</arg>
-                        <arg>-Xgroup-contract</arg>
-                            <arg>-declareSetters=y</arg>
-                            <arg>-declareBuilderInterface=y</arg>
-                            <arg>-upstreamEpisodeFile=/META-INF/jaxb-interfaces.episode</arg>
-                            <arg>-downstreamEpisodeFile=/META-INF/jaxb-interfaces.episode</arg>
+                        <arg>-Xconstrained-properties</arg>
+                            <arg>-constrained=y</arg>
+                            <arg>-bound=y</arg>
+                            <arg>-setterThrows=n</arg>
+                            <arg>-generateTools=y</arg>
                         <arg>-Xmeta</arg>
                             <arg>-generateTools=y</arg>
                             <arg>-extended=n</arg>
                             <arg>-camelCase=n</arg>
                             <arg>-metaClassName=PropInfo</arg>
-                        <arg>-Ximmutable</arg>
-                            <arg>-constructorAccess=public</arg>
                         <arg>...</arg>
                     </args>
                     <plugins>
                         <plugin>
                             <groupId>net.codesup.util</groupId>
                             <artifactId>jaxb2-rich-contract-plugin</artifactId>
-                            <version>1.5.7</version>
+                            <version>1.5.8</version>
                         </plugin>
                     </plugins>
                     <dependencies>

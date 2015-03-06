@@ -38,4 +38,8 @@
 	* Added instance "newCopyBuilder" method generation
 * **1.5.7**:
 	* Fixed bug where partial copying in a builder didn't work
+* **1.5.8**:
+	* Bugfix: When generating builder interface, not all superinterfaces were declared in the "extends" clause.
+	* Added command-line option to configure whether methods that could cause type clashes should be ommitted.
+	* Added command-line option to configure suffix for instance fields of a builder holding sub-builders
 
