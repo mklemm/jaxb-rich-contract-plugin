@@ -93,3 +93,7 @@ Suche die angegebene "episode"-Datei (Resource-Pfad), um Informationen über int
 Generiere "episode"-Datei für abhängige Module an der angegebene Stelle (Resource-Pfad).
 
 
+##### -omitTypeClash=`{y|n}` (y)
+Methoden, die zu Typkonflikten führen können, wenn zwei oder mehr interfaces aus diesem Generat gleichzeitig(mit "&") als Grenzen generischer Typparameter verwendet werden, werden aus der Interface-Deklaration ausgelassen.
+
+

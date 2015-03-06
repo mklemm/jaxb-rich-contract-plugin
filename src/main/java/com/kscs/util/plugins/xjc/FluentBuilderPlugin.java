@@ -26,7 +26,6 @@ package com.kscs.util.plugins.xjc;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
-import com.kscs.util.jaxb.BuilderUtilities;
 import com.kscs.util.jaxb.PropertyTree;
 import com.kscs.util.jaxb.PropertyTreeUse;
 import com.kscs.util.jaxb.Selector;
@@ -63,6 +62,8 @@ public class FluentBuilderPlugin extends AbstractPlugin {
 	protected String newBuilderMethodName = ApiConstructs.NEW_BUILDER_METHOD_NAME;
 	@Opt
 	protected String newCopyBuilderMethodName = ApiConstructs.NEW_COPY_BUILDER_METHOD_NAME;
+	@Opt
+	protected String builderFieldSuffix = "_Builder";
 
 	@Override
 	public String getOptionName() {
@@ -73,10 +74,6 @@ public class FluentBuilderPlugin extends AbstractPlugin {
 	public boolean run(final Outline outline, final Options opt, final ErrorHandler errorHandler) throws SAXException {
 		final Map<String, BuilderOutline> builderClasses = new LinkedHashMap<>(outline.getClasses().size());
 		final ApiConstructs apiConstructs = new ApiConstructs(outline, opt, errorHandler);
-
-		if (this.generateTools) {
-			apiConstructs.writeSourceFile(BuilderUtilities.class);
-		}
 
 		if (this.copyPartial) {
 			if (this.generateTools) {
@@ -101,10 +98,13 @@ public class FluentBuilderPlugin extends AbstractPlugin {
 		}
 
 		for (final BuilderOutline builderOutline : builderClasses.values()) {
-			final BuilderGenerator builderGenerator = new BuilderGenerator(apiConstructs, builderClasses, builderOutline, this.copyPartial, this.narrow, this.newBuilderMethodName, this.newCopyBuilderMethodName);
+			final BuilderGenerator builderGenerator = new BuilderGenerator(apiConstructs, builderClasses, builderOutline, getSettings());
 			builderGenerator.buildProperties();
 		}
 		return true;
 	}
 
+	public BuilderGeneratorSettings getSettings() {
+		return new BuilderGeneratorSettings(this.copyPartial, this.narrow, this.newBuilderMethodName, this.newCopyBuilderMethodName, this.builderFieldSuffix);
+	}
 }

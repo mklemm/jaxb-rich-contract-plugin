@@ -23,32 +23,31 @@
  */
 package com.kscs.util.plugins.xjc;
 
+import javax.xml.namespace.QName;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import com.kscs.util.plugins.xjc.base.PropertyOutline;
-import com.sun.codemodel.JClass;
 import com.sun.codemodel.JDefinedClass;
 import com.sun.tools.xjc.outline.ClassOutline;
 import com.sun.tools.xjc.outline.FieldOutline;
+import com.sun.xml.xsom.XSDeclaration;
 
 /**
  * @author mirko 2014-05-29
  */
-public class DefinedClassOutline implements TypeOutline {
-	private final ApiConstructs apiConstructs;
+public class DefinedInterfaceOutline implements InterfaceOutline {
+	private final List<TypeOutline> superInterfaces = new ArrayList<>();
+	private final JDefinedClass implClass;
 	private final ClassOutline classOutline;
-	private final List<PropertyOutline> declaredFields;
-	private TypeOutline cachedSuperClass = null;
+	private List<PropertyOutline> declaredFields = null;
+	private final XSDeclaration schemaComponent;
+	private final QName name;
 
-	public DefinedClassOutline(final ApiConstructs apiConstructs, final ClassOutline classOutline) {
-		this.apiConstructs = apiConstructs;
+	public DefinedInterfaceOutline(final XSDeclaration schemaComponent, final JDefinedClass implClass, final ClassOutline classOutline) {
+		this.schemaComponent = schemaComponent;
+		this.implClass = implClass;
 		this.classOutline = classOutline;
-		final List<PropertyOutline> properties = new ArrayList<>(classOutline.getDeclaredFields().length);
-		for (final FieldOutline fieldOutline : classOutline.getDeclaredFields()) {
-			properties.add(new DefinedPropertyOutline(fieldOutline));
-		}
-		this.declaredFields = Collections.unmodifiableList(properties);
+		this.name = new QName(schemaComponent.getTargetNamespace(), schemaComponent.getName());
 	}
 
 	@Override
@@ -56,41 +55,42 @@ public class DefinedClassOutline implements TypeOutline {
 		return this.declaredFields;
 	}
 
+	public void addField(final FieldOutline field) {
+		if(this.declaredFields == null) {
+			this.declaredFields = new ArrayList<>();
+		}
+		this.declaredFields.add(new DefinedPropertyOutline(field));
+	}
+
 	@Override
 	public TypeOutline getSuperClass() {
-		if (this.cachedSuperClass == null) {
-			if (this.classOutline.getSuperClass() != null) {
-				this.cachedSuperClass = new DefinedClassOutline(this.apiConstructs, this.classOutline.getSuperClass());
-			} else {
-				try {
-					final Class<?> ungeneratedSuperClass = Class.forName(this.classOutline.implClass._extends().fullName());
-					if (Object.class.equals(ungeneratedSuperClass)) {
-						return null;
-					} else {
-						final JClass jClass = this.apiConstructs.getBuilderClass(ungeneratedSuperClass, ApiConstructs.BUILDER_CLASS_NAME);
-						if (jClass != null) {
-							return new ReferencedClassOutline(this.apiConstructs.codeModel, ungeneratedSuperClass);
-						} else {
-							return null;
-						}
-					}
-				} catch (final Exception e) {
-					throw new RuntimeException("Cannot find superclass of " + this.classOutline.target.getName() + ": " + this.classOutline.target.getLocator());
-				}
-
-			}
-		}
-		return this.cachedSuperClass;
+		return null;
 	}
 
 	@Override
 	public JDefinedClass getImplClass() {
-		return this.classOutline.implClass;
+		return this.implClass;
 	}
 
 	@Override
 	public boolean isLocal() {
 		return true;
+	}
+
+	public XSDeclaration getSchemaComponent() {
+		return this.schemaComponent;
+	}
+
+	public QName getName() {
+		return this.name;
+	}
+
+	void addSuperInterface(final TypeOutline superInterface) {
+		this.superInterfaces.add(superInterface);
+	}
+
+	public List<TypeOutline> getSuperInterfaces() {
+		return this.superInterfaces;
 	}
 
 	public ClassOutline getClassOutline() {

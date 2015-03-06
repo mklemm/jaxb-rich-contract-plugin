@@ -21,74 +21,11 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
+
 package com.kscs.util.plugins.xjc;
 
-import javax.xml.namespace.QName;
-import java.util.ArrayList;
-import java.util.List;
-import com.kscs.util.plugins.xjc.base.PropertyOutline;
-import com.sun.codemodel.JDefinedClass;
-import com.sun.tools.xjc.outline.ClassOutline;
-import com.sun.tools.xjc.outline.FieldOutline;
-import com.sun.xml.xsom.XSDeclaration;
-
 /**
- * @author mirko 2014-05-29
+ * @author Mirko Klemm 2015-03-05
  */
-public class InterfaceOutline implements TypeOutline {
-	private TypeOutline superInterface = null;
-	private final JDefinedClass implClass;
-	private final ClassOutline classOutline;
-	private List<PropertyOutline> declaredFields = null;
-	private final XSDeclaration schemaComponent;
-	private final QName name;
-
-	public InterfaceOutline(final XSDeclaration schemaComponent, final JDefinedClass implClass, final ClassOutline classOutline) {
-		this.schemaComponent = schemaComponent;
-		this.implClass = implClass;
-		this.classOutline = classOutline;
-		this.name = new QName(schemaComponent.getTargetNamespace(), schemaComponent.getName());
-	}
-
-	@Override
-	public List<PropertyOutline> getDeclaredFields() {
-		return this.declaredFields;
-	}
-
-	public void addField(final FieldOutline field) {
-		if(this.declaredFields == null) {
-			this.declaredFields = new ArrayList<>();
-		}
-		this.declaredFields.add(new DefinedPropertyOutline(field));
-	}
-
-	@Override
-	public TypeOutline getSuperClass() {
-		return this.superInterface;
-	}
-
-	@Override
-	public JDefinedClass getImplClass() {
-		return this.implClass;
-	}
-
-	public XSDeclaration getSchemaComponent() {
-		return this.schemaComponent;
-	}
-
-	public QName getName() {
-		return this.name;
-	}
-
-	void setSuperInterface(final TypeOutline superInterface) {
-		this.superInterface = superInterface;
-	}
-
-	public TypeOutline getSuperInterface() {
-		return this.superInterface;
-	}
-
-	public ClassOutline getClassOutline() {
-		return this.classOutline;
-	}
+public interface InterfaceOutline extends TypeOutline {
 }

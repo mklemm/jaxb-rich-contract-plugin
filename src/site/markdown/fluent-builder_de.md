@@ -78,3 +78,7 @@ Name der generierten statischen Methode zum Erzeugen eines neuen Builders. Kann 
 Name der generierten Instanzmethode zum Erzeugen eines neuen Builders, der mit dem von dieser Instanz kopierten Zustand initialisiert ist.
 
 
+##### -builderFieldSuffix=`<string>` (_Builder)
+Suffix, das an den Namen der generierten Sub-Builder Instanzvariablen angefügt wird.
+
+

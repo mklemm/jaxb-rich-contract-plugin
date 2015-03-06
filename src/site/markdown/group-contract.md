@@ -90,3 +90,7 @@ Use the given resource file to obtain information about interfaces defined in an
 Generate "episode" file for downstream modules in the given resource location.
 
 
+##### -omitTypeClash=`{y|n}` (y)
+Do not declare methods in interface that could cause a type clash if two or more interfaces from this model are used together as generic type argument bound (with "&").
+
+

@@ -31,7 +31,7 @@ import com.sun.codemodel.JClass;
 /**
  * @author Mirko Klemm 2015-02-03
  */
-public class ReferencedInterfaceOutline implements TypeOutline {
+public class ReferencedInterfaceOutline implements InterfaceOutline {
 	private final JClass implClass;
 
 	public ReferencedInterfaceOutline(final JClass implClass) {
@@ -52,5 +52,10 @@ public class ReferencedInterfaceOutline implements TypeOutline {
 	@Override
 	public JClass getImplClass() {
 		return this.implClass;
+	}
+
+	@Override
+	public boolean isLocal() {
+		return false;
 	}
 }

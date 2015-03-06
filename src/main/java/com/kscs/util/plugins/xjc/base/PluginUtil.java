@@ -24,10 +24,7 @@
 
 package com.kscs.util.plugins.xjc.base;
 
-import java.util.Iterator;
-import com.kscs.util.plugins.xjc.ApiConstructs;
 import com.sun.codemodel.JClass;
-import com.sun.codemodel.JDefinedClass;
 import com.sun.codemodel.JExpr;
 import com.sun.codemodel.JExpression;
 import com.sun.codemodel.JFieldVar;
@@ -68,14 +65,4 @@ public final class PluginUtil {
 		}
 	}
 
-	public static JDefinedClass getInnerClass(final JDefinedClass parentClass) {
-		final Iterator<JDefinedClass> iterator = parentClass.classes();
-		while(iterator.hasNext()) {
-			final JDefinedClass innerClass = iterator.next();
-			if(innerClass.name().equals(ApiConstructs.BUILDER_INTERFACE_NAME)) {
-				return innerClass;
-			}
-		}
-		return null;
-	}
 }

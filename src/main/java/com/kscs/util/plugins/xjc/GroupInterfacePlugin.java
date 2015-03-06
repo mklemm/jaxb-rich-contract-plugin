@@ -48,7 +48,6 @@ import com.kscs.util.plugins.xjc.base.Namespaces;
 import com.kscs.util.plugins.xjc.base.Opt;
 import com.sun.tools.xjc.BadCommandLineException;
 import com.sun.tools.xjc.Options;
-import com.sun.tools.xjc.outline.ClassOutline;
 import com.sun.tools.xjc.outline.Outline;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -72,6 +71,9 @@ public class GroupInterfacePlugin extends AbstractPlugin {
 	private String upstreamEpisodeFile = "/META-INF/jaxb-interfaces.episode";
 	@Opt
 	private String downstreamEpisodeFile = "/META-INF/jaxb-interfaces.episode";
+	@Opt
+	private boolean omitTypeClash = true;
+
 	private GroupInterfaceGenerator generator = null;
 	public static final TransformerFactory TRANSFORMER_FACTORY;
 	private static final DocumentBuilderFactory DOCUMENT_BUILDER_FACTORY;
@@ -110,23 +112,29 @@ public class GroupInterfacePlugin extends AbstractPlugin {
 		return true;
 	}
 
-	public List<InterfaceOutline> getGroupInterfacesForClass(final ApiConstructs apiConstructs, final ClassOutline classOutline) throws SAXException {
+	public List<TypeOutline> getGroupInterfacesForClass(final ApiConstructs apiConstructs, final String className) throws SAXException {
 		generate(apiConstructs);
-		return this.generator.getGroupInterfacesForClass(classOutline);
+		return this.generator.getGroupInterfacesForClass(className);
 	}
 
 	private void generate(final ApiConstructs apiConstructs) throws SAXException {
 		if(this.generator == null) {
 			final URL interfaceEpisodeURL = getClass().getResource(this.upstreamEpisodeFile);
 			final EpisodeBuilder episodeBuilder = new EpisodeBuilder(apiConstructs, this.downstreamEpisodeFile);
-			final FluentBuilderPlugin fluentBuilderPlugin = apiConstructs.findPlugin(FluentBuilderPlugin.class);
-			if(fluentBuilderPlugin != null) {
-				this.generator = new GroupInterfaceGenerator(apiConstructs, interfaceEpisodeURL, episodeBuilder, this.declareSetters, this.declareBuilderInterface, fluentBuilderPlugin.newBuilderMethodName, fluentBuilderPlugin.newCopyBuilderMethodName);
-			} else {
-				this.generator = new GroupInterfaceGenerator(apiConstructs, interfaceEpisodeURL, episodeBuilder, this.declareSetters, false, null, null);
-			}
+			this.generator = new GroupInterfaceGenerator(apiConstructs, interfaceEpisodeURL, episodeBuilder, getSettings(apiConstructs));
 			this.generator.generateGroupInterfaceModel();
 			episodeBuilder.build();
+		}
+	}
+
+	public GroupInterfaceGeneratorSettings getSettings(final ApiConstructs apiConstructs) {
+		final FluentBuilderPlugin fluentBuilderPlugin = apiConstructs.findPlugin(FluentBuilderPlugin.class);
+		if(fluentBuilderPlugin != null) {
+			final BuilderGeneratorSettings builderGeneratorSettings = fluentBuilderPlugin.getSettings();
+			builderGeneratorSettings.setGeneratingNewCopyBuilderMethod(!this.omitTypeClash);
+			return new GroupInterfaceGeneratorSettings(this.declareSetters, this.declareBuilderInterface, builderGeneratorSettings);
+		} else {
+			return new GroupInterfaceGeneratorSettings(this.declareSetters, this.declareBuilderInterface, null);
 		}
 	}
 
@@ -246,7 +254,6 @@ public class GroupInterfacePlugin extends AbstractPlugin {
 				return null;
 			}
 	}
-
 
 	private static class Groups {
 		public final String targetNamespace;

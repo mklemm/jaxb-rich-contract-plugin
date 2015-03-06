@@ -78,3 +78,7 @@ Name of the generated static method to instantiate a new fluent builder. Can be 
 Name of the generated instance method to instantiate a new fluent builder intitialized with a copy of the current instance.
 
 
+##### -builderFieldSuffix=`<string>` (_Builder)
+Suffix to append to the field holding the builder, change to  prevent name clashes.
+
+

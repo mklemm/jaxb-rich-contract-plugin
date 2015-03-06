@@ -33,7 +33,6 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import com.kscs.util.jaxb.BuilderUtilities;
 import com.kscs.util.jaxb.Copyable;
 import com.kscs.util.jaxb.PartialCopyable;
 import com.kscs.util.jaxb.PropertyTree;
@@ -74,7 +73,6 @@ public class ApiConstructs {
 	public static final String WITH_METHOD_PREFIX = "with";
 	public static final String NEW_OBJECT_VAR_NAME = "_newObject";
 	public static final String ADD_ALL = "addAll";
-	public static final String GET_BUILDER = "getBuilder";
 	public static final String CLONE_METHOD_NAME = "clone";
 	public static final String COPY_METHOD_NAME = "createCopy";
 	public static final String COPY_EXCEPT_METHOD_NAME = "copyExcept";
@@ -96,7 +94,6 @@ public class ApiConstructs {
 	public final Map<QName, ClassOutline> classesBySchemaComponent;
 	public final JClass partialCopyableInterface;
 	public final JClass copyableInterface;
-	public final JClass builderUtilitiesClass;
 	public final JClass stringClass;
 	public final JClass voidClass;
 	public final JClass cloneGraphClass;
@@ -132,7 +129,6 @@ public class ApiConstructs {
 		this.classes = new HashMap<>(outline.getClasses().size());
 		this.classesBySchemaComponent = new HashMap<>(outline.getClasses().size());
 		this.enums = new HashMap<>(outline.getEnums().size());
-		this.builderUtilitiesClass = this.codeModel.ref(BuilderUtilities.class);
 		this.cloneGraphClass = this.codeModel.ref(PropertyTree.class);
 		this.stringClass = this.codeModel.ref(String.class);
 		this.voidClass = this.codeModel.ref(Void.class);
@@ -229,7 +225,7 @@ public class ApiConstructs {
 			BuilderOutline builderOutline = null;
 			if (getClassOutline(type) == null && getEnumOutline(type) == null && type.isReference() && !type.isPrimitive() && !type.isArray() && type.fullName().contains(".")) {
 				final Class<?> cls = Class.forName(type.binaryName());
-				final JClass builderClass = getBuilderClass(cls);
+				final JClass builderClass = getBuilderClass(cls, cls.isInterface() ? ApiConstructs.BUILDER_INTERFACE_NAME : ApiConstructs.BUILDER_CLASS_NAME);
 				if (builderClass != null) {
 					final ReferencedClassOutline referencedClassOutline = new ReferencedClassOutline(this.codeModel, cls);
 					builderOutline = new BuilderOutline(referencedClassOutline, builderClass);
@@ -242,9 +238,9 @@ public class ApiConstructs {
 
 	}
 
-	public JClass getBuilderClass(final Class<?> cls) {
+	public JClass getBuilderClass(final Class<?> cls, final String builderClassName) {
 		try {
-			final Class<?> builderClass = Class.forName(cls.getName() + "$" + ApiConstructs.BUILDER_CLASS_NAME);
+			final Class<?> builderClass = Class.forName(cls.getName() + "$" + builderClassName);
 			return this.codeModel.ref(builderClass);
 		} catch (final Exception e) {
 			return null;

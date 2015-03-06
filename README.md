@@ -271,6 +271,10 @@ Name of the generated static method to instantiate a new fluent builder. Can be 
 Name of the generated instance method to instantiate a new fluent builder intitialized with a copy of the current instance.
 
 
+##### -builderFieldSuffix=`<string>` (_Builder)
+Suffix to append to the field holding the builder, change to  prevent name clashes.
+
+
 ## immutable
 ### Motivation
 Generally it is advisable to make your business classes immutable as much as possible, to minimise side effects and allow for functional programming patterns.
@@ -382,6 +386,10 @@ Use the given resource file to obtain information about interfaces defined in an
 
 ##### -downstreamEpisodeFile=`<string>` (/META-INF/jaxb-interfaces.episode)
 Generate "episode" file for downstream modules in the given resource location.
+
+
+##### -omitTypeClash=`{y|n}` (y)
+Do not declare methods in interface that could cause a type clash if two or more interfaces from this model are used together as generic type argument bound (with "&").
 
 
 ## clone

@@ -67,4 +67,9 @@ public class ReferencedClassOutline implements TypeOutline {
 	public JClass getImplClass() {
 		return this.codeModel.ref(this.referencedClass);
 	}
+
+	@Override
+	public boolean isLocal() {
+		return false;
+	}
 }
