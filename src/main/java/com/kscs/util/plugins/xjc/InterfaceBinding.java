@@ -30,7 +30,11 @@ import com.sun.xml.txw2.annotation.XmlAttribute;
 /**
  * @author Mirko Klemm 2015-02-11
  */
-public interface Interface extends TypedXmlWriter {
+public interface InterfaceBinding extends TypedXmlWriter {
 	@XmlAttribute
 	void ref(String className);
+	@XmlAttribute("declare-setters")
+	void declareSetters(boolean declareSetters);
+	@XmlAttribute("declare-builder-interface")
+	void declareBuilderInterface(boolean declareBuilderInterface);
 }

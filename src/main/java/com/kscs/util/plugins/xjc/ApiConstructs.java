@@ -24,12 +24,20 @@
 
 package com.kscs.util.plugins.xjc;
 
+import javax.xml.bind.JAXB;
+import javax.xml.bind.annotation.XmlRootElement;
+import javax.xml.bind.annotation.XmlSchema;
+import javax.xml.bind.annotation.XmlType;
 import javax.xml.namespace.QName;
+import javax.xml.transform.dom.DOMSource;
 import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
+import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Deque;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -37,6 +45,8 @@ import com.kscs.util.jaxb.Copyable;
 import com.kscs.util.jaxb.PartialCopyable;
 import com.kscs.util.jaxb.PropertyTree;
 import com.kscs.util.jaxb.PropertyTreeUse;
+import com.kscs.util.plugins.xjc.codemodel.JDirectInnerClassRef;
+import com.kscs.util.plugins.xjc.codemodel.JTypedInvocation;
 import com.sun.codemodel.JAssignmentTarget;
 import com.sun.codemodel.JBlock;
 import com.sun.codemodel.JCatchBlock;
@@ -55,9 +65,12 @@ import com.sun.codemodel.JVar;
 import com.sun.codemodel.fmt.JStaticJavaFile;
 import com.sun.tools.xjc.Options;
 import com.sun.tools.xjc.Plugin;
+import com.sun.tools.xjc.model.CCustomizable;
+import com.sun.tools.xjc.model.CPluginCustomization;
 import com.sun.tools.xjc.outline.ClassOutline;
 import com.sun.tools.xjc.outline.EnumOutline;
 import com.sun.tools.xjc.outline.Outline;
+import com.sun.xml.xsom.XSDeclaration;
 import org.xml.sax.ErrorHandler;
 
 /**
@@ -119,7 +132,7 @@ public class ApiConstructs {
 		this.opt = opt;
 		this.arrayListClass = this.codeModel.ref(ArrayList.class);
 		this.listClass = this.codeModel.ref(List.class);
-		this.iterableClass = this.codeModel.ref(Collection.class);
+		this.iterableClass = this.codeModel.ref(Iterable.class);
 		this.collectionClass = this.codeModel.ref(Collection.class);
 		this.collectionsClass = this.codeModel.ref(Collections.class);
 		this.arraysClass = this.codeModel.ref(Arrays.class);
@@ -149,6 +162,56 @@ public class ApiConstructs {
 		this.newBuilderMethodName = ApiConstructs.NEW_BUILDER_METHOD_NAME;
 		this.newCopyBuilderMethodName = ApiConstructs.NEW_COPY_BUILDER_METHOD_NAME;
 		this.newObjectVarName = ApiConstructs.NEW_OBJECT_VAR_NAME;
+	}
+
+	public static Class<?> findInnerClass(final Class<?> outer, final String name) {
+		for (final Class<?> innerClass : outer.getDeclaredClasses()) {
+			if (name.equals(innerClass.getSimpleName())) {
+				return innerClass;
+			}
+		}
+		return null;
+	}
+
+	public static QName getQName(final XSDeclaration declaration) {
+		return new QName(declaration.getTargetNamespace(), declaration.getName());
+	}
+
+	public static QName getQName(final Class<?> boundClass) {
+		return new QName(getNamespaceUri(boundClass), getLocalName(boundClass));
+	}
+
+	private static String getNamespaceUri(final Class<?> boundClass) {
+		final XmlRootElement elementAnnotation = boundClass.getAnnotation(XmlRootElement.class);
+		if(elementAnnotation != null && !"##default".equals(elementAnnotation.namespace())) {
+			return elementAnnotation.namespace();
+		} else {
+			final XmlType xmlTypeAnnotation = boundClass.getAnnotation(XmlType.class);
+			if(xmlTypeAnnotation != null && !"##default".equals(xmlTypeAnnotation.namespace())) {
+				return xmlTypeAnnotation.namespace();
+			} else {
+				return getNamespaceUri(boundClass.getPackage());
+			}
+		}
+	}
+
+	private static String getLocalName(final Class<?> boundClass) {
+		final XmlRootElement elementAnnotation = boundClass.getAnnotation(XmlRootElement.class);
+		if(elementAnnotation != null && !"##default".equals(elementAnnotation.name())) {
+			return elementAnnotation.name();
+		} else {
+			final XmlType xmlTypeAnnotation = boundClass.getAnnotation(XmlType.class);
+			if(xmlTypeAnnotation != null && !"##default".equals(xmlTypeAnnotation.name())) {
+				return xmlTypeAnnotation.name();
+			} else {
+				return boundClass.getSimpleName();
+			}
+		}
+	}
+
+	private static String getNamespaceUri(final Package pkg) {
+		final XmlSchema xmlSchemaAnnotation = pkg.getAnnotation(XmlSchema.class);
+		return xmlSchemaAnnotation != null && !"##default".equals(xmlSchemaAnnotation.namespace()) ? xmlSchemaAnnotation.namespace() : null;
 	}
 
 	private boolean cloneThrows(final Class<? extends Cloneable> cloneableClass) {
@@ -221,30 +284,42 @@ public class ApiConstructs {
 	}
 
 	public BuilderOutline getReferencedBuilderOutline(final JType type) {
-		try {
-			BuilderOutline builderOutline = null;
-			if (getClassOutline(type) == null && getEnumOutline(type) == null && type.isReference() && !type.isPrimitive() && !type.isArray() && type.fullName().contains(".")) {
-				final Class<?> cls = Class.forName(type.binaryName());
-				final JClass builderClass = getBuilderClass(cls, cls.isInterface() ? ApiConstructs.BUILDER_INTERFACE_NAME : ApiConstructs.BUILDER_CLASS_NAME);
+		BuilderOutline builderOutline = null;
+		if (getClassOutline(type) == null && getEnumOutline(type) == null && type.isReference() && !type.isPrimitive() && !type.isArray() && type.fullName().contains(".")) {
+			final Class<?> runtimeParentClass;
+			try {
+				runtimeParentClass = Class.forName(type.binaryName());
+			} catch (final ClassNotFoundException e) {
+				return null;
+			}
+			final Class<?> builderRuntimeClass = findInnerClass(runtimeParentClass, runtimeParentClass.isInterface() ? ApiConstructs.BUILDER_INTERFACE_NAME : ApiConstructs.BUILDER_CLASS_NAME);
+			if (builderRuntimeClass != null) {
+				final JClass parentClass = this.codeModel.ref(runtimeParentClass);
+				final JClass superClass = runtimeParentClass.getSuperclass() != null ? this.codeModel.ref(builderRuntimeClass.getSuperclass()) : null;
+				final JClass builderClass = ref(parentClass, runtimeParentClass.isInterface() ? ApiConstructs.BUILDER_INTERFACE_NAME : ApiConstructs.BUILDER_CLASS_NAME, builderRuntimeClass.isInterface(), Modifier.isAbstract(builderRuntimeClass.getModifiers()), superClass);
 				if (builderClass != null) {
-					final ReferencedClassOutline referencedClassOutline = new ReferencedClassOutline(this.codeModel, cls);
+					final ReferencedClassOutline referencedClassOutline = new ReferencedClassOutline(this.codeModel, runtimeParentClass);
 					builderOutline = new BuilderOutline(referencedClassOutline, builderClass);
 				}
 			}
-			return builderOutline;
-		} catch (final Exception e) {
-			return null;
 		}
-
+		return builderOutline;
 	}
 
-	public JClass getBuilderClass(final Class<?> cls, final String builderClassName) {
-		try {
-			final Class<?> builderClass = Class.forName(cls.getName() + "$" + builderClassName);
-			return this.codeModel.ref(builderClass);
-		} catch (final Exception e) {
-			return null;
-		}
+	public JDirectInnerClassRef ref(final JClass outer, final String name, final boolean isInterface, final boolean isAbstract, final JClass superClass) {
+		return new JDirectInnerClassRef(outer, name, isInterface, isAbstract, superClass);
+	}
+
+	public JDirectInnerClassRef ref(final JClass outer, final String name, final boolean isInterface) {
+		return new JDirectInnerClassRef(outer, name, isInterface, false, null);
+	}
+
+	public JDirectInnerClassRef ref(final JClass outer, final String name) {
+		return new JDirectInnerClassRef(outer, name, false, false, null);
+	}
+
+	public JTypedInvocation invoke(final JExpression lhs, final String method) {
+		return new JTypedInvocation(lhs, method);
 	}
 
 	public void writeSourceFile(final Class<?> classToBeWritten) {
@@ -272,4 +347,37 @@ public class ApiConstructs {
 			return tryBlock.body();
 		}
 	}
+
+	public <T> T getCustomization(final Class<T> customizationClass, final Deque<CCustomizable> schemaComponents) {
+		final QName qName = getQName(customizationClass);
+		if(!schemaComponents.isEmpty()) {
+			final CCustomizable schemaComponent = schemaComponents.pop();
+			final CPluginCustomization pluginCustomization = schemaComponent.getCustomizations().find(qName.getNamespaceURI(), qName.getLocalPart());
+			if(pluginCustomization == null) {
+				return getCustomization(customizationClass, schemaComponents);
+			} else {
+				pluginCustomization.markAsAcknowledged();
+				return JAXB.unmarshal(new DOMSource(pluginCustomization.element), customizationClass);
+			}
+		} else {
+			final CPluginCustomization pluginCustomization = this.outline.getModel().getCustomizations().find(qName.getNamespaceURI(), qName.getLocalPart());
+			if(pluginCustomization != null) {
+				pluginCustomization.markAsAcknowledged();
+				return JAXB.unmarshal(new DOMSource(pluginCustomization.element), customizationClass);
+			} else {
+				return null;
+			}
+		}
+	}
+
+	public <T> T getCustomization(final Class<T> customizationClass, final CCustomizable... schemaComponents) {
+		final Deque<CCustomizable> schemaComponentDeque = new ArrayDeque<>(Arrays.asList(schemaComponents));
+		return getCustomization(customizationClass, schemaComponentDeque);
+	}
+
+	public <T> T getCustomization(final Class<T> customizationClass, final T defaultValue, final CCustomizable... schemaComponents) {
+		final T val = getCustomization(customizationClass, schemaComponents);
+		return val == null ? defaultValue : val;
+	}
+
 }

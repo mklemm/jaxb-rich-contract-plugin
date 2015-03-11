@@ -24,26 +24,18 @@
 
 package com.kscs.util.plugins.xjc;
 
+import com.kscs.util.jaxb.bindings.Interface;
+
 /**
  * @author Mirko Klemm 2015-03-06
  */
-public class GroupInterfaceGeneratorSettings {
-	private final boolean declareSetters;
-	private final boolean declareBuilderInterface;
+public class GroupInterfaceGeneratorSettings extends Interface {
 	private final BuilderGeneratorSettings builderGeneratorSettings;
 
 	public GroupInterfaceGeneratorSettings(final boolean declareSetters, final boolean declareBuilderInterface, final BuilderGeneratorSettings builderGeneratorSettings) {
-		this.declareSetters = declareSetters;
-		this.declareBuilderInterface = declareBuilderInterface;
 		this.builderGeneratorSettings = builderGeneratorSettings;
-	}
-
-	public boolean isDeclareSetters() {
-		return this.declareSetters;
-	}
-
-	public boolean isDeclareBuilderInterface() {
-		return this.declareBuilderInterface;
+		setDeclareSetters(declareSetters);
+		setDeclareBuilderInterface(declareBuilderInterface);
 	}
 
 	public BuilderGeneratorSettings getBuilderGeneratorSettings() {

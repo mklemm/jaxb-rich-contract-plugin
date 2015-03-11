@@ -67,7 +67,8 @@ public class DefinedClassOutline implements TypeOutline {
 					if (Object.class.equals(ungeneratedSuperClass)) {
 						return null;
 					} else {
-						final JClass jClass = this.apiConstructs.getBuilderClass(ungeneratedSuperClass, ApiConstructs.BUILDER_CLASS_NAME);
+						final JClass superClass = this.apiConstructs.codeModel.ref(ungeneratedSuperClass);
+						final JClass jClass = this.apiConstructs.ref(superClass, ApiConstructs.BUILDER_CLASS_NAME);
 						if (jClass != null) {
 							return new ReferencedClassOutline(this.apiConstructs.codeModel, ungeneratedSuperClass);
 						} else {

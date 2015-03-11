@@ -24,6 +24,10 @@
 
 package com.kscs.util.plugins.xjc;
 
+import javax.xml.bind.JAXB;
+import javax.xml.bind.JAXBContext;
+import javax.xml.bind.JAXBException;
+import javax.xml.bind.Unmarshaller;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
@@ -35,22 +39,30 @@ import javax.xml.transform.stream.StreamResult;
 import javax.xml.xpath.XPath;
 import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathExpression;
+import javax.xml.xpath.XPathExpressionException;
 import javax.xml.xpath.XPathFactory;
+import java.io.IOException;
 import java.io.Reader;
 import java.io.StringWriter;
+import java.net.URI;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import com.kscs.util.jaxb.bindings.Interface;
 import com.kscs.util.plugins.xjc.base.AbstractPlugin;
 import com.kscs.util.plugins.xjc.base.MappingNamespaceContext;
 import com.kscs.util.plugins.xjc.base.Namespaces;
 import com.kscs.util.plugins.xjc.base.Opt;
+import com.kscs.util.plugins.xjc.base.XPathContext;
 import com.sun.tools.xjc.BadCommandLineException;
 import com.sun.tools.xjc.Options;
 import com.sun.tools.xjc.outline.Outline;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
+import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 import org.xml.sax.ErrorHandler;
 import org.xml.sax.InputSource;
@@ -99,6 +111,7 @@ public class GroupInterfacePlugin extends AbstractPlugin {
 	public boolean isCustomizationTagName(final String nsUri, final String localName) {
 		return Namespaces.KSCS_BINDINGS_NS.equals(nsUri) && "interface".equals(localName);
 	}
+
 
 	@Override
 	public String getOptionName() {
@@ -161,9 +174,10 @@ public class GroupInterfacePlugin extends AbstractPlugin {
 					.add("kscs", Namespaces.KSCS_BINDINGS_NS)
 					.add("jxb", Namespaces.JAXB_NS);
 			xPath.setNamespaceContext(namespaceContext);
-			final XPathExpression attGroupExpression = xPath.compile("/xs:schema/xs:attributeGroup/@name");
-			final XPathExpression modelGroupExpression = xPath.compile("/xs:schema/xs:group/@name");
+			final XPathExpression attGroupExpression = xPath.compile("/xs:schema/xs:attributeGroup");
+			final XPathExpression modelGroupExpression = xPath.compile("/xs:schema/xs:group");
 			final XPathExpression targetNamespaceExpression = xPath.compile("/xs:schema/@targetNamespace");
+
 
 			final List<InputSource> newGrammars = new ArrayList<>();
 			for (final InputSource grammar : opts.getGrammars()) {
@@ -176,11 +190,13 @@ public class GroupInterfacePlugin extends AbstractPlugin {
 				final Groups currentGroups = new Groups(targetNamespaceUri);
 
 				for(int i = 0; i < attGroupNodes.getLength(); i++) {
-					currentGroups.attGroupNames.add(attGroupNodes.item(i).getNodeValue());
+					final Element node = (Element)attGroupNodes.item(i);
+					currentGroups.attGroupNames.add(node.getAttribute("name"));
 				}
 
 				for(int i = 0; i < modelGroupNodes.getLength(); i++) {
-					currentGroups.modelGroupNames.add(modelGroupNodes.item(i).getNodeValue());
+					final Element node = (Element)modelGroupNodes.item(i);
+					currentGroups.modelGroupNames.add(node.getAttribute("name"));
 				}
 
 				final InputSource newSchema = generateImplementationSchema(opts, transformer, currentGroups, schemaCopy.getSystemId());
@@ -255,6 +271,13 @@ public class GroupInterfacePlugin extends AbstractPlugin {
 			}
 	}
 
+
+	private void processCustomizations(final Element elementAnnotation, final NodeList childAnnotations) {
+		final Interface interfaceCustomization = JAXB.unmarshal(new DOMSource(elementAnnotation), Interface.class);
+
+	}
+
+
 	private static class Groups {
 		public final String targetNamespace;
 		public final List<String> attGroupNames = new ArrayList<>();
@@ -262,6 +285,163 @@ public class GroupInterfacePlugin extends AbstractPlugin {
 
 		public Groups(final String targetNamespace) {
 			this.targetNamespace = targetNamespace;
+		}
+	}
+
+	private static class CustomizationParser {
+		private CustomizationContext rootCustomizationContext = new CustomizationContext("global", null, null, null, null);
+		private final XPath xPath;
+		private final XPathContext elementDefsExpression;
+		private final XPathContext attributeDefsExpression;
+		private final XPathContext attGroupDefsExpression;
+		private final XPathContext modelGroupDefsExpression;
+		private final XPathContext descendantElementDefsExpression;
+		private final XPathContext descendantInterfaceExpression;
+		private final XPathContext targetPathExpression;
+		private final XPathContext schemaLocationExpression;
+		private final XPathContext customizationExpression;
+		private final InputSource[] bindFiles;
+		private final Map<String,InputSource> grammars;
+		private final Unmarshaller unmarshaller;
+
+		CustomizationParser(final XPath xPath, final InputSource[] grammars, final InputSource[] bindFiles) throws XPathExpressionException, JAXBException {
+			this.xPath = xPath;
+			this.elementDefsExpression = new XPathContext(xPath.compile("xs:element[xs:annotation/xs:appInfo/kscs:interface]"));
+			this.attributeDefsExpression = new XPathContext(xPath.compile("xs:attribute[xs:annotation/xs:appInfo/kscs:interface]"));
+			this.attGroupDefsExpression = new XPathContext(xPath.compile("xs:attributeGroup[xs:annotation/xs:appInfo/kscs:interface or xs:attribute[xs:annotation/xs:appInfo/kscs:interface]]"));
+			this.modelGroupDefsExpression = new XPathContext(xPath.compile("xs:group[xs:annotation/xs:appInfo/kscs:interface or descendant::xs:element[xs:annotation/xs:appInfo/kscs:interface]]"));
+			this.descendantElementDefsExpression = new XPathContext(xPath.compile("descendant::xs:element[xs:annotation/xs:appInfo/kscs:interface]"));
+			this.descendantInterfaceExpression = new XPathContext(xPath.compile("descendant::kscs:interface"));
+			this.targetPathExpression = new XPathContext(xPath.compile("ancestor::jxb:bindings/@node"));
+			this.schemaLocationExpression = new XPathContext(xPath.compile("ancestor::jxb:bindings/@schemaLocation"));
+			this.customizationExpression = new XPathContext(xPath.compile("xs:annotation/xs:appInfo/kscs:interface"));
+			this.grammars = new HashMap<>(grammars.length);
+			for(final InputSource grammar : grammars) {
+				this.grammars.put(grammar.getSystemId(), grammar);
+			}
+			this.bindFiles = bindFiles;
+			this.unmarshaller = JAXBContext.newInstance(Interface.class).createUnmarshaller();
+		}
+
+		private void inlineBindings() throws XPathExpressionException, JAXBException {
+			for(final InputSource bindFile : this.bindFiles) {
+				for(final Element customizationElement : this.descendantInterfaceExpression.selectElements(bindFile)) {
+					StringBuilder targetPathBuilder = null;
+					final List<Element> targetPathNodes = this.targetPathExpression.selectElements(customizationElement);
+					for(int t = targetPathNodes.size() - 1; t <= 0; t--) {
+						final Node node = targetPathNodes.get(t);
+						if(targetPathBuilder == null) {
+							targetPathBuilder = new StringBuilder();
+						} else {
+							targetPathBuilder.append("/");
+						}
+						targetPathBuilder.append(node.getNodeValue());
+					}
+
+					if(targetPathBuilder != null) {
+						final XPathContext targetPath = new XPathContext(this.xPath.compile(targetPathBuilder.toString()));
+						final String schemaLocation = this.schemaLocationExpression.selectText(customizationElement);
+						final URI bindFileUri = URI.create(bindFile.getSystemId());
+						final InputSource grammar = this.grammars.get(bindFileUri.resolve(schemaLocation).toString());
+						final Element targetElement = targetPath.selectElement(grammar);
+						if(targetElement != null) {
+							createAnnotation(targetElement, customizationElement);
+						}
+					} else {
+						this.rootCustomizationContext = new CustomizationContext("global", null, null, this.unmarshaller.unmarshal(new DOMSource(customizationElement), Interface.class).getValue(), null);
+					}
+				}
+			}
+		}
+
+		private void createAnnotation(final Element targetElement, final Element customizationElement) {
+			final Document document = targetElement.getOwnerDocument();
+			final Node imported = document.importNode(customizationElement, true);
+			final Element annotationEl = document.createElementNS(Namespaces.XS_NS, "xs:annotation");
+			final Element appInfoEl = document.createElementNS(Namespaces.XS_NS, "xs:appInfo");
+			appInfoEl.appendChild(imported);
+			annotationEl.appendChild(appInfoEl);
+			targetElement.appendChild(annotationEl);
+		}
+
+		void parse() throws XPathExpressionException, JAXBException, IOException, SAXException {
+			inlineBindings();
+			for(final InputSource grammar : this.grammars.values()) {
+				final Document doc = GroupInterfacePlugin.DOCUMENT_BUILDER.parse(grammar);
+				final Element schemaEl = doc.getDocumentElement();
+				final String targetNamespace = schemaEl.getAttribute("targetNamespace");
+				final CustomizationContext schemaContext = parse(this.rootCustomizationContext, schemaEl, targetNamespace);
+				for(final Element elementEl : this.elementDefsExpression.selectElements(schemaEl)) {
+					parse(schemaContext, elementEl, targetNamespace);
+				}
+				for(final Element attributeEl : this.attributeDefsExpression.selectElements(schemaEl)) {
+					parse(schemaContext, attributeEl, targetNamespace);
+				}
+				for(final Element groupEl : this.modelGroupDefsExpression.selectElements(schemaEl)) {
+					final CustomizationContext groupContext = parse(schemaContext, groupEl, targetNamespace);
+					for(final Element elementEl : this.descendantElementDefsExpression.selectElements(groupEl)) {
+						parse(groupContext, elementEl, targetNamespace);
+					}
+				}
+				for(final Element attGroupEl : this.attGroupDefsExpression.selectElements(schemaEl)) {
+					final CustomizationContext groupContext = parse(schemaContext, attGroupEl, targetNamespace);
+					for(final Element attributeEl : this.descendantElementDefsExpression.selectElements(attGroupEl)) {
+						parse(groupContext, attributeEl, targetNamespace);
+					}
+				}
+			}
+		}
+
+		private CustomizationContext parse(final CustomizationContext parent, final Element groupElement, final String targetNamespace) throws XPathExpressionException, JAXBException {
+			final Element interfaceCustomizationEl = this.customizationExpression.selectElement(groupElement);
+			final Interface interfaceCustomization = interfaceCustomizationEl != null ? this.unmarshaller.unmarshal(interfaceCustomizationEl, Interface.class).getValue() : null;
+			return new CustomizationContext(groupElement.getLocalName(), targetNamespace, groupElement.getAttribute("name"), interfaceCustomization, parent);
+		}
+	}
+
+	public static class CustomizationContext {
+		private final String type;
+		private final String name;
+		private final String targetNamespace;
+		private final Interface item;
+		private final CustomizationContext parent;
+		private final Map<String,CustomizationContext> children = new HashMap<>();
+
+		public CustomizationContext(final String type, final String targetNamespace, final String name, final Interface item, final CustomizationContext parent) {
+			this.type = type;
+			this.targetNamespace = targetNamespace;
+			this.name = name;
+			this.item = item;
+			this.parent = parent;
+			this.parent.children.put(getQualifiedName(), this);
+		}
+
+		public final String getQualifiedName() {
+			return this.type + (this.targetNamespace == null ? "::" : "::{" + this.targetNamespace + "}") + (this.name == null ? "" : this.name);
+		}
+
+		public String getType() {
+			return this.type;
+		}
+
+		public String getName() {
+			return this.name;
+		}
+
+		public Interface getItem() {
+			return this.item;
+		}
+
+		public CustomizationContext getParent() {
+			return this.parent;
+		}
+
+		public Map<String, CustomizationContext> getChildren() {
+			return this.children;
+		}
+
+		public boolean isEmpty() {
+			return this.item == null && this.children.isEmpty();
 		}
 	}
 }

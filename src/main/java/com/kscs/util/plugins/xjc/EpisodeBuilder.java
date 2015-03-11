@@ -318,7 +318,7 @@ public class EpisodeBuilder {
 			}),
 			INTERFACE(new BindingsBuilder() {
 							public void build(final OutlineAdaptor adaptor, final Bindings bindings) {
-								bindings._element(Namespaces.KSCS_BINDINGS_NS, "interface", Interface.class).ref(adaptor.implName);
+								bindings._element(Namespaces.KSCS_BINDINGS_NS, "interface", InterfaceBinding.class).ref(adaptor.implName);
 							}
 						});
 
