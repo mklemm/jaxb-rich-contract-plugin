@@ -42,4 +42,8 @@
 	* Bugfix: When generating builder interface, not all superinterfaces were declared in the "extends" clause.
 	* Added command-line option to configure whether methods that could cause type clashes should be ommitted.
 	* Added command-line option to configure suffix for instance fields of a builder holding sub-builders
+* **1.5.9**:
+	* fluent-builder: Added methods to initialize collection properties with an "java.util.Iterable" instance instead of collection.
+	* fluent-builder: Made "add..." and "with..." methods for collection properties fall through if they are given a NULL arg for the item collection.
+	
 

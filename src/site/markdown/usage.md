@@ -82,7 +82,7 @@ You should add "maven-jaxb2-plugin" to your `<build>` configuration. Then add "j
                         <plugin>
                             <groupId>net.codesup.util</groupId>
                             <artifactId>jaxb2-rich-contract-plugin</artifactId>
-                            <version>1.5.8</version>
+                            <version>1.5.9</version>
                         </plugin>
                     </plugins>
                     <dependencies>
