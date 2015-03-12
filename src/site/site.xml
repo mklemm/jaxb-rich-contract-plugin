@@ -15,6 +15,7 @@
 		<menu name="XJC Plugin Options">
 			<item name="fluent-builder" href="fluent-builder.html"/>
 			<item name="group-contract" href="group-contract.html"/>
+			<item name="immutable" href="immutable.html"/>
 			<item name="clone" href="clone.html"/>
 			<item name="copy" href="copy.html"/>
 			<item name="constrained-properties" href="constrained-properties.html"/>
