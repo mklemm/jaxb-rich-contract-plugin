@@ -78,35 +78,11 @@ Generiert zusätzlich eine 'copyOf()'-Methode mit der sich Objekte partiell kopi
 Name der generierten inneren "Selector" Builder-Klasse, die intern zum Aufbau des Property-Baums für das partielle Kopieren benutzt wird. Diese Einstellung wird nur dann berücksichtigt, wenn das "Deep Copy"-Plugin nicht aktiv ist, und "copy-partial=y" ist. Ansonsten gilt die Einstellung des "Deep Copy"-Plugins.
 
 
-##### -fluentClassName=`<string>` (Fluent)
-Name der generierten inneren Builder-Klasse. Kann hier gesetzt werden, um Namenskonflikte zu lösen.
-
-
 ##### -builderClassName=`<string>` (Builder)
-Name der generierten inneren Builder-Klasse. Kann hier gesetzt werden, um Namenskonflikte zu lösen.
-
-
-##### -wrapperClassName=`<string>` (Wrapper)
-Name der generierten inneren Builder-Klasse. Kann hier gesetzt werden, um Namenskonflikte zu lösen.
-
-
-##### -modifierClassName=`<string>` (Modifier)
-Name der generierten inneren Builder-Klasse. Kann hier gesetzt werden, um Namenskonflikte zu lösen.
-
-
-##### -fluentInterfaceName=`<string>` (FluentSupport)
 Name der generierten inneren Builder-Klasse. Kann hier gesetzt werden, um Namenskonflikte zu lösen.
 
 
 ##### -builderInterfaceName=`<string>` (BuildSupport)
 Name des generierten inneren Builder-Interfaces. Kann hier gesetzt werden, um Namenskonflikte zu lösen.
-
-
-##### -wrapperInterfaceName=`<string>` (WrapSupport)
-Name der generierten inneren Builder-Klasse. Kann hier gesetzt werden, um Namenskonflikte zu lösen.
-
-
-##### -modifierInterfaceName=`<string>` (ModifySupport)
-Name der generierten inneren Builder-Klasse. Kann hier gesetzt werden, um Namenskonflikte zu lösen.
 
 

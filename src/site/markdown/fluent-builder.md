@@ -78,35 +78,11 @@ Generates an additional 'copyOf'-method  that takes a PropertyTree instance to r
 Name of the generated nested "Selector" builder class, used to build up a property tree for partial copy functionality. This setting will only have an effect if the "deep-copy-plugin" isn't also active. If it is, the "copy" plugin's settings will take precedence.
 
 
-##### -fluentClassName=`<string>` (Fluent)
-Name of the generated nested builder class. Can be set to handle naming conflicts.
-
-
 ##### -builderClassName=`<string>` (Builder)
-Name of the generated nested builder class. Can be set to handle naming conflicts.
-
-
-##### -wrapperClassName=`<string>` (Wrapper)
-Name of the generated nested builder class. Can be set to handle naming conflicts.
-
-
-##### -modifierClassName=`<string>` (Modifier)
-Name of the generated nested builder class. Can be set to handle naming conflicts.
-
-
-##### -fluentInterfaceName=`<string>` (FluentSupport)
 Name of the generated nested builder class. Can be set to handle naming conflicts.
 
 
 ##### -builderInterfaceName=`<string>` (BuildSupport)
 Name of the generated nested builder interface. Can be set to handle naming conflicts.
-
-
-##### -wrapperInterfaceName=`<string>` (WrapSupport)
-Name of the generated nested builder class. Can be set to handle naming conflicts.
-
-
-##### -modifierInterfaceName=`<string>` (ModifySupport)
-Name of the generated nested builder class. Can be set to handle naming conflicts.
 
 

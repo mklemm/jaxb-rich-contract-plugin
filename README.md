@@ -129,43 +129,47 @@ You should add "maven-jaxb2-plugin" to your `<build>` configuration. Then add "j
                     <extension>true</extension>
                     <removeOldOutput>true</removeOldOutput>
                     <args>
-                        <arg>-Xfluent-builder</arg>
-                            <arg>-generateTools=y</arg>
-                            <arg>-narrow=n</arg>
-                            <arg>-copyPartial=y</arg>
-                            <arg>-selectorClassName=Selector</arg>
-                            <arg>-rootSelectorClassName=Select</arg>
-                            <arg>-builderClassName=Builder</arg>
-                            <arg>-newBuilderMethodName=builder</arg>
-                            <arg>-newCopyBuilderMethodName=newCopyBuilder</arg>
-                            <arg>-builderFieldSuffix=_Builder</arg>
-                        <arg>-Ximmutable</arg>
-                            <arg>-constructorAccess=public</arg>
-                        <arg>-Xgroup-contract</arg>
-                            <arg>-declareSetters=y</arg>
-                            <arg>-declareBuilderInterface=y</arg>
-                            <arg>-upstreamEpisodeFile=/META-INF/jaxb-interfaces.episode</arg>
-                            <arg>-downstreamEpisodeFile=/META-INF/jaxb-interfaces.episode</arg>
-                            <arg>-omitTypeClash=y</arg>
-                        <arg>-Xclone</arg>
-                            <arg>-cloneThrows=y</arg>
-                        <arg>-Xcopy</arg>
-                            <arg>-partial=y</arg>
-                            <arg>-generateTools=y</arg>
-                            <arg>-constructor=y</arg>
-                            <arg>-narrow=n</arg>
-                            <arg>-selectorClassName=Selector</arg>
-                            <arg>-rootSelectorClassName=Select</arg>
-                        <arg>-Xconstrained-properties</arg>
-                            <arg>-constrained=y</arg>
-                            <arg>-bound=y</arg>
-                            <arg>-setterThrows=n</arg>
-                            <arg>-generateTools=y</arg>
-                        <arg>-Xmeta</arg>
-                            <arg>-generateTools=y</arg>
-                            <arg>-extended=n</arg>
-                            <arg>-camelCase=n</arg>
-                            <arg>-metaClassName=PropInfo</arg>
+						<arg>-Xfluent-builder</arg>
+							<arg>-rootSelectorClassName=Select</arg>
+							<arg>-newBuilderMethodName=builder</arg>
+							<arg>-newCopyBuilderMethodName=newCopyBuilder</arg>
+							<arg>-builderFieldSuffix=_Builder</arg>
+							<arg>-generateTools=y</arg>
+							<arg>-narrow=n</arg>
+							<arg>-copyPartial=y</arg>
+							<arg>-selectorClassName=Selector</arg>
+							<arg>-builderClassName=Builder</arg>
+							<arg>-builderInterfaceName=BuildSupport</arg>
+						<arg>-Ximmutable</arg>
+							<arg>-constructorAccess=public</arg>
+							<arg>-generateModifier=y</arg>
+							<arg>-modifierClassName=Modifier</arg>
+							<arg>-modifierMethodName=modifier</arg>
+						<arg>-Xgroup-contract</arg>
+							<arg>-declareSetters=y</arg>
+							<arg>-declareBuilderInterface=y</arg>
+							<arg>-upstreamEpisodeFile=/META-INF/jaxb-interfaces.episode</arg>
+							<arg>-downstreamEpisodeFile=/META-INF/jaxb-interfaces.episode</arg>
+							<arg>-omitTypeClash=y</arg>
+						<arg>-Xclone</arg>
+							<arg>-cloneThrows=y</arg>
+						<arg>-Xcopy</arg>
+							<arg>-partial=y</arg>
+							<arg>-generateTools=y</arg>
+							<arg>-constructor=y</arg>
+							<arg>-narrow=n</arg>
+							<arg>-selectorClassName=Selector</arg>
+							<arg>-rootSelectorClassName=Select</arg>
+						<arg>-Xconstrained-properties</arg>
+							<arg>-constrained=y</arg>
+							<arg>-bound=y</arg>
+							<arg>-setterThrows=n</arg>
+							<arg>-generateTools=y</arg>
+						<arg>-Xmeta</arg>
+							<arg>-generateTools=y</arg>
+							<arg>-extended=n</arg>
+							<arg>-camelCase=n</arg>
+							<arg>-metaClassName=PropInfo</arg>
                         <arg>...</arg>
                     </args>
                     <plugins>
@@ -284,36 +288,12 @@ Generates an additional 'copyOf'-method  that takes a PropertyTree instance to r
 Name of the generated nested "Selector" builder class, used to build up a property tree for partial copy functionality. This setting will only have an effect if the "deep-copy-plugin" isn't also active. If it is, the "copy" plugin's settings will take precedence.
 
 
-##### -fluentClassName=`<string>` (Fluent)
-Name of the generated nested builder class. Can be set to handle naming conflicts.
-
-
 ##### -builderClassName=`<string>` (Builder)
-Name of the generated nested builder class. Can be set to handle naming conflicts.
-
-
-##### -wrapperClassName=`<string>` (Wrapper)
-Name of the generated nested builder class. Can be set to handle naming conflicts.
-
-
-##### -modifierClassName=`<string>` (Modifier)
-Name of the generated nested builder class. Can be set to handle naming conflicts.
-
-
-##### -fluentInterfaceName=`<string>` (FluentSupport)
 Name of the generated nested builder class. Can be set to handle naming conflicts.
 
 
 ##### -builderInterfaceName=`<string>` (BuildSupport)
 Name of the generated nested builder interface. Can be set to handle naming conflicts.
-
-
-##### -wrapperInterfaceName=`<string>` (WrapSupport)
-Name of the generated nested builder class. Can be set to handle naming conflicts.
-
-
-##### -modifierInterfaceName=`<string>` (ModifySupport)
-Name of the generated nested builder class. Can be set to handle naming conflicts.
 
 
 ## immutable
