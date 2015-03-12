@@ -290,7 +290,7 @@ class BuilderGenerator {
 			}
 		}
 
-		if (this.immutablePlugin != null && this.implement) {
+		if (this.immutablePlugin != null && !this.immutablePlugin.fake && this.implement) {
 			this.immutablePlugin.immutableInit(this.apiConstructs, initBody, productParam, fieldOutline);
 		}
 	}

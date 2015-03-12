@@ -100,7 +100,7 @@ class PartialCopyGenerator {
 				}
 
 				final ImmutablePlugin immutablePlugin = this.apiConstructs.findPlugin(ImmutablePlugin.class);
-				if (immutablePlugin != null) {
+				if (immutablePlugin != null && !immutablePlugin.fake) {
 					immutablePlugin.immutableInit(this.apiConstructs, body, targetInstanceVar, field);
 				}
 

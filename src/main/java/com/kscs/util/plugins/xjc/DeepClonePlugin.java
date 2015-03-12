@@ -110,7 +110,7 @@ public class DeepClonePlugin extends AbstractPlugin {
 						}
 
 						final ImmutablePlugin immutablePlugin = apiConstructs.findPlugin(ImmutablePlugin.class);
-						if (immutablePlugin != null) {
+						if (immutablePlugin != null && !immutablePlugin.fake) {
 							immutablePlugin.immutableInit(apiConstructs, body, newObjectVar, field);
 						}
 					}

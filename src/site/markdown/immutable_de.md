@@ -35,6 +35,6 @@ Nur für Test und Debug: Es wird nichts wirklich unveränderlich gemacht, aber d
 
 
 ##### -collectionsAsIterable=`{y|n}` (n)
-Mehrwertige Eigenschaften werden als java.util.Iterable deklariert, anstelle von List, um deklarative Unveränderlichkeit sicherzustellen.
+Mehrwertige Eigenschaften werden als java.util.Iterable deklariert, anstelle von List, um deklarative Unveränderlichkeit sicherzustellen.ease
 
 

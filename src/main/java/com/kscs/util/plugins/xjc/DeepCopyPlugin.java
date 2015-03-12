@@ -157,7 +157,7 @@ public class DeepCopyPlugin extends AbstractPlugin {
 						}
 
 						final ImmutablePlugin immutablePlugin = apiConstructs.findPlugin(ImmutablePlugin.class);
-						if (immutablePlugin != null) {
+						if (immutablePlugin != null && !immutablePlugin.fake) {
 							immutablePlugin.immutableInit(apiConstructs, body, newObjectVar, field);
 						}
 					}
@@ -284,7 +284,7 @@ public class DeepCopyPlugin extends AbstractPlugin {
 							body.assign(newField, nullSafe(fieldRef, apiConstructs.newArrayList(elementType).arg(fieldRef)));
 						}
 
-						if (immutablePlugin != null) {
+						if (immutablePlugin != null && !immutablePlugin.fake) {
 							immutablePlugin.immutableInit(apiConstructs, body, JExpr._this(), field);
 						}
 
