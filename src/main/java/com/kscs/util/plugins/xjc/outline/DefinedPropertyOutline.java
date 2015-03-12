@@ -22,9 +22,8 @@
  * THE SOFTWARE.
  */
 
-package com.kscs.util.plugins.xjc;
+package com.kscs.util.plugins.xjc.outline;
 
-import com.kscs.util.plugins.xjc.base.PropertyOutline;
 import com.sun.codemodel.JClass;
 import com.sun.codemodel.JFieldVar;
 import com.sun.codemodel.JMethod;
@@ -58,7 +57,7 @@ public class DefinedPropertyOutline implements PropertyOutline {
 
 	@Override
 	public JType getElementType() {
-		if(isCollection() && ! getRawType().isArray()) {
+		if (isCollection() && !getRawType().isArray()) {
 			return ((JClass) getRawType()).getTypeParameters().get(0);
 		} else {
 			return getRawType();
@@ -67,13 +66,17 @@ public class DefinedPropertyOutline implements PropertyOutline {
 
 	@Override
 	public JFieldVar getFieldVar() {
-		return this.fieldOutline.parent().implClass.fields().get(this.fieldOutline.getPropertyInfo().getName(false));
+		String propertyName = this.fieldOutline.getPropertyInfo().getName(false);
+		if ("any".equals(propertyName)) {
+			propertyName = "content";
+		}
+		return this.fieldOutline.parent().implClass.fields().get(propertyName);
 	}
 
 	public boolean hasGetter() {
-		for(final JMethod method : this.fieldOutline.parent().implClass.methods()) {
-			if((method.name().equals("get"+ this.fieldOutline.getPropertyInfo().getName(true))
-					|| method.name().equals("is"+ this.fieldOutline.getPropertyInfo().getName(true))) && method.params().isEmpty()) {
+		for (final JMethod method : this.fieldOutline.parent().implClass.methods()) {
+			if ((method.name().equals("get" + this.fieldOutline.getPropertyInfo().getName(true))
+					|| method.name().equals("is" + this.fieldOutline.getPropertyInfo().getName(true))) && method.params().isEmpty()) {
 				return true;
 			}
 		}

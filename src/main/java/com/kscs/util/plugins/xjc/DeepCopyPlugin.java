@@ -59,6 +59,8 @@ import static com.kscs.util.plugins.xjc.base.PluginUtil.nullSafe;
  * XJC Plugin to generate copy and partial copy methods
  */
 public class DeepCopyPlugin extends AbstractPlugin {
+	public static final String PROPERTY_TREE_PARAM_NAME = "_propertyTree";
+	public static final String PROPERTY_TREE_USE_PARAM_NAME = "_propertyTreeUse";
 	@Opt("partial") protected boolean generatePartialCloneMethod = true;
 	@Opt protected boolean generateTools = true;
 	@Opt("constructor") protected boolean generateConstructor = true;
@@ -178,7 +180,7 @@ public class DeepCopyPlugin extends AbstractPlugin {
 		final JDefinedClass definedClass = classOutline.implClass;
 
 		final JMethod cloneMethod = definedClass.method(JMod.PUBLIC, definedClass, apiConstructs.copyMethodName);
-		final PartialCopyGenerator cloneGenerator = new PartialCopyGenerator(apiConstructs, cloneMethod);
+		final PartialCopyGenerator cloneGenerator = new PartialCopyGenerator(apiConstructs, cloneMethod, DeepCopyPlugin.PROPERTY_TREE_PARAM_NAME, DeepCopyPlugin.PROPERTY_TREE_USE_PARAM_NAME);
 		cloneMethod.annotate(Override.class);
 
 		final JMethod cloneExceptMethod = generateConvenienceCloneMethod(definedClass, cloneMethod, apiConstructs.copyExceptMethodName, apiConstructs.excludeConst);
@@ -192,7 +194,7 @@ public class DeepCopyPlugin extends AbstractPlugin {
 		final boolean superCopyable = apiConstructs.copyableInterface.isAssignableFrom(definedClass._extends());
 		final boolean superCloneable = apiConstructs.cloneableInterface.isAssignableFrom(definedClass._extends());
 		if (superPartialCopyable) {
-			newObjectVar = body.decl(JMod.FINAL, definedClass, apiConstructs.newObjectVarName, JExpr.cast(definedClass, JExpr._super().invoke(apiConstructs.copyMethodName).arg(cloneGenerator.getPropertyTreeParam()).arg(cloneGenerator.getIncludeParam())));
+			newObjectVar = body.decl(JMod.FINAL, definedClass, apiConstructs.newObjectVarName, JExpr.cast(definedClass, JExpr._super().invoke(apiConstructs.copyMethodName).arg(cloneGenerator.getPropertyTreeParam()).arg(cloneGenerator.getPropertyTreeUseParam())));
 		} else if(superCopyable) {
 			newObjectVar = body.decl(JMod.FINAL, definedClass, apiConstructs.newObjectVarName, JExpr.cast(definedClass, JExpr._super().invoke(apiConstructs.copyMethodName)));
 		} else if(superCloneable) {
@@ -305,7 +307,7 @@ public class DeepCopyPlugin extends AbstractPlugin {
 	void generatePartialCopyConstructor(final ApiConstructs apiConstructs, final ClassOutline classOutline, final JDefinedClass definedClass, final ImmutablePlugin immutablePlugin) {
 		final JMethod constructor = definedClass.constructor(definedClass.isAbstract() ? JMod.PROTECTED : JMod.PUBLIC);
 		final JVar otherParam = constructor.param(JMod.FINAL, classOutline.implClass, "other");
-		final PartialCopyGenerator cloneGenerator = new PartialCopyGenerator(apiConstructs, constructor);
+		final PartialCopyGenerator cloneGenerator = new PartialCopyGenerator(apiConstructs, constructor, DeepCopyPlugin.PROPERTY_TREE_PARAM_NAME, DeepCopyPlugin.PROPERTY_TREE_USE_PARAM_NAME);
 
 		final JDocComment docComment = constructor.javadoc();
 		docComment.append(getMessage("copyConstructor.javadoc.desc", definedClass.name()));
@@ -313,7 +315,7 @@ public class DeepCopyPlugin extends AbstractPlugin {
 		docComment.addParam(cloneGenerator.getPropertyTreeParam()).append(getMessage("copyConstructor.javadoc.param.propertyPath", definedClass.name()));
 
 		if (classOutline.getSuperClass() != null) {
-			constructor.body().invoke("super").arg(otherParam).arg(cloneGenerator.getPropertyTreeParam()).arg(cloneGenerator.getIncludeParam());
+			constructor.body().invoke("super").arg(otherParam).arg(cloneGenerator.getPropertyTreeParam()).arg(cloneGenerator.getPropertyTreeUseParam());
 		}
 
 		final JBlock body = constructor.body();

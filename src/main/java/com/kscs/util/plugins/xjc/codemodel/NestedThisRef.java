@@ -21,20 +21,26 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package com.kscs.util.plugins.xjc;
 
-import java.util.List;
-import com.kscs.util.plugins.xjc.base.PropertyOutline;
+package com.kscs.util.plugins.xjc.codemodel;
+
 import com.sun.codemodel.JClass;
+import com.sun.codemodel.JExpressionImpl;
+import com.sun.codemodel.JFormatter;
 
 /**
- * @author mirko 2014-05-29
+ * @author Mirko Klemm 2015-03-12
  */
-public interface TypeOutline {
-	List<PropertyOutline> getDeclaredFields();
+public class NestedThisRef extends JExpressionImpl {
+	private final JClass jClass;
 
-	TypeOutline getSuperClass();
-	JClass getImplClass();
-	boolean isLocal();
+	public NestedThisRef(final JClass jClass) {
+		this.jClass = jClass;
+	}
 
+	@Override
+	public void generate(final JFormatter f) {
+		f.g(jClass);
+		f.p(".this");
+	}
 }

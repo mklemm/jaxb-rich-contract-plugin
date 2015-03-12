@@ -22,10 +22,23 @@
  * THE SOFTWARE.
  */
 
-package com.kscs.util.plugins.xjc;
+package com.kscs.util.plugins.xjc.codemodel;
+
+import com.sun.codemodel.JClass;
+import com.sun.codemodel.JDefinedClass;
+import com.sun.codemodel.JTypeVar;
 
 /**
- * @author Mirko Klemm 2015-03-05
+ * @author Mirko Klemm 2015-03-12
  */
-public interface InterfaceOutline extends TypeOutline {
+public class GenerifiedClass {
+	public final JDefinedClass raw;
+	public final JTypeVar typeParam;
+	public final JClass type;
+
+	public GenerifiedClass(final JDefinedClass definedClass, final String typeParameterName) {
+		this.raw = definedClass;
+		this.typeParam = definedClass.generify(typeParameterName);
+		this.type = definedClass.narrow(this.typeParam);
+	}
 }

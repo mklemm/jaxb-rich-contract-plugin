@@ -31,7 +31,6 @@ import javax.xml.bind.annotation.XmlType;
 import javax.xml.namespace.QName;
 import javax.xml.transform.dom.DOMSource;
 import java.lang.reflect.Method;
-import java.lang.reflect.Modifier;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -58,6 +57,7 @@ import com.sun.codemodel.JExpression;
 import com.sun.codemodel.JFieldRef;
 import com.sun.codemodel.JForEach;
 import com.sun.codemodel.JInvocation;
+import com.sun.codemodel.JMethod;
 import com.sun.codemodel.JPackage;
 import com.sun.codemodel.JTryBlock;
 import com.sun.codemodel.JType;
@@ -69,6 +69,7 @@ import com.sun.tools.xjc.model.CCustomizable;
 import com.sun.tools.xjc.model.CPluginCustomization;
 import com.sun.tools.xjc.outline.ClassOutline;
 import com.sun.tools.xjc.outline.EnumOutline;
+import com.sun.tools.xjc.outline.FieldOutline;
 import com.sun.tools.xjc.outline.Outline;
 import com.sun.xml.xsom.XSDeclaration;
 import org.xml.sax.ErrorHandler;
@@ -77,11 +78,17 @@ import org.xml.sax.ErrorHandler;
  * Common constants and constructs
  */
 public class ApiConstructs {
+	public static final String FLUENT_CLASS_NAME = "Fluent";
+	public static final String FLUENT_INTERFACE_NAME = "FluentSupport";
 	public static final String BUILDER_CLASS_NAME = "Builder";
 	public static final String BUILDER_INTERFACE_NAME = "BuildSupport";
+	public static final String WRAPPER_CLASS_NAME = "Wrapper";
+	public static final String MODIFIER_CLASS_NAME = "Modifier";
+	public static final String WRAPPER_INTERFACE_NAME = "WrapSupport";
+	public static final String MODIFIER_INTERFACE_NAME = "ModifySupport";
 	public static final String BUILD_METHOD_NAME = "build";
+	public static final String MODIFY_METHOD_NAME = "apply";
 	public static final String INIT_METHOD_NAME = "init";
-	public static final String PRODUCT_INSTANCE_NAME = "product";
 	public static final String ADD_METHOD_PREFIX = "add";
 	public static final String WITH_METHOD_PREFIX = "with";
 	public static final String NEW_OBJECT_VAR_NAME = "_newObject";
@@ -92,6 +99,7 @@ public class ApiConstructs {
 	public static final String COPY_ONLY_METHOD_NAME = "copyOnly";
 	public static final String BUILD_COPY_METHOD_NAME = "copyOf";
 	public static final String NEW_BUILDER_METHOD_NAME = "builder";
+	public static final String NEW_MODIFIER_METHOD_NAME = "modifier";
 	public static final String NEW_COPY_BUILDER_METHOD_NAME = "newCopyBuilder";
 	private static final String AS_LIST = "asList";
 	private static final String UNMODIFIABLE_LIST = "unmodifiableList";
@@ -118,6 +126,7 @@ public class ApiConstructs {
 	public final String copyOnlyMethodName;
 	public final String buildCopyMethodName;
 	public final String newBuilderMethodName;
+	public final String newModifierMethodName;
 	public final String newCopyBuilderMethodName;
 	public final String newObjectVarName;
 	private final JClass collectionsClass;
@@ -160,6 +169,7 @@ public class ApiConstructs {
 		this.copyOnlyMethodName = ApiConstructs.COPY_ONLY_METHOD_NAME;
 		this.buildCopyMethodName = ApiConstructs.BUILD_COPY_METHOD_NAME;
 		this.newBuilderMethodName = ApiConstructs.NEW_BUILDER_METHOD_NAME;
+		this.newModifierMethodName = ApiConstructs.NEW_MODIFIER_METHOD_NAME;
 		this.newCopyBuilderMethodName = ApiConstructs.NEW_COPY_BUILDER_METHOD_NAME;
 		this.newObjectVarName = ApiConstructs.NEW_OBJECT_VAR_NAME;
 	}
@@ -212,6 +222,36 @@ public class ApiConstructs {
 	private static String getNamespaceUri(final Package pkg) {
 		final XmlSchema xmlSchemaAnnotation = pkg.getAnnotation(XmlSchema.class);
 		return xmlSchemaAnnotation != null && !"##default".equals(xmlSchemaAnnotation.namespace()) ? xmlSchemaAnnotation.namespace() : null;
+	}
+
+	public static JMethod findGetter(final FieldOutline field) {
+		final ClassOutline classOutline = field.parent();
+		String propertyName = field.getPropertyInfo().getName(true);
+		if ("Any".equals(propertyName)) {
+			propertyName = "Content";
+		}
+		String getterName = "get" + propertyName;
+		JMethod m = classOutline.implClass.getMethod(getterName, new JType[0]);
+		if (m == null) {
+			getterName = "is" + propertyName;
+			m = classOutline.implClass.getMethod(getterName, new JType[0]);
+		}
+		return m;
+	}
+
+	public static JMethod findSetter(final FieldOutline field) {
+		final ClassOutline classOutline = field.parent();
+		String propertyName = field.getPropertyInfo().getName(true);
+		if ("Any".equals(propertyName)) {
+			propertyName = "Content";
+		}
+		final String setterName = "set" + propertyName;
+		for (final JMethod method : classOutline.implClass.methods()) {
+			if (method.name().equals(setterName) && method.listParams().length == 1) {
+				return method;
+			}
+		}
+		return null;
 	}
 
 	private boolean cloneThrows(final Class<? extends Cloneable> cloneableClass) {
@@ -283,28 +323,6 @@ public class ApiConstructs {
 		return JExpr._new(this.arrayListClass.narrow(elementType));
 	}
 
-	public BuilderOutline getReferencedBuilderOutline(final JType type) {
-		BuilderOutline builderOutline = null;
-		if (getClassOutline(type) == null && getEnumOutline(type) == null && type.isReference() && !type.isPrimitive() && !type.isArray() && type.fullName().contains(".")) {
-			final Class<?> runtimeParentClass;
-			try {
-				runtimeParentClass = Class.forName(type.binaryName());
-			} catch (final ClassNotFoundException e) {
-				return null;
-			}
-			final Class<?> builderRuntimeClass = findInnerClass(runtimeParentClass, runtimeParentClass.isInterface() ? ApiConstructs.BUILDER_INTERFACE_NAME : ApiConstructs.BUILDER_CLASS_NAME);
-			if (builderRuntimeClass != null) {
-				final JClass parentClass = this.codeModel.ref(runtimeParentClass);
-				final JClass superClass = runtimeParentClass.getSuperclass() != null ? this.codeModel.ref(builderRuntimeClass.getSuperclass()) : null;
-				final JClass builderClass = ref(parentClass, runtimeParentClass.isInterface() ? ApiConstructs.BUILDER_INTERFACE_NAME : ApiConstructs.BUILDER_CLASS_NAME, builderRuntimeClass.isInterface(), Modifier.isAbstract(builderRuntimeClass.getModifiers()), superClass);
-				if (builderClass != null) {
-					final ReferencedClassOutline referencedClassOutline = new ReferencedClassOutline(this.codeModel, runtimeParentClass);
-					builderOutline = new BuilderOutline(referencedClassOutline, builderClass);
-				}
-			}
-		}
-		return builderOutline;
-	}
 
 	public JDirectInnerClassRef ref(final JClass outer, final String name, final boolean isInterface, final boolean isAbstract, final JClass superClass) {
 		return new JDirectInnerClassRef(outer, name, isInterface, isAbstract, superClass);

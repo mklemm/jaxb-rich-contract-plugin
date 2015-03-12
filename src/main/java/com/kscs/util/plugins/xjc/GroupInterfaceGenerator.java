@@ -46,6 +46,9 @@ import java.util.logging.Logger;
 import com.kscs.util.jaxb._interface.Interface;
 import com.kscs.util.jaxb._interface.Interfaces;
 import com.kscs.util.plugins.xjc.base.AbstractXSFunction;
+import com.kscs.util.plugins.xjc.outline.DefinedInterfaceOutline;
+import com.kscs.util.plugins.xjc.outline.ReferencedInterfaceOutline;
+import com.kscs.util.plugins.xjc.outline.TypeOutline;
 import com.sun.codemodel.ClassType;
 import com.sun.codemodel.JClassAlreadyExistsException;
 import com.sun.codemodel.JDefinedClass;
@@ -53,7 +56,6 @@ import com.sun.codemodel.JDocComment;
 import com.sun.codemodel.JMethod;
 import com.sun.codemodel.JMod;
 import com.sun.codemodel.JPackage;
-import com.sun.codemodel.JType;
 import com.sun.codemodel.util.JavadocEscapeWriter;
 import com.sun.tools.xjc.outline.ClassOutline;
 import com.sun.tools.xjc.outline.FieldOutline;
@@ -102,6 +104,7 @@ class GroupInterfaceGenerator {
 	private static final Logger LOGGER = Logger.getLogger(GroupInterfaceGenerator.class.getName());
 	private static final ResourceBundle RESOURCE_BUNDLE = ResourceBundle.getBundle(GroupInterfaceGenerator.class.getName());
 	private final boolean declareBuilderInterface;
+	private final boolean declareModifierInterface;
 	private final ApiConstructs apiConstructs;
 	private final XSFunction<String> nameFunc = new AbstractXSFunction<String>() {
 
@@ -158,6 +161,7 @@ class GroupInterfaceGenerator {
 		final DeepClonePlugin deepClonePlugin = this.apiConstructs.findPlugin(DeepClonePlugin.class);
 		final DeepCopyPlugin deepCopyPlugin = this.apiConstructs.findPlugin(DeepCopyPlugin.class);
 		this.declareBuilderInterface = settings.isDeclareBuilderInterface() && settings.getBuilderGeneratorSettings() != null;
+		this.declareModifierInterface = apiConstructs.hasPlugin(ImmutablePlugin.class) && apiConstructs.findPlugin(ImmutablePlugin.class).generateModifier;
 		this.needsCloneMethod = deepClonePlugin != null;
 		this.cloneMethodThrows = this.needsCloneMethod && deepClonePlugin.isCloneThrows();
 		this.needsCopyMethod = deepCopyPlugin != null;
@@ -206,36 +210,6 @@ class GroupInterfaceGenerator {
 		} else {
 			return null;
 		}
-	}
-
-	private static JMethod findGetter(final FieldOutline field) {
-		final ClassOutline classOutline = field.parent();
-		String propertyName = field.getPropertyInfo().getName(true);
-		if ("Any".equals(propertyName)) {
-			propertyName = "Content";
-		}
-		String getterName = "get" + propertyName;
-		JMethod m = classOutline.implClass.getMethod(getterName, new JType[0]);
-		if (m == null) {
-			getterName = "is" + propertyName;
-			m = classOutline.implClass.getMethod(getterName, new JType[0]);
-		}
-		return m;
-	}
-
-	private static JMethod findSetter(final FieldOutline field) {
-		final ClassOutline classOutline = field.parent();
-		String propertyName = field.getPropertyInfo().getName(true);
-		if ("Any".equals(propertyName)) {
-			propertyName = "Content";
-		}
-		final String setterName = "set" + propertyName;
-		for (final JMethod method : classOutline.implClass.methods()) {
-			if (method.name().equals(setterName) && method.listParams().length == 1) {
-				return method;
-			}
-		}
-		return null;
 	}
 
 	private static Map<QName, ReferencedInterfaceOutline> loadInterfaceEpisode(final ApiConstructs apiConstructs, final URL resource) {
@@ -334,7 +308,11 @@ class GroupInterfaceGenerator {
 				if (superInterfaceOutline == null) {
 					superInterfaceOutline = getReferencedInterfaceOutline(ApiConstructs.getQName(groupRef));
 				}
-				associateSuperInterface(typeDef, superInterfaceOutline);
+				if (superInterfaceOutline != null) {
+					typeDef.addSuperInterface(superInterfaceOutline);
+					typeDef.getImplClass()._implements(superInterfaceOutline.getImplClass());
+					putGroupInterfaceForClass(typeDef.getImplClass().fullName(), superInterfaceOutline);
+				}
 			}
 		}
 
@@ -352,7 +330,6 @@ class GroupInterfaceGenerator {
 				generateImplementsEntries(attGroupInterfaces, classOutline, findAttributeGroups(classComponent));
 				generateImplementsEntries(modelGroupInterfaces, classOutline, findModelGroups(classComponent));
 			}
-
 		}
 
 		for (final DefinedInterfaceOutline interfaceOutline : modelGroupInterfaces.values()) {
@@ -377,11 +354,34 @@ class GroupInterfaceGenerator {
 			}
 		}
 
+
+		if(this.declareModifierInterface) {
+			final ImmutablePlugin immutablePlugin = this.apiConstructs.findPlugin(ImmutablePlugin.class);
+			for (final DefinedInterfaceOutline interfaceOutline : modelGroupInterfaces.values()) {
+				try {
+					ModifierGenerator.generateInterface(this.apiConstructs, interfaceOutline, immutablePlugin.modifierClassName, interfaceOutline.getSuperInterfaces(), immutablePlugin.modifierMethodName );
+				} catch (JClassAlreadyExistsException e) {
+					this.apiConstructs.errorHandler.error(new SAXParseException(e.getMessage(), interfaceOutline.getSchemaComponent().getLocator()));
+				}
+			}
+			for (final DefinedInterfaceOutline interfaceOutline : attGroupInterfaces.values()) {
+				try {
+					ModifierGenerator.generateInterface(this.apiConstructs, interfaceOutline, immutablePlugin.modifierClassName, interfaceOutline.getSuperInterfaces(), immutablePlugin.modifierMethodName );
+				} catch (JClassAlreadyExistsException e) {
+					this.apiConstructs.errorHandler.error(new SAXParseException(e.getMessage(), interfaceOutline.getSchemaComponent().getLocator()));
+				}
+			}
+		}
 	}
 
 	private void generateBuilderInterface(final Map<String, BuilderOutline> builderOutlines, final DefinedInterfaceOutline interfaceOutline) throws SAXException {
 		try {
-			builderOutlines.put(interfaceOutline.getImplClass().fullName(), new BuilderOutline(interfaceOutline, interfaceOutline.getImplClass()._class(JMod.NONE, ApiConstructs.BUILDER_INTERFACE_NAME, ClassType.INTERFACE)));
+			builderOutlines.put(interfaceOutline.getImplClass().fullName(), new BuilderOutline(interfaceOutline,
+					/* interfaceOutline.getImplClass()._class(JMod.NONE, this.settings.getBuilderGeneratorSettings().getFluentClassName().getInterfaceName(), ClassType.INTERFACE) */
+					interfaceOutline.getImplClass()._class(JMod.NONE, this.settings.getBuilderGeneratorSettings().getBuilderClassName().getInterfaceName(), ClassType.INTERFACE)
+					/*interfaceOutline.getImplClass()._class(JMod.NONE, this.settings.getBuilderGeneratorSettings().getWrapperClassName().getInterfaceName(), ClassType.INTERFACE),
+					interfaceOutline.getImplClass()._class(JMod.NONE, this.settings.getBuilderGeneratorSettings().getModifierClassName().getInterfaceName(), ClassType.INTERFACE) */
+					));
 		} catch (final JClassAlreadyExistsException e) {
 			this.apiConstructs.errorHandler.error(new SAXParseException(MessageFormat.format(GroupInterfaceGenerator.RESOURCE_BUNDLE.getString("error.interface-exists"), interfaceOutline.getImplClass().fullName(), ApiConstructs.BUILDER_INTERFACE_NAME), interfaceOutline.getSchemaComponent().getLocator()));
 		}
@@ -430,14 +430,6 @@ class GroupInterfaceGenerator {
 				classOutline.implClass._implements(definedGroupType.getImplClass());
 				putGroupInterfaceForClass(classOutline.implClass.fullName(), definedGroupType);
 			}
-		}
-	}
-
-	private void associateSuperInterface(final DefinedInterfaceOutline interfaceDefinition, final TypeOutline superInterface) {
-		if (superInterface != null) {
-			interfaceDefinition.addSuperInterface(superInterface);
-			interfaceDefinition.getImplClass()._implements(superInterface.getImplClass());
-			putGroupInterfaceForClass(interfaceDefinition.getImplClass().fullName(), superInterface);
 		}
 	}
 
@@ -523,11 +515,11 @@ class GroupInterfaceGenerator {
 
 	private FieldOutline generateProperty(final DefinedInterfaceOutline groupInterface, final FieldOutline implementedField) {
 		if (implementedField != null) {
-			final JMethod implementedGetter = findGetter(implementedField);
+			final JMethod implementedGetter = ApiConstructs.findGetter(implementedField);
 			if (implementedGetter != null) {
 				groupInterface.getImplClass().method(JMod.NONE, implementedGetter.type(), implementedGetter.name());
 				if (!this.immutable) {
-					final JMethod implementedSetter = findSetter(implementedField);
+					final JMethod implementedSetter = ApiConstructs.findSetter(implementedField);
 					if (implementedSetter != null) {
 						final JMethod newSetter = groupInterface.getImplClass().method(JMod.NONE, implementedSetter.type(),
 								implementedSetter.name());

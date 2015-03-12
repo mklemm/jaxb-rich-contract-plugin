@@ -21,12 +21,12 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package com.kscs.util.plugins.xjc;
+package com.kscs.util.plugins.xjc.outline;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import com.kscs.util.plugins.xjc.base.PropertyOutline;
+import com.kscs.util.plugins.xjc.ApiConstructs;
 import com.sun.codemodel.JClass;
 import com.sun.codemodel.JDefinedClass;
 import com.sun.tools.xjc.outline.ClassOutline;
@@ -35,16 +35,16 @@ import com.sun.tools.xjc.outline.FieldOutline;
 /**
  * @author mirko 2014-05-29
  */
-public class DefinedClassOutline implements TypeOutline {
+public class DefinedClassOutline implements DefinedTypeOutline {
 	private final ApiConstructs apiConstructs;
 	private final ClassOutline classOutline;
-	private final List<PropertyOutline> declaredFields;
+	private final List<DefinedPropertyOutline> declaredFields;
 	private TypeOutline cachedSuperClass = null;
 
 	public DefinedClassOutline(final ApiConstructs apiConstructs, final ClassOutline classOutline) {
 		this.apiConstructs = apiConstructs;
 		this.classOutline = classOutline;
-		final List<PropertyOutline> properties = new ArrayList<>(classOutline.getDeclaredFields().length);
+		final List<DefinedPropertyOutline> properties = new ArrayList<>(classOutline.getDeclaredFields().length);
 		for (final FieldOutline fieldOutline : classOutline.getDeclaredFields()) {
 			properties.add(new DefinedPropertyOutline(fieldOutline));
 		}
@@ -52,7 +52,7 @@ public class DefinedClassOutline implements TypeOutline {
 	}
 
 	@Override
-	public List<PropertyOutline> getDeclaredFields() {
+	public List<DefinedPropertyOutline> getDeclaredFields() {
 		return this.declaredFields;
 	}
 
@@ -68,12 +68,7 @@ public class DefinedClassOutline implements TypeOutline {
 						return null;
 					} else {
 						final JClass superClass = this.apiConstructs.codeModel.ref(ungeneratedSuperClass);
-						final JClass jClass = this.apiConstructs.ref(superClass, ApiConstructs.BUILDER_CLASS_NAME);
-						if (jClass != null) {
-							return new ReferencedClassOutline(this.apiConstructs.codeModel, ungeneratedSuperClass);
-						} else {
-							return null;
-						}
+						return new ReferencedClassOutline(this.apiConstructs.codeModel, ungeneratedSuperClass);
 					}
 				} catch (final Exception e) {
 					throw new RuntimeException("Cannot find superclass of " + this.classOutline.target.getName() + ": " + this.classOutline.target.getLocator());
@@ -97,4 +92,5 @@ public class DefinedClassOutline implements TypeOutline {
 	public ClassOutline getClassOutline() {
 		return this.classOutline;
 	}
+
 }

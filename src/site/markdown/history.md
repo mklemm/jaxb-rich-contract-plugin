@@ -45,5 +45,8 @@
 * **1.5.9**:
 	* fluent-builder: Added methods to initialize collection properties with an "java.util.Iterable" instance instead of collection.
 	* fluent-builder: Made "add..." and "with..." methods for collection properties fall through if they are given a NULL arg for the item collection.
+* **1.6.0**:
+	* immutable: You can now have a "modifier" class generated that provides methods to modify the state of an otherwise immutable object anyway.
+	
 	
 

@@ -21,37 +21,30 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package com.kscs.util.plugins.xjc;
 
-import com.kscs.util.plugins.xjc.outline.TypeOutline;
-import com.sun.codemodel.JClass;
-import com.sun.codemodel.JDefinedClass;
+package com.kscs.util.plugins.xjc.codemodel;
 
 /**
- * @author mirko
- *         25.03.14
+ * @author Mirko Klemm 2015-03-12
  */
-public class BuilderOutline {
-	private final JClass builderClass;
-	private final TypeOutline classOutline;
+public class ClassName {
+	private final String interfaceName;
+	private final String className;
 
-	BuilderOutline(final TypeOutline classOutline, final JClass builderClass) {
-		this.classOutline = classOutline;
-		this.builderClass = builderClass;
+	public ClassName(final String interfaceName, final String className) {
+		this.interfaceName = interfaceName;
+		this.className = className;
 	}
 
-	public JClass getBuilderClass() {
-		return this.builderClass;
+	public String getInterfaceName() {
+		return this.interfaceName;
 	}
 
-
-	public JDefinedClass getDefinedBuilderClass() {
-		return (JDefinedClass) this.builderClass;
+	public String getClassName() {
+		return this.className;
 	}
 
-
-	public TypeOutline getClassOutline() {
-		return this.classOutline;
+	public String getName(final boolean isInterface) {
+		return isInterface ? this.interfaceName : className;
 	}
-
 }

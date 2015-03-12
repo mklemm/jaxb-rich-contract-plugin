@@ -30,7 +30,9 @@ import com.kscs.util.jaxb.PropertyTree;
 import com.kscs.util.jaxb.PropertyTreeUse;
 import com.kscs.util.jaxb.Selector;
 import com.kscs.util.plugins.xjc.base.AbstractPlugin;
+import com.kscs.util.plugins.xjc.codemodel.ClassName;
 import com.kscs.util.plugins.xjc.base.Opt;
+import com.kscs.util.plugins.xjc.outline.DefinedClassOutline;
 import com.sun.codemodel.ClassType;
 import com.sun.codemodel.JClassAlreadyExistsException;
 import com.sun.codemodel.JDefinedClass;
@@ -47,6 +49,14 @@ import org.xml.sax.SAXParseException;
  */
 public class FluentBuilderPlugin extends AbstractPlugin {
 	@Opt
+	private final String rootSelectorClassName = "Select";
+	@Opt
+	protected String newBuilderMethodName = ApiConstructs.NEW_BUILDER_METHOD_NAME;
+	@Opt
+	protected String newCopyBuilderMethodName = ApiConstructs.NEW_COPY_BUILDER_METHOD_NAME;
+	@Opt
+	protected String builderFieldSuffix = "_Builder";
+	@Opt
 	private boolean generateTools = true;
 	@Opt
 	private boolean narrow = false;
@@ -55,15 +65,9 @@ public class FluentBuilderPlugin extends AbstractPlugin {
 	@Opt
 	private String selectorClassName = "Selector";
 	@Opt
-	private final String rootSelectorClassName = "Select";
-	@Opt
 	private String builderClassName = ApiConstructs.BUILDER_CLASS_NAME;
 	@Opt
-	protected String newBuilderMethodName = ApiConstructs.NEW_BUILDER_METHOD_NAME;
-	@Opt
-	protected String newCopyBuilderMethodName = ApiConstructs.NEW_COPY_BUILDER_METHOD_NAME;
-	@Opt
-	protected String builderFieldSuffix = "_Builder";
+	private String builderInterfaceName = ApiConstructs.BUILDER_INTERFACE_NAME;
 
 	@Override
 	public String getOptionName() {
@@ -90,7 +94,8 @@ public class FluentBuilderPlugin extends AbstractPlugin {
 		for (final ClassOutline classOutline : outline.getClasses()) {
 			final JDefinedClass definedClass = classOutline.implClass;
 			try {
-				final BuilderOutline builderOutline = new BuilderOutline(new DefinedClassOutline(apiConstructs, classOutline), classOutline.implClass._class(JMod.PUBLIC | JMod.STATIC, this.builderClassName, ClassType.CLASS));
+				final BuilderOutline builderOutline = new BuilderOutline(new DefinedClassOutline(apiConstructs, classOutline),
+						classOutline.implClass._class(JMod.PUBLIC | JMod.STATIC, this.builderClassName, ClassType.CLASS));
 				builderClasses.put(definedClass.fullName(), builderOutline);
 			} catch (final JClassAlreadyExistsException caex) {
 				errorHandler.warning(new SAXParseException(getMessage("error.builderClassExists", definedClass.name()), classOutline.target.getLocator(), caex));
@@ -105,6 +110,8 @@ public class FluentBuilderPlugin extends AbstractPlugin {
 	}
 
 	public BuilderGeneratorSettings getSettings() {
-		return new BuilderGeneratorSettings(this.copyPartial, this.narrow, this.newBuilderMethodName, this.newCopyBuilderMethodName, this.builderFieldSuffix);
+		return new BuilderGeneratorSettings(this.copyPartial, this.narrow, this.newBuilderMethodName, this.newCopyBuilderMethodName, this.builderFieldSuffix,
+				new ClassName(this.builderInterfaceName, this.builderClassName)
+		);
 	}
 }

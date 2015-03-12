@@ -24,6 +24,8 @@
 
 package com.kscs.util.plugins.xjc;
 
+import com.kscs.util.plugins.xjc.codemodel.ClassName;
+
 /**
  * @author Mirko Klemm 2015-03-05
  */
@@ -33,14 +35,16 @@ public class BuilderGeneratorSettings {
 	private final String newBuilderMethodName;
 	private final String newCopyBuilderMethodName;
 	private final String builderFieldSuffix;
+	private final ClassName builderClassName;
 	private boolean generatingNewCopyBuilderMethod = true;
 
-	public BuilderGeneratorSettings(final boolean generatingPartialCopy, final boolean generatingNarrowCopy, final String newBuilderMethodName, final String newCopyBuilderMethodName, final String builderFieldSuffix) {
+	public BuilderGeneratorSettings(final boolean generatingPartialCopy, final boolean generatingNarrowCopy, final String newBuilderMethodName, final String newCopyBuilderMethodName, final String builderFieldSuffix, final ClassName builderClassName) {
 		this.generatingPartialCopy = generatingPartialCopy;
 		this.generatingNarrowCopy = generatingNarrowCopy;
 		this.newBuilderMethodName = newBuilderMethodName;
 		this.newCopyBuilderMethodName = newCopyBuilderMethodName;
 		this.builderFieldSuffix = builderFieldSuffix;
+		this.builderClassName = builderClassName;
 	}
 
 	public boolean isGeneratingPartialCopy() {
@@ -70,4 +74,9 @@ public class BuilderGeneratorSettings {
 	public void setGeneratingNewCopyBuilderMethod(final boolean generatingNewCopyBuilderMethod) {
 		this.generatingNewCopyBuilderMethod = generatingNewCopyBuilderMethod;
 	}
+
+	public ClassName getBuilderClassName() {
+		return this.builderClassName;
+	}
+
 }

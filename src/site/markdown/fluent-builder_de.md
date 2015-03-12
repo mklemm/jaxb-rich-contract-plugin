@@ -45,6 +45,22 @@ Of course, this plugin is most useful if `immutable` is also activated.
 
 #### Optionen
 
+##### -rootSelectorClassName=`<string>` (Select)
+Name der generierten inneren "Select" -Klasse, die vom aufrufenden Code als Einstieg in den Aufbau eines Property-Baumes für das partielle Kopieren verwendet werden kann. Diese Einstellung wird nur dann berücksichtigt, wenn das "Deep Copy"-Plugin nicht aktiv ist, und "copy-partial=y" ist. Ansonsten gilt die Einstellung des "Deep Copy"-Plugins.
+
+
+##### -newBuilderMethodName=`<string>` (builder)
+Name der generierten statischen Methode zum Erzeugen eines neuen Builders. Kann hier gesetzt werden, um Namenskonflikte zu lösen.
+
+
+##### -newCopyBuilderMethodName=`<string>` (newCopyBuilder)
+Name der generierten Instanzmethode zum Erzeugen eines neuen Builders, der mit dem von dieser Instanz kopierten Zustand initialisiert ist.
+
+
+##### -builderFieldSuffix=`<string>` (_Builder)
+Suffix, das an den Namen der generierten Sub-Builder Instanzvariablen angefügt wird.
+
+
 ##### -generateTools=`{y|n}` (y)
 Generiere Hilfsklassen als Quelltext. Wenn dies ausgeschaltet ist, muss sich das Plugin-JAR zur Laufzeit im Klassenpfad der generierten Klassendefinitionen befinden.
 
@@ -62,23 +78,35 @@ Generiert zusätzlich eine 'copyOf()'-Methode mit der sich Objekte partiell kopi
 Name der generierten inneren "Selector" Builder-Klasse, die intern zum Aufbau des Property-Baums für das partielle Kopieren benutzt wird. Diese Einstellung wird nur dann berücksichtigt, wenn das "Deep Copy"-Plugin nicht aktiv ist, und "copy-partial=y" ist. Ansonsten gilt die Einstellung des "Deep Copy"-Plugins.
 
 
-##### -rootSelectorClassName=`<string>` (Select)
-Name der generierten inneren "Select" -Klasse, die vom aufrufenden Code als Einstieg in den Aufbau eines Property-Baumes für das partielle Kopieren verwendet werden kann. Diese Einstellung wird nur dann berücksichtigt, wenn das "Deep Copy"-Plugin nicht aktiv ist, und "copy-partial=y" ist. Ansonsten gilt die Einstellung des "Deep Copy"-Plugins.
+##### -fluentClassName=`<string>` (Fluent)
+Name der generierten inneren Builder-Klasse. Kann hier gesetzt werden, um Namenskonflikte zu lösen.
 
 
 ##### -builderClassName=`<string>` (Builder)
 Name der generierten inneren Builder-Klasse. Kann hier gesetzt werden, um Namenskonflikte zu lösen.
 
 
-##### -newBuilderMethodName=`<string>` (builder)
-Name der generierten statischen Methode zum Erzeugen eines neuen Builders. Kann hier gesetzt werden, um Namenskonflikte zu lösen.
+##### -wrapperClassName=`<string>` (Wrapper)
+Name der generierten inneren Builder-Klasse. Kann hier gesetzt werden, um Namenskonflikte zu lösen.
 
 
-##### -newCopyBuilderMethodName=`<string>` (newCopyBuilder)
-Name der generierten Instanzmethode zum Erzeugen eines neuen Builders, der mit dem von dieser Instanz kopierten Zustand initialisiert ist.
+##### -modifierClassName=`<string>` (Modifier)
+Name der generierten inneren Builder-Klasse. Kann hier gesetzt werden, um Namenskonflikte zu lösen.
 
 
-##### -builderFieldSuffix=`<string>` (_Builder)
-Suffix, das an den Namen der generierten Sub-Builder Instanzvariablen angefügt wird.
+##### -fluentInterfaceName=`<string>` (FluentSupport)
+Name der generierten inneren Builder-Klasse. Kann hier gesetzt werden, um Namenskonflikte zu lösen.
+
+
+##### -builderInterfaceName=`<string>` (BuildSupport)
+Name des generierten inneren Builder-Interfaces. Kann hier gesetzt werden, um Namenskonflikte zu lösen.
+
+
+##### -wrapperInterfaceName=`<string>` (WrapSupport)
+Name der generierten inneren Builder-Klasse. Kann hier gesetzt werden, um Namenskonflikte zu lösen.
+
+
+##### -modifierInterfaceName=`<string>` (ModifySupport)
+Name der generierten inneren Builder-Klasse. Kann hier gesetzt werden, um Namenskonflikte zu lösen.
 
 

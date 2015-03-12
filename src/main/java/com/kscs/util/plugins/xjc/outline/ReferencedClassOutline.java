@@ -22,12 +22,11 @@
  * THE SOFTWARE.
  */
 
-package com.kscs.util.plugins.xjc;
+package com.kscs.util.plugins.xjc.outline;
 
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 import java.util.List;
-import com.kscs.util.plugins.xjc.base.PropertyOutline;
 import com.sun.codemodel.JClass;
 import com.sun.codemodel.JCodeModel;
 

@@ -45,29 +45,8 @@ Of course, this plugin is most useful if `immutable` is also activated.
 
 #### Options
 
-##### -generateTools=`{y|n}` (y)
-Generate utility classes as static source code artifacts. If no, the plugin JAR must be in compile- and runtime classpath.
-
-
-##### -narrow=`{y|n}` (n)
-Uses copy constructors for all child nodes in the object tree as long as they are available. This will cause the new instance to be as narrow as possible to the declared types.
-Abstract types and types not generated from this XSD-modle will always be copied by their "clone()"-method.
-
-
-##### -copyPartial=`{y|n}` (y)
-Generates an additional 'copyOf'-method  that takes a PropertyTree instance to restrict the copy operation to selected nodes in the object tree.
-
-
-##### -selectorClassName=`<string>` (Selector)
-Name of the generated nested "Selector" builder class, used to build up a property tree for partial copy functionality. This setting will only have an effect if the "deep-copy-plugin" isn't also active. If it is, the "copy" plugin's settings will take precedence.
-
-
 ##### -rootSelectorClassName=`<string>` (Select)
 Name of the generated nested static "Select" entry point class to be used by client code for the "partial copy" feature. This setting will only have an effect if the "deep-copy-plugin" isn't also active. If it is, the "copy" plugin's settings will take precedence.
-
-
-##### -builderClassName=`<string>` (Builder)
-Name of the generated nested builder class. Can be set to handle naming conflicts.
 
 
 ##### -newBuilderMethodName=`<string>` (builder)
@@ -80,5 +59,54 @@ Name of the generated instance method to instantiate a new fluent builder intiti
 
 ##### -builderFieldSuffix=`<string>` (_Builder)
 Suffix to append to the field holding the builder, change to  prevent name clashes.
+
+
+##### -generateTools=`{y|n}` (y)
+Generate utility classes as static source code artifacts. If no, the plugin JAR must be in compile- and runtime classpath.
+
+
+##### -narrow=`{y|n}` (n)
+Uses copy constructors for all child nodes in the object tree as long as they are available. This will cause the new instance to be as narrow as possible to the declared types.
+Abstract types and types not generated from this XSD-model will always be copied by their "clone()"-method.
+
+
+##### -copyPartial=`{y|n}` (y)
+Generates an additional 'copyOf'-method  that takes a PropertyTree instance to restrict the copy operation to selected nodes in the object tree.
+
+
+##### -selectorClassName=`<string>` (Selector)
+Name of the generated nested "Selector" builder class, used to build up a property tree for partial copy functionality. This setting will only have an effect if the "deep-copy-plugin" isn't also active. If it is, the "copy" plugin's settings will take precedence.
+
+
+##### -fluentClassName=`<string>` (Fluent)
+Name of the generated nested builder class. Can be set to handle naming conflicts.
+
+
+##### -builderClassName=`<string>` (Builder)
+Name of the generated nested builder class. Can be set to handle naming conflicts.
+
+
+##### -wrapperClassName=`<string>` (Wrapper)
+Name of the generated nested builder class. Can be set to handle naming conflicts.
+
+
+##### -modifierClassName=`<string>` (Modifier)
+Name of the generated nested builder class. Can be set to handle naming conflicts.
+
+
+##### -fluentInterfaceName=`<string>` (FluentSupport)
+Name of the generated nested builder class. Can be set to handle naming conflicts.
+
+
+##### -builderInterfaceName=`<string>` (BuildSupport)
+Name of the generated nested builder interface. Can be set to handle naming conflicts.
+
+
+##### -wrapperInterfaceName=`<string>` (WrapSupport)
+Name of the generated nested builder class. Can be set to handle naming conflicts.
+
+
+##### -modifierInterfaceName=`<string>` (ModifySupport)
+Name of the generated nested builder class. Can be set to handle naming conflicts.
 
 

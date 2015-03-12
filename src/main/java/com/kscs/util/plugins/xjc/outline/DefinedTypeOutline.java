@@ -22,20 +22,18 @@
  * THE SOFTWARE.
  */
 
-package com.kscs.util.plugins.xjc.base;
+package com.kscs.util.plugins.xjc.outline;
 
-import com.sun.codemodel.JFieldVar;
-import com.sun.codemodel.JType;
+import java.util.List;
+import com.sun.codemodel.JDefinedClass;
 
 /**
- * @author Mirko Klemm 2015-01-28
+ * @author Mirko Klemm 2015-03-12
  */
-public interface PropertyOutline {
-	String getBaseName();
-	String getFieldName();
-	JType getRawType();
-	JType getElementType();
-	JFieldVar getFieldVar();
-	boolean hasGetter();
-	boolean isCollection();
+public interface DefinedTypeOutline extends TypeOutline {
+	@Override
+	JDefinedClass getImplClass();
+
+	@Override
+	List<DefinedPropertyOutline> getDeclaredFields();
 }

@@ -28,9 +28,11 @@ import java.util.Iterator;
 import com.kscs.util.plugins.xjc.base.AbstractPlugin;
 import com.kscs.util.plugins.xjc.base.Opt;
 import com.kscs.util.plugins.xjc.base.PluginUtil;
-import com.kscs.util.plugins.xjc.base.PropertyOutline;
+import com.kscs.util.plugins.xjc.outline.DefinedClassOutline;
+import com.kscs.util.plugins.xjc.outline.PropertyOutline;
 import com.sun.codemodel.JBlock;
 import com.sun.codemodel.JClass;
+import com.sun.codemodel.JClassAlreadyExistsException;
 import com.sun.codemodel.JConditional;
 import com.sun.codemodel.JDefinedClass;
 import com.sun.codemodel.JExpr;
@@ -45,6 +47,7 @@ import com.sun.tools.xjc.outline.FieldOutline;
 import com.sun.tools.xjc.outline.Outline;
 import org.xml.sax.ErrorHandler;
 import org.xml.sax.SAXException;
+import org.xml.sax.SAXParseException;
 
 /**
  * XJC Plugin to make generated classes immutable
@@ -52,6 +55,15 @@ import org.xml.sax.SAXException;
 public class ImmutablePlugin extends AbstractPlugin {
 	@Opt
 	private String constructorAccess = "public";
+
+	@Opt
+	protected boolean generateModifier = true;
+
+	@Opt
+	protected String modifierClassName = "Modifier";
+
+	@Opt
+	protected String modifierMethodName = "modifier";
 
 	@Override
 	public String getOptionName() {
@@ -103,6 +115,18 @@ public class ImmutablePlugin extends AbstractPlugin {
 							}
 						}
 					}
+				}
+			}
+			if(this.generateModifier) {
+				try {
+					final GroupInterfacePlugin groupInterfacePlugin = apiConstructs.findPlugin(GroupInterfacePlugin.class);
+					if(groupInterfacePlugin != null) {
+						ModifierGenerator.generateClass(apiConstructs, new DefinedClassOutline(apiConstructs, classOutline), this.modifierClassName, this.modifierClassName, groupInterfacePlugin.getGroupInterfacesForClass(apiConstructs, classOutline.implClass.fullName()), this.modifierMethodName);
+					} else {
+						ModifierGenerator.generateClass(apiConstructs, new DefinedClassOutline(apiConstructs, classOutline), this.modifierClassName, this.modifierMethodName);
+					}
+				} catch (final JClassAlreadyExistsException e) {
+					errorHandler.error(new SAXParseException(e.getMessage(), classOutline.target.getLocator()));
 				}
 			}
 		}

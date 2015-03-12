@@ -22,10 +22,9 @@
  * THE SOFTWARE.
  */
 
-package com.kscs.util.plugins.xjc;
+package com.kscs.util.plugins.xjc.outline;
 
 import java.util.List;
-import com.kscs.util.plugins.xjc.base.PropertyOutline;
 import com.sun.codemodel.JClass;
 
 /**

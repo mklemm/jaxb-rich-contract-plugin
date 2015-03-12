@@ -19,3 +19,15 @@ Generate constructors of an immutable class with the specified access level ("pu
 This option has been included since it doesn't make sense to construct an empty object which then cannot be modified, But anyway, use with caution.
 
 
+##### -generateModifier=`{y|n}` (y)
+Generate an inner class that allows write access to the properties of the otherwise immutable instance. This can be useful if objects have to be mutable in some special scenarios, but this fact should be controlled.
+
+
+##### -modifierClassName=`<string>` (Modifier)
+Name of the generated inner class that allows to modify the state of generated objects (if generateModifier=y).
+
+
+##### -modifierMethodName=`<string>` (modifier)
+Name of the generated method that allows to instantiate the modifier class (if generateModifier=y).
+
+

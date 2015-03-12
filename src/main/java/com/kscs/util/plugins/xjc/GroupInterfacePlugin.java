@@ -57,6 +57,7 @@ import com.kscs.util.plugins.xjc.base.MappingNamespaceContext;
 import com.kscs.util.plugins.xjc.base.Namespaces;
 import com.kscs.util.plugins.xjc.base.Opt;
 import com.kscs.util.plugins.xjc.base.XPathContext;
+import com.kscs.util.plugins.xjc.outline.TypeOutline;
 import com.sun.tools.xjc.BadCommandLineException;
 import com.sun.tools.xjc.Options;
 import com.sun.tools.xjc.outline.Outline;

@@ -21,37 +21,17 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package com.kscs.util.plugins.xjc;
+package com.kscs.util.plugins.xjc.outline;
 
-import com.kscs.util.plugins.xjc.outline.TypeOutline;
+import java.util.List;
 import com.sun.codemodel.JClass;
-import com.sun.codemodel.JDefinedClass;
 
 /**
- * @author mirko
- *         25.03.14
+ * @author mirko 2014-05-29
  */
-public class BuilderOutline {
-	private final JClass builderClass;
-	private final TypeOutline classOutline;
-
-	BuilderOutline(final TypeOutline classOutline, final JClass builderClass) {
-		this.classOutline = classOutline;
-		this.builderClass = builderClass;
-	}
-
-	public JClass getBuilderClass() {
-		return this.builderClass;
-	}
-
-
-	public JDefinedClass getDefinedBuilderClass() {
-		return (JDefinedClass) this.builderClass;
-	}
-
-
-	public TypeOutline getClassOutline() {
-		return this.classOutline;
-	}
-
+public interface TypeOutline {
+	List<? extends PropertyOutline> getDeclaredFields();
+	TypeOutline getSuperClass();
+	JClass getImplClass();
+	boolean isLocal();
 }

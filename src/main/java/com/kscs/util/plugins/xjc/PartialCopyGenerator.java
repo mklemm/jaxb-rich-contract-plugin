@@ -45,23 +45,23 @@ import static com.kscs.util.plugins.xjc.base.PluginUtil.nullSafe;
  */
 class PartialCopyGenerator {
 	private final ApiConstructs apiConstructs;
-	private final JVar includeParam;
+	private final JVar propertyTreeUseParam;
 	private final JVar propertyTreeParam;
 	private final JMethod copyMethod;
 
-	public PartialCopyGenerator(final ApiConstructs apiConstructs, final JMethod copyMethod) {
+	public PartialCopyGenerator(final ApiConstructs apiConstructs, final JMethod copyMethod, final String propertyTreeParamName, final String propertyTreeUseParamName) {
 		this.apiConstructs = apiConstructs;
 		this.copyMethod = copyMethod;
-		this.propertyTreeParam = copyMethod.param(JMod.FINAL, PropertyTree.class, "propertyTree");
-		this.includeParam = copyMethod.param(JMod.FINAL, PropertyTreeUse.class, "treeUse");
+		this.propertyTreeParam = copyMethod.param(JMod.FINAL, PropertyTree.class, propertyTreeParamName);
+		this.propertyTreeUseParam = copyMethod.param(JMod.FINAL, PropertyTreeUse.class, propertyTreeUseParamName);
 	}
 
 	public ApiConstructs getApiConstructs() {
 		return this.apiConstructs;
 	}
 
-	public JVar getIncludeParam() {
-		return this.includeParam;
+	public JVar getPropertyTreeUseParam() {
+		return this.propertyTreeUseParam;
 	}
 
 	public JVar getPropertyTreeParam() {
@@ -87,7 +87,7 @@ class PartialCopyGenerator {
 				final JClass elementType = fieldType.getTypeParameters().get(0);
 				if (this.apiConstructs.partialCopyableInterface.isAssignableFrom(elementType)) {
 					final JForEach forLoop = this.apiConstructs.loop(currentBlock, fieldRef, elementType, newField, elementType);
-					forLoop.body().invoke(newField, "add").arg(nullSafe(forLoop.var(), this.apiConstructs.castOnDemand(elementType, forLoop.var().invoke(this.apiConstructs.copyMethodName).arg(fieldPathVar).arg(this.includeParam))));
+					forLoop.body().invoke(newField, "add").arg(nullSafe(forLoop.var(), this.apiConstructs.castOnDemand(elementType, forLoop.var().invoke(this.apiConstructs.copyMethodName).arg(fieldPathVar).arg(this.propertyTreeUseParam))));
 				} else if (this.apiConstructs.copyableInterface.isAssignableFrom(elementType)) {
 					final JForEach forLoop = this.apiConstructs.loop(currentBlock, fieldRef, elementType, newField, elementType);
 					forLoop.body().invoke(newField, "add").arg(nullSafe(forLoop.var(), this.apiConstructs.castOnDemand(elementType, forLoop.var().invoke(this.apiConstructs.copyMethodName))));
@@ -105,7 +105,7 @@ class PartialCopyGenerator {
 				}
 
 			} else if (this.apiConstructs.partialCopyableInterface.isAssignableFrom(fieldType)) {
-				currentBlock.assign(newField, nullSafe(fieldRef, this.apiConstructs.castOnDemand(fieldType, fieldRef.invoke(this.apiConstructs.copyMethodName).arg(fieldPathVar).arg(this.includeParam))));
+				currentBlock.assign(newField, nullSafe(fieldRef, this.apiConstructs.castOnDemand(fieldType, fieldRef.invoke(this.apiConstructs.copyMethodName).arg(fieldPathVar).arg(this.propertyTreeUseParam))));
 			} else if (this.apiConstructs.copyableInterface.isAssignableFrom(fieldType)) {
 				currentBlock.assign(newField, nullSafe(fieldRef, this.apiConstructs.castOnDemand(fieldType, fieldRef.invoke(this.apiConstructs.copyMethodName))));
 			} else if (this.apiConstructs.cloneableInterface.isAssignableFrom(fieldType)) {
@@ -122,7 +122,7 @@ class PartialCopyGenerator {
 
 	JExpression getIncludeCondition(final JVar fieldPathVar) {
 		return JOp.cond(
-				this.includeParam.eq(this.apiConstructs.includeConst),
+				this.propertyTreeUseParam.eq(this.apiConstructs.includeConst),
 				fieldPathVar.ne(JExpr._null()),
 				fieldPathVar.eq(JExpr._null()).cor(fieldPathVar.invoke("isLeaf").not())
 		);

@@ -21,12 +21,11 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-package com.kscs.util.plugins.xjc;
+package com.kscs.util.plugins.xjc.outline;
 
 import javax.xml.namespace.QName;
 import java.util.ArrayList;
 import java.util.List;
-import com.kscs.util.plugins.xjc.base.PropertyOutline;
 import com.sun.codemodel.JDefinedClass;
 import com.sun.tools.xjc.outline.ClassOutline;
 import com.sun.tools.xjc.outline.FieldOutline;
@@ -35,11 +34,11 @@ import com.sun.xml.xsom.XSDeclaration;
 /**
  * @author mirko 2014-05-29
  */
-public class DefinedInterfaceOutline implements InterfaceOutline {
+public class DefinedInterfaceOutline implements InterfaceOutline, DefinedTypeOutline {
 	private final List<TypeOutline> superInterfaces = new ArrayList<>();
 	private final JDefinedClass implClass;
 	private final ClassOutline classOutline;
-	private List<PropertyOutline> declaredFields = null;
+	private final List<DefinedPropertyOutline> declaredFields = new ArrayList<>();
 	private final XSDeclaration schemaComponent;
 	private final QName name;
 
@@ -51,14 +50,11 @@ public class DefinedInterfaceOutline implements InterfaceOutline {
 	}
 
 	@Override
-	public List<PropertyOutline> getDeclaredFields() {
+	public List<DefinedPropertyOutline> getDeclaredFields() {
 		return this.declaredFields;
 	}
 
 	public void addField(final FieldOutline field) {
-		if(this.declaredFields == null) {
-			this.declaredFields = new ArrayList<>();
-		}
 		this.declaredFields.add(new DefinedPropertyOutline(field));
 	}
 
@@ -85,7 +81,7 @@ public class DefinedInterfaceOutline implements InterfaceOutline {
 		return this.name;
 	}
 
-	void addSuperInterface(final TypeOutline superInterface) {
+	public void addSuperInterface(final TypeOutline superInterface) {
 		this.superInterfaces.add(superInterface);
 	}
 
