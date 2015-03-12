@@ -80,31 +80,37 @@ public class ImmutablePlugin extends AbstractPlugin {
 	public boolean run(final Outline outline, final Options opt, final ErrorHandler errorHandler) throws SAXException {
 		final ApiConstructs apiConstructs = new ApiConstructs(outline, opt, errorHandler);
 		for (final ClassOutline classOutline : outline.getClasses()) {
-			if(!fake) {
 				final JDefinedClass definedClass = classOutline.implClass;
 				for (final FieldOutline fieldOutline : classOutline.getDeclaredFields()) {
 					final JFieldVar declaredField;
 					if (fieldOutline.getPropertyInfo().isCollection() && !((declaredField = PluginUtil.getDeclaredField(fieldOutline)).type().isArray())) {
 						final JClass elementType = ((JClass) declaredField.type()).getTypeParameters().get(0);
 						final JMethod oldGetter = definedClass.getMethod("get" + fieldOutline.getPropertyInfo().getName(true), new JType[0]);
-						final JFieldVar immutableField = definedClass.field(JMod.PROTECTED | JMod.TRANSIENT, declaredField.type(), getImmutableFieldName(declaredField), JExpr._null());
-						definedClass.methods().remove(oldGetter);
-						final JMethod newGetter = definedClass.method(JMod.PUBLIC, oldGetter.type(), oldGetter.name());
-						final JConditional ifFieldNull = newGetter.body()._if(JExpr._this().ref(declaredField).eq(JExpr._null()));
-						ifFieldNull._then().assign(JExpr._this().ref(declaredField), JExpr._new(apiConstructs.arrayListClass.narrow(elementType)));
+						final JType getterType = this.collectionsAsIterable ? apiConstructs.iterableClass.narrow(elementType) : oldGetter.type();
+						if(fake) {
+							oldGetter.type(getterType);
+						} else {
+							final JFieldVar immutableField = definedClass.field(JMod.PROTECTED | JMod.TRANSIENT, declaredField.type(), getImmutableFieldName(declaredField), JExpr._null());
+							definedClass.methods().remove(oldGetter);
+							final JMethod newGetter = definedClass.method(JMod.PUBLIC, getterType, oldGetter.name());
+							final JConditional ifFieldNull = newGetter.body()._if(JExpr._this().ref(declaredField).eq(JExpr._null()));
+							ifFieldNull._then().assign(JExpr._this().ref(declaredField), JExpr._new(apiConstructs.arrayListClass.narrow(elementType)));
 
-						final JConditional ifImmutableFieldNull = newGetter.body()._if(JExpr._this().ref(immutableField).eq(JExpr._null()));
-						immutableInit(apiConstructs, ifImmutableFieldNull._then(), JExpr._this(), declaredField);
+							final JConditional ifImmutableFieldNull = newGetter.body()._if(JExpr._this().ref(immutableField).eq(JExpr._null()));
+							immutableInit(apiConstructs, ifImmutableFieldNull._then(), JExpr._this(), declaredField);
 
-						newGetter.body()._return(JExpr._this().ref(immutableField));
+							newGetter.body()._return(JExpr._this().ref(immutableField));
+						}
 					} else {
-						final String setterName = "set" + fieldOutline.getPropertyInfo().getName(true);
-						final JMethod setterMethod = definedClass.getMethod(setterName, new JType[]{fieldOutline.getRawType()});
-						if (setterMethod != null) {
-							setterMethod.mods().setProtected();
+						if(!fake) {
+							final String setterName = "set" + fieldOutline.getPropertyInfo().getName(true);
+							final JMethod setterMethod = definedClass.getMethod(setterName, new JType[]{fieldOutline.getRawType()});
+							if (setterMethod != null) {
+								setterMethod.mods().setProtected();
+							}
 						}
 					}
-					if (!"public".equalsIgnoreCase(this.constructorAccess)) {
+					if (!fake && !"public".equalsIgnoreCase(this.constructorAccess)) {
 						final Iterator<JMethod> constructors = definedClass.constructors();
 						if (!constructors.hasNext()) {
 							// generate protected/private no-arg constructor
@@ -123,7 +129,6 @@ public class ImmutablePlugin extends AbstractPlugin {
 							}
 						}
 					}
-				}
 			}
 			if(this.generateModifier) {
 				try {
