@@ -329,6 +329,14 @@ Name of the generated inner class that allows to modify the state of generated o
 Name of the generated method that allows to instantiate the modifier class (if generateModifier=y).
 
 
+##### -fake=`{y|n}` (n)
+Do not actually make anything immutable. For test and debug purpose only.
+
+
+##### -collectionsAsIterable=`{y|n}` (n)
+Modify collection getters to rbe declared to return java.util.Iterable instead of List.
+
+
 ## group-contract
 ### Motivation
 In most object-oriented programming languages, there are constructs to define a "contract", that concrete implementations of complex

@@ -30,3 +30,11 @@ Name der generierten Mutator-Klasse (wenn generateModifier=y)
 Name der generierten methode zum Abruf einer Instanz der Mutator-Klasse (wenn generateModifier=y)
 
 
+##### -fake=`{y|n}` (n)
+Nur für Test und Debug: Es wird nichts wirklich unveränderlich gemacht, aber das Plugin bleibt aktiv.
+
+
+##### -collectionsAsIterable=`{y|n}` (n)
+Mehrwertige Eigenschaften werden als java.util.Iterable deklariert, anstelle von List, um deklarative Unveränderlichkeit sicherzustellen.
+
+
