@@ -3,5 +3,6 @@ com.kscs.util.plugins.xjc.DeepClonePlugin
 com.kscs.util.plugins.xjc.DeepCopyPlugin
 com.kscs.util.plugins.xjc.GroupInterfacePlugin
 com.kscs.util.plugins.xjc.ImmutablePlugin
+com.kscs.util.plugins.xjc.ModifierPlugin
 com.kscs.util.plugins.xjc.FluentBuilderPlugin
 com.kscs.util.plugins.xjc.MetaPlugin

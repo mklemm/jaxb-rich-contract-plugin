@@ -84,21 +84,21 @@ public class BoundPropertiesPlugin extends AbstractPlugin {
 			return true;
 		}
 
-		final ApiConstructs apiConstructs = new ApiConstructs(outline, opt, errorHandler);
+		final PluginContext pluginContext = PluginContext.get(outline, opt, errorHandler);
 
 		final JCodeModel m = outline.getCodeModel();
 
 		if (this.generateTools) {
 			// generate bound collection helper classes
-			apiConstructs.writeSourceFile(BoundList.class);
-			apiConstructs.writeSourceFile(BoundListProxy.class);
-			apiConstructs.writeSourceFile(CollectionChangeEventType.class);
-			apiConstructs.writeSourceFile(CollectionChangeEvent.class);
-			apiConstructs.writeSourceFile(CollectionChangeListener.class);
-			apiConstructs.writeSourceFile(VetoableCollectionChangeListener.class);
+			pluginContext.writeSourceFile(BoundList.class);
+			pluginContext.writeSourceFile(BoundListProxy.class);
+			pluginContext.writeSourceFile(CollectionChangeEventType.class);
+			pluginContext.writeSourceFile(CollectionChangeEvent.class);
+			pluginContext.writeSourceFile(CollectionChangeListener.class);
+			pluginContext.writeSourceFile(VetoableCollectionChangeListener.class);
 		}
 
-		if(apiConstructs.hasPlugin(ImmutablePlugin.class)) {
+		if(pluginContext.hasPlugin(ImmutablePlugin.class)) {
 			errorHandler.error(new SAXParseException(getMessage("error.immutableAndConstrainedProperties"), outline.getModel().getLocator()));
 		}
 

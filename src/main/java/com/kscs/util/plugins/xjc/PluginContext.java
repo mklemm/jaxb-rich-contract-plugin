@@ -46,6 +46,7 @@ import com.kscs.util.jaxb.PropertyTree;
 import com.kscs.util.jaxb.PropertyTreeUse;
 import com.kscs.util.plugins.xjc.codemodel.JDirectInnerClassRef;
 import com.kscs.util.plugins.xjc.codemodel.JTypedInvocation;
+import com.kscs.util.plugins.xjc.outline.PropertyOutline;
 import com.sun.codemodel.JAssignmentTarget;
 import com.sun.codemodel.JBlock;
 import com.sun.codemodel.JCatchBlock;
@@ -55,6 +56,7 @@ import com.sun.codemodel.JConditional;
 import com.sun.codemodel.JExpr;
 import com.sun.codemodel.JExpression;
 import com.sun.codemodel.JFieldRef;
+import com.sun.codemodel.JFieldVar;
 import com.sun.codemodel.JForEach;
 import com.sun.codemodel.JInvocation;
 import com.sun.codemodel.JMethod;
@@ -73,11 +75,13 @@ import com.sun.tools.xjc.outline.FieldOutline;
 import com.sun.tools.xjc.outline.Outline;
 import com.sun.xml.xsom.XSDeclaration;
 import org.xml.sax.ErrorHandler;
+import org.xml.sax.SAXException;
 
 /**
- * Common constants and constructs
+ * Common context for all plugins implemented by this
+ * plugin package
  */
-public class ApiConstructs {
+public class PluginContext extends Plugin {
 	public static final String FLUENT_CLASS_NAME = "Fluent";
 	public static final String FLUENT_INTERFACE_NAME = "FluentSupport";
 	public static final String BUILDER_CLASS_NAME = "Builder";
@@ -134,7 +138,25 @@ public class ApiConstructs {
 	private final Map<String, ClassOutline> classes;
 	private final Map<String, EnumOutline> enums;
 
-	ApiConstructs(final Outline outline, final Options opt, final ErrorHandler errorHandler) {
+	public static PluginContext get(final Outline outline, final Options opt, final ErrorHandler errorHandler) {
+		PluginContext context = findPlugin(opt.getAllPlugins(), PluginContext.class);
+		if(context == null) {
+			context = new PluginContext(outline, opt, errorHandler);
+			opt.getAllPlugins().add(context);
+		}
+		return context;
+	}
+
+	public static <T> T coalesce(final T... args) {
+		for(final T t : args) {
+			if(t != null) {
+				return t;
+			}
+		}
+		return null;
+	}
+
+	private PluginContext(final Outline outline, final Options opt, final ErrorHandler errorHandler) {
 		this.outline = outline;
 		this.errorHandler = errorHandler;
 		this.codeModel = outline.getCodeModel();
@@ -163,15 +185,15 @@ public class ApiConstructs {
 		}
 		this.excludeConst = this.codeModel.ref(PropertyTreeUse.class).staticRef("EXCLUDE");
 		this.includeConst = this.codeModel.ref(PropertyTreeUse.class).staticRef("INCLUDE");
-		this.cloneMethodName = ApiConstructs.CLONE_METHOD_NAME;
-		this.copyMethodName = ApiConstructs.COPY_METHOD_NAME;
-		this.copyExceptMethodName = ApiConstructs.COPY_EXCEPT_METHOD_NAME;
-		this.copyOnlyMethodName = ApiConstructs.COPY_ONLY_METHOD_NAME;
-		this.buildCopyMethodName = ApiConstructs.BUILD_COPY_METHOD_NAME;
-		this.newBuilderMethodName = ApiConstructs.NEW_BUILDER_METHOD_NAME;
-		this.newModifierMethodName = ApiConstructs.NEW_MODIFIER_METHOD_NAME;
-		this.newCopyBuilderMethodName = ApiConstructs.NEW_COPY_BUILDER_METHOD_NAME;
-		this.newObjectVarName = ApiConstructs.NEW_OBJECT_VAR_NAME;
+		this.cloneMethodName = PluginContext.CLONE_METHOD_NAME;
+		this.copyMethodName = PluginContext.COPY_METHOD_NAME;
+		this.copyExceptMethodName = PluginContext.COPY_EXCEPT_METHOD_NAME;
+		this.copyOnlyMethodName = PluginContext.COPY_ONLY_METHOD_NAME;
+		this.buildCopyMethodName = PluginContext.BUILD_COPY_METHOD_NAME;
+		this.newBuilderMethodName = PluginContext.NEW_BUILDER_METHOD_NAME;
+		this.newModifierMethodName = PluginContext.NEW_MODIFIER_METHOD_NAME;
+		this.newCopyBuilderMethodName = PluginContext.NEW_COPY_BUILDER_METHOD_NAME;
+		this.newObjectVarName = PluginContext.NEW_OBJECT_VAR_NAME;
 	}
 
 	public static Class<?> findInnerClass(final Class<?> outer, final String name) {
@@ -193,11 +215,11 @@ public class ApiConstructs {
 
 	private static String getNamespaceUri(final Class<?> boundClass) {
 		final XmlRootElement elementAnnotation = boundClass.getAnnotation(XmlRootElement.class);
-		if(elementAnnotation != null && !"##default".equals(elementAnnotation.namespace())) {
+		if (elementAnnotation != null && !"##default".equals(elementAnnotation.namespace())) {
 			return elementAnnotation.namespace();
 		} else {
 			final XmlType xmlTypeAnnotation = boundClass.getAnnotation(XmlType.class);
-			if(xmlTypeAnnotation != null && !"##default".equals(xmlTypeAnnotation.namespace())) {
+			if (xmlTypeAnnotation != null && !"##default".equals(xmlTypeAnnotation.namespace())) {
 				return xmlTypeAnnotation.namespace();
 			} else {
 				return getNamespaceUri(boundClass.getPackage());
@@ -207,11 +229,11 @@ public class ApiConstructs {
 
 	private static String getLocalName(final Class<?> boundClass) {
 		final XmlRootElement elementAnnotation = boundClass.getAnnotation(XmlRootElement.class);
-		if(elementAnnotation != null && !"##default".equals(elementAnnotation.name())) {
+		if (elementAnnotation != null && !"##default".equals(elementAnnotation.name())) {
 			return elementAnnotation.name();
 		} else {
 			final XmlType xmlTypeAnnotation = boundClass.getAnnotation(XmlType.class);
-			if(xmlTypeAnnotation != null && !"##default".equals(xmlTypeAnnotation.name())) {
+			if (xmlTypeAnnotation != null && !"##default".equals(xmlTypeAnnotation.name())) {
 				return xmlTypeAnnotation.name();
 			} else {
 				return boundClass.getSimpleName();
@@ -270,11 +292,11 @@ public class ApiConstructs {
 	}
 
 	public JInvocation asList(final JExpression expression) {
-		return this.arraysClass.staticInvoke(ApiConstructs.AS_LIST).arg(expression);
+		return this.arraysClass.staticInvoke(PluginContext.AS_LIST).arg(expression);
 	}
 
 	public JInvocation unmodifiableList(final JExpression expression) {
-		return this.collectionsClass.staticInvoke(ApiConstructs.UNMODIFIABLE_LIST).arg(expression);
+		return this.collectionsClass.staticInvoke(PluginContext.UNMODIFIABLE_LIST).arg(expression);
 	}
 
 	public boolean hasPlugin(final Class<? extends Plugin> pluginClass) {
@@ -286,9 +308,18 @@ public class ApiConstructs {
 		return false;
 	}
 
-	@SuppressWarnings("unchecked")
 	public <P extends Plugin> P findPlugin(final Class<P> pluginClass) {
-		for (final Plugin plugin : this.opt.activePlugins) {
+		return findPlugin(this.opt, pluginClass);
+	}
+
+	@SuppressWarnings("unchecked")
+	public static <P extends Plugin> P findPlugin(final Options opt, final Class<P> pluginClass) {
+		return findPlugin(opt.activePlugins, pluginClass);
+	}
+
+	@SuppressWarnings("unchecked")
+	public static <P extends Plugin> P findPlugin(final Iterable<Plugin> pluginCollection, final Class<P> pluginClass) {
+		for (final Plugin plugin : pluginCollection) {
 			if (pluginClass.isInstance(plugin)) {
 				return (P) plugin;
 			}
@@ -343,9 +374,24 @@ public class ApiConstructs {
 	public void writeSourceFile(final Class<?> classToBeWritten) {
 		final String resourcePath = "/" + classToBeWritten.getName().replace('.', '/') + ".java";
 		final JPackage jPackage = this.outline.getCodeModel()._package(classToBeWritten.getPackage().getName());
-		final JStaticJavaFile javaFile = new JStaticJavaFile(jPackage, classToBeWritten.getSimpleName(), ApiConstructs.class.getResource(resourcePath), null);
+		final JStaticJavaFile javaFile = new JStaticJavaFile(jPackage, classToBeWritten.getSimpleName(), PluginContext.class.getResource(resourcePath), null);
 		jPackage.addResourceFile(javaFile);
 	}
+
+	public void generateImmutableFieldInit(final JBlock body, final JExpression object, final JFieldVar field) {
+		final ImmutablePlugin immutablePlugin = findPlugin(ImmutablePlugin.class);
+		if (immutablePlugin != null && !immutablePlugin.fake) {
+			immutablePlugin.immutableInit(this, body, object, field);
+		}
+	}
+
+	public void generateImmutableFieldInit(final JBlock body, final JExpression object, final PropertyOutline propertyOutline) {
+		final ImmutablePlugin immutablePlugin = findPlugin(ImmutablePlugin.class);
+		if (immutablePlugin != null && !immutablePlugin.fake) {
+			immutablePlugin.immutableInit(this, body, object, propertyOutline);
+		}
+	}
+
 
 	@SuppressWarnings("unchecked")
 	JBlock catchCloneNotSupported(final JBlock body, final JClass elementType) {
@@ -366,12 +412,22 @@ public class ApiConstructs {
 		}
 	}
 
+	boolean mustCatch(final JClass fieldType) {
+		final Class<? extends Cloneable> elementRuntimeClass;
+		try {
+			elementRuntimeClass = (Class<? extends Cloneable>) Class.forName(fieldType.binaryName());
+		} catch (final ClassNotFoundException e) {
+			return false;
+		}
+		return cloneThrows(elementRuntimeClass);
+	}
+
 	public <T> T getCustomization(final Class<T> customizationClass, final Deque<CCustomizable> schemaComponents) {
 		final QName qName = getQName(customizationClass);
-		if(!schemaComponents.isEmpty()) {
+		if (!schemaComponents.isEmpty()) {
 			final CCustomizable schemaComponent = schemaComponents.pop();
 			final CPluginCustomization pluginCustomization = schemaComponent.getCustomizations().find(qName.getNamespaceURI(), qName.getLocalPart());
-			if(pluginCustomization == null) {
+			if (pluginCustomization == null) {
 				return getCustomization(customizationClass, schemaComponents);
 			} else {
 				pluginCustomization.markAsAcknowledged();
@@ -379,7 +435,7 @@ public class ApiConstructs {
 			}
 		} else {
 			final CPluginCustomization pluginCustomization = this.outline.getModel().getCustomizations().find(qName.getNamespaceURI(), qName.getLocalPart());
-			if(pluginCustomization != null) {
+			if (pluginCustomization != null) {
 				pluginCustomization.markAsAcknowledged();
 				return JAXB.unmarshal(new DOMSource(pluginCustomization.element), customizationClass);
 			} else {
@@ -398,4 +454,18 @@ public class ApiConstructs {
 		return val == null ? defaultValue : val;
 	}
 
+	@Override
+	public String getOptionName() {
+		return "-X_pluginContext_";
+	}
+
+	@Override
+	public String getUsage() {
+		return "";
+	}
+
+	@Override
+	public boolean run(final Outline outline, final Options opt, final ErrorHandler errorHandler) throws SAXException {
+		return true;
+	}
 }

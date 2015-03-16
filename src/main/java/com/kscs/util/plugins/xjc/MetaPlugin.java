@@ -246,9 +246,9 @@ public class MetaPlugin extends AbstractPlugin {
 
 	@Override
 	public boolean run(final Outline outline, final Options opt, final ErrorHandler errorHandler) throws SAXException {
-		final ApiConstructs apiConstructs = new ApiConstructs(outline, opt, errorHandler);
+		final PluginContext pluginContext = PluginContext.get(outline, opt, errorHandler);
 		if(this.extended && this.generateTools) {
-			apiConstructs.writeSourceFile(PropertyInfo.class);
+			pluginContext.writeSourceFile(PropertyInfo.class);
 		}
 		for(final ClassOutline classOutline:outline.getClasses()) {
 			generateMetaClass(classOutline, errorHandler);

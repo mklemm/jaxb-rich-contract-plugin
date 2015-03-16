@@ -8,6 +8,7 @@
 			<xs:attribute name="ref" type="xs:string" use="optional"/>
 			<xs:attribute name="declareSetters" type="xs:boolean" use="optional"/>
 			<xs:attribute name="declareBuilderInterface" type="xs:boolean" use="optional"/>
+			<xs:attribute name="supportInterfaceNameSuffix" type="xs:NCName" use="optional"/>
 		</xs:complexType>
 	</xs:element>
 </xs:schema>

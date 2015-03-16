@@ -40,13 +40,15 @@ public class DefinedInterfaceOutline implements InterfaceOutline, DefinedTypeOut
 	private final ClassOutline classOutline;
 	private final List<DefinedPropertyOutline> declaredFields = new ArrayList<>();
 	private final XSDeclaration schemaComponent;
+	private final JDefinedClass supportInterface;
 	private final QName name;
 
-	public DefinedInterfaceOutline(final XSDeclaration schemaComponent, final JDefinedClass implClass, final ClassOutline classOutline) {
+	public DefinedInterfaceOutline(final XSDeclaration schemaComponent, final JDefinedClass implClass, final ClassOutline classOutline, final JDefinedClass supportInterface) {
 		this.schemaComponent = schemaComponent;
 		this.implClass = implClass;
 		this.classOutline = classOutline;
 		this.name = new QName(schemaComponent.getTargetNamespace(), schemaComponent.getName());
+		this.supportInterface = supportInterface;
 	}
 
 	@Override
@@ -73,6 +75,11 @@ public class DefinedInterfaceOutline implements InterfaceOutline, DefinedTypeOut
 		return true;
 	}
 
+	@Override
+	public boolean isInterface() {
+		return true;
+	}
+
 	public XSDeclaration getSchemaComponent() {
 		return this.schemaComponent;
 	}
@@ -91,5 +98,10 @@ public class DefinedInterfaceOutline implements InterfaceOutline, DefinedTypeOut
 
 	public ClassOutline getClassOutline() {
 		return this.classOutline;
+	}
+
+	@Override
+	public JDefinedClass getSupportInterface() {
+		return this.supportInterface;
 	}
 }

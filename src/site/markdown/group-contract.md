@@ -82,15 +82,15 @@ Also generate property setter methods in interface declarations.
 If the "fluent builder plugin" (-Xfluent-builder) is also active, generate interface for the internal builder classes as well.
 
 
+##### -supportInterfaceNameSuffix=`<string>` (Support)
+If this is set, methods that could cause type conflicts when two generated interfaces are used together as type parameter bounds, will be put in another interface named the same as the original interface, but with the suffix specified here.
+
+
 ##### -upstreamEpisodeFile=`<string>` (/META-INF/jaxb-interfaces.episode)
 Use the given resource file to obtain information about interfaces defined in an upstream module (refer to "-episode" option of XJC).
 
 
 ##### -downstreamEpisodeFile=`<string>` (/META-INF/jaxb-interfaces.episode)
 Generate "episode" file for downstream modules in the given resource location.
-
-
-##### -omitTypeClash=`{y|n}` (y)
-Do not declare methods in interface that could cause a type clash if two or more interfaces from this model are used together as generic type argument bound (with "&").
 
 

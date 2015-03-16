@@ -32,10 +32,15 @@ import com.kscs.util.jaxb.bindings.Interface;
 public class GroupInterfaceGeneratorSettings extends Interface {
 	private final BuilderGeneratorSettings builderGeneratorSettings;
 
-	public GroupInterfaceGeneratorSettings(final boolean declareSetters, final boolean declareBuilderInterface, final BuilderGeneratorSettings builderGeneratorSettings) {
+	public GroupInterfaceGeneratorSettings(final boolean declareSetters, final boolean declareBuilderInterface, final String supportInterfaceNameSuffix, final BuilderGeneratorSettings builderGeneratorSettings) {
 		this.builderGeneratorSettings = builderGeneratorSettings;
 		setDeclareSetters(declareSetters);
 		setDeclareBuilderInterface(declareBuilderInterface);
+		setSupportInterfaceNameSuffix(supportInterfaceNameSuffix != null && supportInterfaceNameSuffix.isEmpty() ? null : supportInterfaceNameSuffix);
+	}
+
+	public boolean isGeneratingSupportInterface() {
+		return this.supportInterfaceNameSuffix != null;
 	}
 
 	public BuilderGeneratorSettings getBuilderGeneratorSettings() {

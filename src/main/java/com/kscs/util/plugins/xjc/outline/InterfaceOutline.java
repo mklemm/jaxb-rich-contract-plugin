@@ -24,8 +24,11 @@
 
 package com.kscs.util.plugins.xjc.outline;
 
+import com.sun.codemodel.JClass;
+
 /**
  * @author Mirko Klemm 2015-03-05
  */
 public interface InterfaceOutline extends TypeOutline {
+	JClass getSupportInterface();
 }

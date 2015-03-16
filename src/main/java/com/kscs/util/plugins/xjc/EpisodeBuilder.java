@@ -69,13 +69,13 @@ import org.xml.sax.SAXParseException;
  * @author Mirko Klemm 2015-02-11
  */
 public class EpisodeBuilder {
-	private final ApiConstructs apiConstructs;
+	private final PluginContext pluginContext;
 	private final String episodeFileName;
 	private final List<OutlineAdaptor> outlines = new ArrayList<>();
 
 
-	public EpisodeBuilder(final ApiConstructs apiConstructs, final String episodeFileName) {
-		this.apiConstructs = apiConstructs;
+	public EpisodeBuilder(final PluginContext pluginContext, final String episodeFileName) {
+		this.pluginContext = pluginContext;
 		this.episodeFileName = episodeFileName;
 	}
 
@@ -133,7 +133,7 @@ public class EpisodeBuilder {
 				bindings._namespace(Const.JAXB_NSURI, "");
 			bindings._namespace(Namespaces.KSCS_BINDINGS_NS, "kscs");
 			bindings.version("2.1");
-			bindings._comment("\n\n" + this.apiConstructs.opt.getPrologComment() + "\n  ");
+			bindings._comment("\n\n" + this.pluginContext.opt.getPrologComment() + "\n  ");
 
 			// generate listing per schema
 			for (final Map.Entry<XSSchema, PerSchemaOutlineAdaptors> e : perSchema.entrySet()) {
@@ -169,9 +169,9 @@ public class EpisodeBuilder {
 
 			final JTextFile jTextFile = new JTextFile(this.episodeFileName);
 			jTextFile.setContents(stringWriter.toString());
-			this.apiConstructs.codeModel.rootPackage().addResourceFile(jTextFile);
+			this.pluginContext.codeModel.rootPackage().addResourceFile(jTextFile);
 		} catch (final IOException e) {
-			this.apiConstructs.errorHandler.error(new SAXParseException("Failed to write to " + this.episodeFileName, null, e));
+			this.pluginContext.errorHandler.error(new SAXParseException("Failed to write to " + this.episodeFileName, null, e));
 		}
 	}
 

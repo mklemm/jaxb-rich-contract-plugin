@@ -51,9 +51,9 @@ public class FluentBuilderPlugin extends AbstractPlugin {
 	@Opt
 	private final String rootSelectorClassName = "Select";
 	@Opt
-	protected String newBuilderMethodName = ApiConstructs.NEW_BUILDER_METHOD_NAME;
+	protected String newBuilderMethodName = PluginContext.NEW_BUILDER_METHOD_NAME;
 	@Opt
-	protected String newCopyBuilderMethodName = ApiConstructs.NEW_COPY_BUILDER_METHOD_NAME;
+	protected String newCopyBuilderMethodName = PluginContext.NEW_COPY_BUILDER_METHOD_NAME;
 	@Opt
 	protected String builderFieldSuffix = "_Builder";
 	@Opt
@@ -65,9 +65,9 @@ public class FluentBuilderPlugin extends AbstractPlugin {
 	@Opt
 	private String selectorClassName = "Selector";
 	@Opt
-	private String builderClassName = ApiConstructs.BUILDER_CLASS_NAME;
+	private String builderClassName = PluginContext.BUILDER_CLASS_NAME;
 	@Opt
-	private String builderInterfaceName = ApiConstructs.BUILDER_INTERFACE_NAME;
+	private String builderInterfaceName = PluginContext.BUILDER_INTERFACE_NAME;
 
 	@Override
 	public String getOptionName() {
@@ -77,16 +77,16 @@ public class FluentBuilderPlugin extends AbstractPlugin {
 	@Override
 	public boolean run(final Outline outline, final Options opt, final ErrorHandler errorHandler) throws SAXException {
 		final Map<String, BuilderOutline> builderClasses = new LinkedHashMap<>(outline.getClasses().size());
-		final ApiConstructs apiConstructs = new ApiConstructs(outline, opt, errorHandler);
+		final PluginContext pluginContext = PluginContext.get(outline, opt, errorHandler);
 
 		if (this.copyPartial) {
 			if (this.generateTools) {
-				apiConstructs.writeSourceFile(PropertyTreeUse.class);
-				apiConstructs.writeSourceFile(PropertyTree.class);
-				apiConstructs.writeSourceFile(Selector.class);
+				pluginContext.writeSourceFile(PropertyTreeUse.class);
+				pluginContext.writeSourceFile(PropertyTree.class);
+				pluginContext.writeSourceFile(Selector.class);
 			}
-			if (apiConstructs.findPlugin(DeepCopyPlugin.class) == null) {
-				final SelectorGenerator selectorGenerator = new SelectorGenerator(apiConstructs, Selector.class, this.selectorClassName, this.rootSelectorClassName, null, null, apiConstructs.cloneGraphClass);
+			if (pluginContext.findPlugin(DeepCopyPlugin.class) == null) {
+				final SelectorGenerator selectorGenerator = new SelectorGenerator(pluginContext, Selector.class, this.selectorClassName, this.rootSelectorClassName, null, null, pluginContext.cloneGraphClass);
 				selectorGenerator.generateMetaFields();
 			}
 		}
@@ -94,7 +94,7 @@ public class FluentBuilderPlugin extends AbstractPlugin {
 		for (final ClassOutline classOutline : outline.getClasses()) {
 			final JDefinedClass definedClass = classOutline.implClass;
 			try {
-				final BuilderOutline builderOutline = new BuilderOutline(new DefinedClassOutline(apiConstructs, classOutline),
+				final BuilderOutline builderOutline = new BuilderOutline(new DefinedClassOutline(pluginContext, classOutline),
 						classOutline.implClass._class(JMod.PUBLIC | JMod.STATIC, this.builderClassName, ClassType.CLASS));
 				builderClasses.put(definedClass.fullName(), builderOutline);
 			} catch (final JClassAlreadyExistsException caex) {
@@ -103,7 +103,7 @@ public class FluentBuilderPlugin extends AbstractPlugin {
 		}
 
 		for (final BuilderOutline builderOutline : builderClasses.values()) {
-			final BuilderGenerator builderGenerator = new BuilderGenerator(apiConstructs, builderClasses, builderOutline, getSettings());
+			final BuilderGenerator builderGenerator = new BuilderGenerator(pluginContext, builderClasses, builderOutline, getSettings());
 			builderGenerator.buildProperties();
 		}
 		return true;

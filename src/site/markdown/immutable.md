@@ -14,28 +14,16 @@ This plugin simply makes all "setXXX" methods "protected", thus preventing API c
 
 #### Options
 
-##### -constructorAccess=`<string>` (public)
-Generate constructors of an immutable class with the specified access level ("public", "private", "protected", "default"). By specification, JAXB needs a public no-arg constructor for marshalling and unmarshalling objects to an from XML. It turns out, however, that many implementations support protected constructors as well.
-This option has been included since it doesn't make sense to construct an empty object which then cannot be modified, But anyway, use with caution.
-
-
-##### -generateModifier=`{y|n}` (y)
-Generate an inner class that allows write access to the properties of the otherwise immutable instance. This can be useful if objects have to be mutable in some special scenarios, but this fact should be controlled.
-
-
-##### -modifierClassName=`<string>` (Modifier)
-Name of the generated inner class that allows to modify the state of generated objects (if generateModifier=y).
-
-
-##### -modifierMethodName=`<string>` (modifier)
-Name of the generated method that allows to instantiate the modifier class (if generateModifier=y).
-
-
 ##### -fake=`{y|n}` (n)
 Do not actually make anything immutable. For test and debug purpose only.
 
 
-##### -collectionsAsIterable=`{y|n}` (n)
-Modify collection getters to rbe declared to return java.util.Iterable instead of List.
+##### -overrideCollectionClass=`<string>` (null)
+Modify collection getters to be declared to return a custom type implementing java.util.Iterable instead of List.
+
+
+##### -constructorAccess=`<string>` (public)
+Generate constructors of an immutable class with the specified access level ("public", "private", "protected", "default"). By specification, JAXB needs a public no-arg constructor for marshalling and unmarshalling objects to an from XML. It turns out, however, that many implementations support protected constructors as well.
+This option has been included since it doesn't make sense to construct an empty object which then cannot be modified, But anyway, use with caution.
 
 

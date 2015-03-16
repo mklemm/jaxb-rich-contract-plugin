@@ -81,11 +81,11 @@ public class GroupInterfacePlugin extends AbstractPlugin {
 	@Opt
 	private boolean declareBuilderInterface = true;
 	@Opt
+	private String supportInterfaceNameSuffix = "Support";
+	@Opt
 	private String upstreamEpisodeFile = "/META-INF/jaxb-interfaces.episode";
 	@Opt
 	private String downstreamEpisodeFile = "/META-INF/jaxb-interfaces.episode";
-	@Opt
-	private boolean omitTypeClash = true;
 
 	private GroupInterfaceGenerator generator = null;
 	public static final TransformerFactory TRANSFORMER_FACTORY;
@@ -122,33 +122,32 @@ public class GroupInterfacePlugin extends AbstractPlugin {
 	@Override
 	public boolean run(final Outline outline, final Options opt, final ErrorHandler errorHandler)
 			throws SAXException {
-		generate(new ApiConstructs(outline, opt, errorHandler));
+		generate(PluginContext.get(outline, opt, errorHandler));
 		return true;
 	}
 
-	public List<TypeOutline> getGroupInterfacesForClass(final ApiConstructs apiConstructs, final String className) throws SAXException {
-		generate(apiConstructs);
+	public List<TypeOutline> getGroupInterfacesForClass(final PluginContext pluginContext, final String className) throws SAXException {
+		generate(pluginContext);
 		return this.generator.getGroupInterfacesForClass(className);
 	}
 
-	private void generate(final ApiConstructs apiConstructs) throws SAXException {
+	private void generate(final PluginContext pluginContext) throws SAXException {
 		if(this.generator == null) {
 			final URL interfaceEpisodeURL = getClass().getResource(this.upstreamEpisodeFile);
-			final EpisodeBuilder episodeBuilder = new EpisodeBuilder(apiConstructs, this.downstreamEpisodeFile);
-			this.generator = new GroupInterfaceGenerator(apiConstructs, interfaceEpisodeURL, episodeBuilder, getSettings(apiConstructs));
+			final EpisodeBuilder episodeBuilder = new EpisodeBuilder(pluginContext, this.downstreamEpisodeFile);
+			this.generator = new GroupInterfaceGenerator(pluginContext, interfaceEpisodeURL, episodeBuilder, getSettings(pluginContext));
 			this.generator.generateGroupInterfaceModel();
 			episodeBuilder.build();
 		}
 	}
 
-	public GroupInterfaceGeneratorSettings getSettings(final ApiConstructs apiConstructs) {
-		final FluentBuilderPlugin fluentBuilderPlugin = apiConstructs.findPlugin(FluentBuilderPlugin.class);
+	public GroupInterfaceGeneratorSettings getSettings(final PluginContext pluginContext) {
+		final FluentBuilderPlugin fluentBuilderPlugin = pluginContext.findPlugin(FluentBuilderPlugin.class);
 		if(fluentBuilderPlugin != null) {
 			final BuilderGeneratorSettings builderGeneratorSettings = fluentBuilderPlugin.getSettings();
-			builderGeneratorSettings.setGeneratingNewCopyBuilderMethod(!this.omitTypeClash);
-			return new GroupInterfaceGeneratorSettings(this.declareSetters, this.declareBuilderInterface, builderGeneratorSettings);
+			return new GroupInterfaceGeneratorSettings(this.declareSetters, this.declareBuilderInterface, this.supportInterfaceNameSuffix, builderGeneratorSettings);
 		} else {
-			return new GroupInterfaceGeneratorSettings(this.declareSetters, this.declareBuilderInterface, null);
+			return new GroupInterfaceGeneratorSettings(this.declareSetters, this.declareBuilderInterface, this.supportInterfaceNameSuffix, null);
 		}
 	}
 

@@ -32,10 +32,11 @@ import com.sun.codemodel.JClass;
  */
 public class ReferencedInterfaceOutline implements InterfaceOutline {
 	private final JClass implClass;
+	private final JClass supportInterface;
 
-	public ReferencedInterfaceOutline(final JClass implClass) {
+	public ReferencedInterfaceOutline(final JClass implClass, final String supportInterfaceNameSuffix) {
 		this.implClass = implClass;
-
+		this.supportInterface = supportInterfaceNameSuffix == null ? null : implClass.owner().ref(implClass._package().name() + "." + implClass.name() + supportInterfaceNameSuffix);
 	}
 
 	@Override
@@ -56,5 +57,15 @@ public class ReferencedInterfaceOutline implements InterfaceOutline {
 	@Override
 	public boolean isLocal() {
 		return false;
+	}
+
+	@Override
+	public boolean isInterface() {
+		return true;
+	}
+
+	@Override
+	public JClass getSupportInterface() {
+		return this.supportInterface;
 	}
 }

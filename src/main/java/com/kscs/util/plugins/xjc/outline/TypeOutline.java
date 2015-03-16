@@ -34,4 +34,5 @@ public interface TypeOutline {
 	TypeOutline getSuperClass();
 	JClass getImplClass();
 	boolean isLocal();
+	boolean isInterface();
 }

@@ -71,4 +71,9 @@ public class ReferencedClassOutline implements TypeOutline {
 	public boolean isLocal() {
 		return false;
 	}
+
+	@Override
+	public boolean isInterface() {
+		return false;
+	}
 }

@@ -53,5 +53,4 @@ public class BuilderOutline {
 	public TypeOutline getClassOutline() {
 		return this.classOutline;
 	}
-
 }

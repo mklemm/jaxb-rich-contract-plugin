@@ -24,8 +24,10 @@
 
 package com.kscs.util.plugins.xjc;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import com.kscs.util.plugins.xjc.codemodel.NestedThisRef;
+import com.kscs.util.plugins.xjc.outline.DefinedInterfaceOutline;
 import com.kscs.util.plugins.xjc.outline.DefinedPropertyOutline;
 import com.kscs.util.plugins.xjc.outline.DefinedTypeOutline;
 import com.kscs.util.plugins.xjc.outline.TypeOutline;
@@ -50,32 +52,31 @@ public class ModifierGenerator {
 	private final JDefinedClass modifierClass;
 	private final boolean implement;
 
-	public static void generateClass(final ApiConstructs apiConstructs, final DefinedTypeOutline classOutline, final String modifierClassName, final String modifierInterfaceName, final Collection<TypeOutline> suerInterfaces, final String modifierMethodName) throws JClassAlreadyExistsException {
-		new ModifierGenerator(apiConstructs, classOutline, modifierClassName, modifierInterfaceName, suerInterfaces, modifierMethodName, true).generatePropertyAccessors();
+	public static void generateClass(final PluginContext pluginContext, final DefinedTypeOutline classOutline, final String modifierClassName, final String modifierInterfaceName, final Collection<TypeOutline> suerInterfaces, final String modifierMethodName) throws JClassAlreadyExistsException {
+		new ModifierGenerator(pluginContext, classOutline, modifierClassName, modifierInterfaceName, suerInterfaces, modifierMethodName, true).generatePropertyAccessors();
 	}
 
-	public static void generateClass(final ApiConstructs apiConstructs, final DefinedTypeOutline classOutline, final String modifierClassName, final String modifierMethodName) throws JClassAlreadyExistsException {
-		new ModifierGenerator(apiConstructs, classOutline, modifierClassName, null, null, modifierMethodName, true).generatePropertyAccessors();
+	public static void generateClass(final PluginContext pluginContext, final DefinedTypeOutline classOutline, final String modifierClassName, final String modifierMethodName) throws JClassAlreadyExistsException {
+		new ModifierGenerator(pluginContext, classOutline, modifierClassName, null, null, modifierMethodName, true).generatePropertyAccessors();
 	}
 
-	public static void generateInterface(final ApiConstructs apiConstructs, final DefinedTypeOutline classOutline, final String modifierInterfaceName, final Collection<TypeOutline> interfaces, final String modifierMethodName) throws JClassAlreadyExistsException {
-		new ModifierGenerator(apiConstructs, classOutline, modifierInterfaceName, modifierInterfaceName, interfaces, modifierMethodName, false).generatePropertyAccessors();
+	public static void generateInterface(final PluginContext pluginContext, final DefinedTypeOutline classOutline, final String modifierInterfaceName, final Collection<TypeOutline> interfaces, final String modifierMethodName) throws JClassAlreadyExistsException {
+		new ModifierGenerator(pluginContext, classOutline, modifierInterfaceName, modifierInterfaceName, interfaces, modifierMethodName, false).generatePropertyAccessors();
 	}
 
-	private ModifierGenerator(final ApiConstructs apiConstructs, final DefinedTypeOutline classOutline, final String modifierClassName, final String modifierInterfaceName, final Collection<TypeOutline> interfaces, final String modifierMethodName, final boolean implement) throws JClassAlreadyExistsException {
+	private ModifierGenerator(final PluginContext pluginContext, final DefinedTypeOutline classOutline, final String modifierClassName, final String modifierInterfaceName, final Collection<TypeOutline> interfaces, final String modifierMethodName, final boolean implement) throws JClassAlreadyExistsException {
 		this.classOutline = classOutline;
 		final JDefinedClass definedClass = classOutline.getImplClass();
 		this.implement = implement;
 		this.modifierClass = definedClass._class(JMod.PUBLIC, modifierClassName, classOutline.getImplClass().getClassType());
 		if(interfaces != null) {
 			for (final TypeOutline interfaceOutline : interfaces) {
-				this.modifierClass._implements( apiConstructs.ref(interfaceOutline.getImplClass(), modifierInterfaceName, true));
+				this.modifierClass._implements( pluginContext.ref(interfaceOutline.getImplClass(), modifierInterfaceName, true));
 			}
 		}
-		final JMethod modifierMethod = definedClass.method(JMod.PUBLIC, this.modifierClass, modifierMethodName);
 		final JFieldRef cachedModifierField;
 		if(!"java.lang.Object".equals(definedClass._extends().fullName())) {
-			this.modifierClass._extends(apiConstructs.ref(definedClass._extends(), modifierClassName, false));
+			this.modifierClass._extends(pluginContext.ref(definedClass._extends(), modifierClassName, false));
 			cachedModifierField = JExpr.refthis(ModifierGenerator.MODIFIER_CACHE_FIELD_NAME);
 		} else {
 			if(implement) {
@@ -84,11 +85,15 @@ public class ModifierGenerator {
 				cachedModifierField = null;
 			}
 		}
+
+		final JDefinedClass typeDefinition = classOutline.isInterface() && ((DefinedInterfaceOutline)classOutline).getSupportInterface() != null ? ((DefinedInterfaceOutline)classOutline).getSupportInterface() : definedClass;
+		final JMethod modifierMethod = typeDefinition.method(JMod.PUBLIC, this.modifierClass, modifierMethodName);
 		if(this.implement) {
 			final JConditional ifCacheNull = modifierMethod.body()._if(JExpr._null().eq(cachedModifierField));
 			ifCacheNull._then().assign(cachedModifierField, JExpr._new(this.modifierClass));
 			modifierMethod.body()._return(JExpr.cast(this.modifierClass, cachedModifierField));
 		}
+
 	}
 
 	private void generatePropertyAccessors() {
@@ -98,7 +103,7 @@ public class ModifierGenerator {
 	}
 
 	private void generatePropertyAccessor(final DefinedPropertyOutline fieldOutline) {
-		if(fieldOutline.isCollection()) {
+		if(fieldOutline.isCollection() && !fieldOutline.isArray()) {
 			generateCollectionAccessor(fieldOutline);
 		} else {
 			generateSingularPropertyAccessor(fieldOutline);
@@ -111,7 +116,7 @@ public class ModifierGenerator {
 			final JMethod modifier = this.modifierClass.method(JMod.PUBLIC, this.modifierClass.owner().VOID, ModifierGenerator.SETTER_PREFIX + fieldOutline.getBaseName());
 			final JVar parameter = modifier.param(JMod.FINAL, fieldVar.type(), fieldOutline.getFieldName());
 			if(this.implement) {
-				modifier.body().assign(new NestedThisRef(this.classOutline.getImplClass()).ref(fieldVar), parameter);
+				modifier.body().add(new NestedThisRef(this.classOutline.getImplClass()).invoke(modifier.name()).arg(parameter));
 			}
 		}
 	}
@@ -121,7 +126,10 @@ public class ModifierGenerator {
 		if(fieldVar != null) {
 			final JMethod modifier = this.modifierClass.method(JMod.PUBLIC, fieldVar.type(), ModifierGenerator.GETTER_PREFIX + fieldOutline.getBaseName());
 			if(this.implement) {
-				modifier.body()._return(new NestedThisRef(this.classOutline.getImplClass()).ref(fieldVar));
+				final JFieldRef fieldRef = new NestedThisRef(this.classOutline.getImplClass()).ref(fieldVar);
+				final JConditional ifNull = modifier.body()._if(fieldRef.eq(JExpr._null()));
+				ifNull._then().assign(fieldRef, JExpr._new(this.classOutline.getImplClass().owner().ref(ArrayList.class).narrow(fieldOutline.getElementType())));
+				modifier.body()._return(fieldRef);
 			}
 		}
 	}

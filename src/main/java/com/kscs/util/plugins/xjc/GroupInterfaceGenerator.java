@@ -47,9 +47,11 @@ import com.kscs.util.jaxb._interface.Interface;
 import com.kscs.util.jaxb._interface.Interfaces;
 import com.kscs.util.plugins.xjc.base.AbstractXSFunction;
 import com.kscs.util.plugins.xjc.outline.DefinedInterfaceOutline;
+import com.kscs.util.plugins.xjc.outline.InterfaceOutline;
 import com.kscs.util.plugins.xjc.outline.ReferencedInterfaceOutline;
 import com.kscs.util.plugins.xjc.outline.TypeOutline;
 import com.sun.codemodel.ClassType;
+import com.sun.codemodel.JClass;
 import com.sun.codemodel.JClassAlreadyExistsException;
 import com.sun.codemodel.JDefinedClass;
 import com.sun.codemodel.JDocComment;
@@ -80,6 +82,8 @@ import com.sun.xml.xsom.visitor.XSFunction;
 import org.xml.sax.SAXException;
 import org.xml.sax.SAXParseException;
 
+import static com.kscs.util.plugins.xjc.PluginContext.coalesce;
+
 /**
  * @author mirko 2014-05-29
  */
@@ -105,26 +109,27 @@ class GroupInterfaceGenerator {
 	private static final ResourceBundle RESOURCE_BUNDLE = ResourceBundle.getBundle(GroupInterfaceGenerator.class.getName());
 	private final boolean declareBuilderInterface;
 	private final boolean declareModifierInterface;
-	private final ApiConstructs apiConstructs;
+	private final JClass overrideCollectionClass;
+	private final PluginContext pluginContext;
 	private final XSFunction<String> nameFunc = new AbstractXSFunction<String>() {
 
 		@Override
 		public String attributeDecl(final XSAttributeDecl decl) {
 			final String customName = getCustomPropertyName(decl);
-			return customName == null ? GroupInterfaceGenerator.this.apiConstructs.outline.getModel().getNameConverter().toPropertyName(decl.getName()) : customName;
+			return customName == null ? GroupInterfaceGenerator.this.pluginContext.outline.getModel().getNameConverter().toPropertyName(decl.getName()) : customName;
 		}
 
 		@Override
 		public String attributeUse(final XSAttributeUse use) {
 			String customName = getCustomPropertyName(use);
 			customName = customName == null ? getCustomPropertyName(use.getDecl()) : customName;
-			return customName == null ? GroupInterfaceGenerator.this.apiConstructs.outline.getModel().getNameConverter().toPropertyName(use.getDecl().getName()) : customName;
+			return customName == null ? GroupInterfaceGenerator.this.pluginContext.outline.getModel().getNameConverter().toPropertyName(use.getDecl().getName()) : customName;
 		}
 
 		@Override
 		public String elementDecl(final XSElementDecl decl) {
 			final String customName = getCustomPropertyName(decl);
-			return customName == null ? GroupInterfaceGenerator.this.apiConstructs.outline.getModel().getNameConverter().toPropertyName(decl.getName()) : customName;
+			return customName == null ? GroupInterfaceGenerator.this.pluginContext.outline.getModel().getNameConverter().toPropertyName(decl.getName()) : customName;
 		}
 
 		private String getCustomPropertyName(final XSComponent component) {
@@ -151,17 +156,18 @@ class GroupInterfaceGenerator {
 
 	private Map<QName, ReferencedInterfaceOutline> referencedInterfaces = null;
 
-	public GroupInterfaceGenerator(final ApiConstructs apiConstructs, final URL upstreamEpisode, final EpisodeBuilder episodeBuilder, final GroupInterfaceGeneratorSettings settings) {
-		this.apiConstructs = apiConstructs;
+	public GroupInterfaceGenerator(final PluginContext pluginContext, final URL upstreamEpisode, final EpisodeBuilder episodeBuilder, final GroupInterfaceGeneratorSettings settings) {
+		this.pluginContext = pluginContext;
 		this.settings = settings;
-		this.immutable = !settings.isDeclareSetters() || this.apiConstructs.hasPlugin(ImmutablePlugin.class);
-
-		final BoundPropertiesPlugin boundPropertiesPlugin = this.apiConstructs.findPlugin(BoundPropertiesPlugin.class);
+		final ImmutablePlugin immutablePlugin = this.pluginContext.findPlugin(ImmutablePlugin.class);
+		this.immutable = !settings.isDeclareSetters() || immutablePlugin != null;
+		this.overrideCollectionClass = immutablePlugin != null && immutablePlugin.overrideCollectionClass != null ? this.pluginContext.codeModel.ref(immutablePlugin.overrideCollectionClass) : null;
+		final BoundPropertiesPlugin boundPropertiesPlugin = this.pluginContext.findPlugin(BoundPropertiesPlugin.class);
 		this.throwsPropertyVetoException = boundPropertiesPlugin != null && boundPropertiesPlugin.isConstrained() && boundPropertiesPlugin.isSetterThrows();
-		final DeepClonePlugin deepClonePlugin = this.apiConstructs.findPlugin(DeepClonePlugin.class);
-		final DeepCopyPlugin deepCopyPlugin = this.apiConstructs.findPlugin(DeepCopyPlugin.class);
+		final DeepClonePlugin deepClonePlugin = this.pluginContext.findPlugin(DeepClonePlugin.class);
+		final DeepCopyPlugin deepCopyPlugin = this.pluginContext.findPlugin(DeepCopyPlugin.class);
 		this.declareBuilderInterface = settings.isDeclareBuilderInterface() && settings.getBuilderGeneratorSettings() != null;
-		this.declareModifierInterface = apiConstructs.hasPlugin(ImmutablePlugin.class) && apiConstructs.findPlugin(ImmutablePlugin.class).generateModifier;
+		this.declareModifierInterface = pluginContext.hasPlugin(ModifierPlugin.class);
 		this.needsCloneMethod = deepClonePlugin != null;
 		this.cloneMethodThrows = this.needsCloneMethod && deepClonePlugin.isCloneThrows();
 		this.needsCopyMethod = deepCopyPlugin != null;
@@ -172,7 +178,7 @@ class GroupInterfaceGenerator {
 	private static List<XSModelGroupDecl> findModelGroups(final Iterable<XSParticle> modelGroup) {
 		final List<XSModelGroupDecl> elementDecls = new ArrayList<>();
 		for (final XSParticle child : modelGroup) {
-			if (child.getTerm() instanceof XSModelGroupDecl) {
+			if (!child.isRepeated() && (child.getTerm() instanceof XSModelGroupDecl)) {
 				elementDecls.add((XSModelGroupDecl) child.getTerm());
 			}
 		}
@@ -212,7 +218,7 @@ class GroupInterfaceGenerator {
 		}
 	}
 
-	private static Map<QName, ReferencedInterfaceOutline> loadInterfaceEpisode(final ApiConstructs apiConstructs, final URL resource) {
+	private Map<QName, ReferencedInterfaceOutline> loadInterfaceEpisode(final PluginContext pluginContext, final URL resource) {
 		try {
 			final Transformer transformer = GroupInterfacePlugin.TRANSFORMER_FACTORY.newTransformer(new StreamSource(GroupInterfaceGenerator.class.getResource("interface-bindings.xsl").toString()));
 			final StreamSource episodeInput = new StreamSource(resource.toString());
@@ -221,7 +227,7 @@ class GroupInterfaceGenerator {
 			final Interfaces interfaces = JAXB.unmarshal(new DOMSource(domResult.getNode()), Interfaces.class);
 			final Map<QName, ReferencedInterfaceOutline> interfaceMappings = new HashMap<>();
 			for (final Interface iface : interfaces.getInterface()) {
-				interfaceMappings.put(new QName(iface.getSchemaComponent().getNamespace(), iface.getSchemaComponent().getName()), new ReferencedInterfaceOutline(apiConstructs.codeModel.ref(iface.getName())));
+				interfaceMappings.put(new QName(iface.getSchemaComponent().getNamespace(), iface.getSchemaComponent().getName()), new ReferencedInterfaceOutline(pluginContext.codeModel.ref(iface.getName()), this.settings.getSupportInterfaceNameSuffix()));
 			}
 			return interfaceMappings;
 		} catch (final Exception e) {
@@ -252,7 +258,7 @@ class GroupInterfaceGenerator {
 	}
 
 	private PackageOutline findPackageForNamespace(final String namespaceUri) {
-		for (final PackageOutline packageOutline : this.apiConstructs.outline.getAllPackageContexts()) {
+		for (final PackageOutline packageOutline : this.pluginContext.outline.getAllPackageContexts()) {
 			if (namespaceUri.equals(packageOutline.getMostUsedNamespaceURI())) {
 				return packageOutline;
 			}
@@ -288,7 +294,7 @@ class GroupInterfaceGenerator {
 		// create interface for each group
 		while (groupIterator.hasNext()) {
 			final XSDeclaration modelGroup = groupIterator.next();
-			if (!getReferencedInterfaces().containsKey(ApiConstructs.getQName(modelGroup))) {
+			if (!getReferencedInterfaces().containsKey(PluginContext.getQName(modelGroup))) {
 				final DefinedInterfaceOutline interfaceOutline = createInterfaceDeclaration(modelGroup);
 				if (interfaceOutline != null) {
 					groupInterfaces.put(interfaceOutline.getName(), interfaceOutline);
@@ -304,13 +310,16 @@ class GroupInterfaceGenerator {
 			final XSDeclaration classComponent = typeDef.getSchemaComponent();
 			final Collection<? extends XSDeclaration> groupRefs = (classComponent instanceof XSAttGroupDecl) ? ((XSAttGroupDecl) classComponent).getAttGroups() : findModelGroups(((XSModelGroupDecl) classComponent).getModelGroup());
 			for (final XSDeclaration groupRef : groupRefs) {
-				TypeOutline superInterfaceOutline = groupInterfaces.get(ApiConstructs.getQName(groupRef));
+				InterfaceOutline superInterfaceOutline = groupInterfaces.get(PluginContext.getQName(groupRef));
 				if (superInterfaceOutline == null) {
-					superInterfaceOutline = getReferencedInterfaceOutline(ApiConstructs.getQName(groupRef));
+					superInterfaceOutline = getReferencedInterfaceOutline(PluginContext.getQName(groupRef));
 				}
 				if (superInterfaceOutline != null) {
 					typeDef.addSuperInterface(superInterfaceOutline);
 					typeDef.getImplClass()._implements(superInterfaceOutline.getImplClass());
+					if(typeDef.getSupportInterface() != null) {
+						typeDef.getSupportInterface()._implements(superInterfaceOutline.getSupportInterface());
+					}
 					putGroupInterfaceForClass(typeDef.getImplClass().fullName(), superInterfaceOutline);
 				}
 			}
@@ -320,10 +329,10 @@ class GroupInterfaceGenerator {
 	}
 
 	public void generateGroupInterfaceModel() throws SAXException {
-		final Map<QName, DefinedInterfaceOutline> modelGroupInterfaces = generateGroupInterfaces(this.apiConstructs.outline.getModel().schemaComponent.iterateModelGroupDecls());
-		final Map<QName, DefinedInterfaceOutline> attGroupInterfaces = generateGroupInterfaces(this.apiConstructs.outline.getModel().schemaComponent.iterateAttGroupDecls());
+		final Map<QName, DefinedInterfaceOutline> modelGroupInterfaces = generateGroupInterfaces(this.pluginContext.outline.getModel().schemaComponent.iterateModelGroupDecls());
+		final Map<QName, DefinedInterfaceOutline> attGroupInterfaces = generateGroupInterfaces(this.pluginContext.outline.getModel().schemaComponent.iterateAttGroupDecls());
 
-		for (final ClassOutline classOutline : this.apiConstructs.outline.getClasses()) {
+		for (final ClassOutline classOutline : this.pluginContext.outline.getClasses()) {
 			final XSComponent xsTypeComponent = classOutline.target.getSchemaComponent();
 			final XSComplexType classComponent = getTypeDefinition(xsTypeComponent);
 			if (classComponent != null) {
@@ -349,26 +358,26 @@ class GroupInterfaceGenerator {
 			}
 
 			for (final BuilderOutline builderOutline : builderOutlines.values()) {
-				final BuilderGenerator builderGenerator = new BuilderGenerator(this.apiConstructs, builderOutlines, builderOutline, this.settings.getBuilderGeneratorSettings());
+				final BuilderGenerator builderGenerator = new BuilderGenerator(this.pluginContext, builderOutlines, builderOutline, this.settings.getBuilderGeneratorSettings());
 				builderGenerator.buildProperties();
 			}
 		}
 
 
 		if(this.declareModifierInterface) {
-			final ImmutablePlugin immutablePlugin = this.apiConstructs.findPlugin(ImmutablePlugin.class);
+			final ModifierPlugin modifierPlugin = this.pluginContext.findPlugin(ModifierPlugin.class);
 			for (final DefinedInterfaceOutline interfaceOutline : modelGroupInterfaces.values()) {
 				try {
-					ModifierGenerator.generateInterface(this.apiConstructs, interfaceOutline, immutablePlugin.modifierClassName, interfaceOutline.getSuperInterfaces(), immutablePlugin.modifierMethodName );
+					ModifierGenerator.generateInterface(this.pluginContext, interfaceOutline, modifierPlugin.modifierClassName, interfaceOutline.getSuperInterfaces(), modifierPlugin.modifierMethodName);
 				} catch (JClassAlreadyExistsException e) {
-					this.apiConstructs.errorHandler.error(new SAXParseException(e.getMessage(), interfaceOutline.getSchemaComponent().getLocator()));
+					this.pluginContext.errorHandler.error(new SAXParseException(e.getMessage(), interfaceOutline.getSchemaComponent().getLocator()));
 				}
 			}
 			for (final DefinedInterfaceOutline interfaceOutline : attGroupInterfaces.values()) {
 				try {
-					ModifierGenerator.generateInterface(this.apiConstructs, interfaceOutline, immutablePlugin.modifierClassName, interfaceOutline.getSuperInterfaces(), immutablePlugin.modifierMethodName );
+					ModifierGenerator.generateInterface(this.pluginContext, interfaceOutline, modifierPlugin.modifierClassName, interfaceOutline.getSuperInterfaces(), modifierPlugin.modifierMethodName);
 				} catch (JClassAlreadyExistsException e) {
-					this.apiConstructs.errorHandler.error(new SAXParseException(e.getMessage(), interfaceOutline.getSchemaComponent().getLocator()));
+					this.pluginContext.errorHandler.error(new SAXParseException(e.getMessage(), interfaceOutline.getSchemaComponent().getLocator()));
 				}
 			}
 		}
@@ -383,7 +392,7 @@ class GroupInterfaceGenerator {
 					interfaceOutline.getImplClass()._class(JMod.NONE, this.settings.getBuilderGeneratorSettings().getModifierClassName().getInterfaceName(), ClassType.INTERFACE) */
 					));
 		} catch (final JClassAlreadyExistsException e) {
-			this.apiConstructs.errorHandler.error(new SAXParseException(MessageFormat.format(GroupInterfaceGenerator.RESOURCE_BUNDLE.getString("error.interface-exists"), interfaceOutline.getImplClass().fullName(), ApiConstructs.BUILDER_INTERFACE_NAME), interfaceOutline.getSchemaComponent().getLocator()));
+			this.pluginContext.errorHandler.error(new SAXParseException(MessageFormat.format(GroupInterfaceGenerator.RESOURCE_BUNDLE.getString("error.interface-exists"), interfaceOutline.getImplClass().fullName(), PluginContext.BUILDER_INTERFACE_NAME), interfaceOutline.getSchemaComponent().getLocator()));
 		}
 	}
 
@@ -399,35 +408,25 @@ class GroupInterfaceGenerator {
 			for (final JMethod method : methodsToRemove) {
 				classToRemove._package().objectFactory().methods().remove(method);
 			}
-			this.apiConstructs.outline.getClasses().remove(classToRemove);
+			this.pluginContext.outline.getClasses().remove(classToRemove);
 		}
 	}
 
 	private void generateImplementsEntries(final Map<QName, DefinedInterfaceOutline> groupInterfaces, final ClassOutline classOutline, final Iterable<? extends XSDeclaration> groupUses) throws SAXException {
 		for (final XSDeclaration groupUse : groupUses) {
-			final DefinedInterfaceOutline definedGroupType = groupInterfaces.get(ApiConstructs.getQName(groupUse));
+			final DefinedInterfaceOutline definedGroupType = groupInterfaces.get(PluginContext.getQName(groupUse));
 			if (definedGroupType == null) {
-				final TypeOutline referencedInterfaceOutline = getReferencedInterfaceOutline(ApiConstructs.getQName(groupUse));
-				final String interfaceName;
-				if (referencedInterfaceOutline == null) {
-					final String pkg = this.apiConstructs.outline.getModel().getNameConverter().toPackageName(groupUse.getTargetNamespace());
-					if (pkg == null) {
-						this.apiConstructs.errorHandler.warning(new SAXParseException(MessageFormat.format(GroupInterfaceGenerator.RESOURCE_BUNDLE.getString("error.package-not-found"), groupUse.getTargetNamespace()), groupUse.getLocator()));
-					}
-					interfaceName = pkg + "." + this.apiConstructs.outline.getModel().getNameConverter().toClassName(groupUse.getName());
-					try {
-						final Class<?> importedInterface = Class.forName(interfaceName);
-						classOutline.implClass._implements(importedInterface);
-					} catch (final ClassNotFoundException cnfe) {
-						this.apiConstructs.errorHandler.warning(new SAXParseException(MessageFormat.format(GroupInterfaceGenerator.RESOURCE_BUNDLE.getString("error.interface-not-found"), groupUse.getName(), interfaceName), groupUse.getLocator()));
-					}
+				final ReferencedInterfaceOutline referencedInterfaceOutline = getReferencedInterfaceOutline(PluginContext.getQName(groupUse));
+				if(referencedInterfaceOutline == null) {
+					final String interfaceName = this.pluginContext.outline.getModel().getNameConverter().toClassName(groupUse.getName());
+					this.pluginContext.errorHandler.error(new SAXParseException(MessageFormat.format(GroupInterfaceGenerator.RESOURCE_BUNDLE.getString("error.interface-not-found"), groupUse.getName(), interfaceName), groupUse.getLocator()));
 				} else {
-					classOutline.implClass._implements(referencedInterfaceOutline.getImplClass());
+					classOutline.implClass._implements(coalesce(referencedInterfaceOutline.getSupportInterface(), referencedInterfaceOutline.getImplClass()));
 					putGroupInterfaceForClass(classOutline.implClass.fullName(), referencedInterfaceOutline);
 				}
 
 			} else {
-				classOutline.implClass._implements(definedGroupType.getImplClass());
+				classOutline.implClass._implements(coalesce(definedGroupType.getSupportInterface(),definedGroupType.getImplClass()));
 				putGroupInterfaceForClass(classOutline.implClass.fullName(), definedGroupType);
 			}
 		}
@@ -436,27 +435,29 @@ class GroupInterfaceGenerator {
 	private DefinedInterfaceOutline createInterfaceDeclaration(final XSDeclaration groupDecl) throws SAXException {
 		final PackageOutline packageOutline = findPackageForNamespace(groupDecl.getTargetNamespace());
 		if (packageOutline == null) {
-			this.apiConstructs.errorHandler.error(new SAXParseException(MessageFormat.format(GroupInterfaceGenerator.RESOURCE_BUNDLE.getString("error.package-not-found"), groupDecl.getTargetNamespace()), groupDecl.getLocator()));
+			this.pluginContext.errorHandler.error(new SAXParseException(MessageFormat.format(GroupInterfaceGenerator.RESOURCE_BUNDLE.getString("error.package-not-found"), groupDecl.getTargetNamespace()), groupDecl.getLocator()));
 			return null;
 		}
 
 		final JPackage container = packageOutline._package();
-		final ClassOutline dummyImplementation = this.apiConstructs.classesBySchemaComponent.get(ApiConstructs.getQName(groupDecl));
+		final ClassOutline dummyImplementation = this.pluginContext.classesBySchemaComponent.get(PluginContext.getQName(groupDecl));
 		if (dummyImplementation == null) {
-			this.apiConstructs.errorHandler.error(new SAXParseException(MessageFormat.format(GroupInterfaceGenerator.RESOURCE_BUNDLE.getString("error.no-implementation"), this.apiConstructs.outline.getModel().getNameConverter().toClassName(groupDecl.getName()), groupDecl.getTargetNamespace(), groupDecl.getName()), groupDecl.getLocator()));
+			this.pluginContext.errorHandler.error(new SAXParseException(MessageFormat.format(GroupInterfaceGenerator.RESOURCE_BUNDLE.getString("error.no-implementation"), this.pluginContext.outline.getModel().getNameConverter().toClassName(groupDecl.getName()), groupDecl.getTargetNamespace(), groupDecl.getName()), groupDecl.getLocator()));
 			return null;
 		}
 
 		final String interfaceName = dummyImplementation.implClass.name();
 		container.remove(dummyImplementation.implClass);
 		final JDefinedClass groupInterface;
+		final JDefinedClass supportInterface;
 		try {
 			groupInterface = container._interface(JMod.PUBLIC, interfaceName);
+			supportInterface = this.settings.isGeneratingSupportInterface() ? container._interface(JMod.PUBLIC, interfaceName + this.settings.getSupportInterfaceNameSuffix())._implements(groupInterface) : null;
 		} catch (final JClassAlreadyExistsException e) {
-			this.apiConstructs.errorHandler.error(new SAXParseException(MessageFormat.format(GroupInterfaceGenerator.RESOURCE_BUNDLE.getString("error.interface-exists"), interfaceName, ""), groupDecl.getLocator()));
+			this.pluginContext.errorHandler.error(new SAXParseException(MessageFormat.format(GroupInterfaceGenerator.RESOURCE_BUNDLE.getString("error.interface-exists"), interfaceName, ""), groupDecl.getLocator()));
 			return null;
 		}
-		final DefinedInterfaceOutline interfaceDecl = new DefinedInterfaceOutline(groupDecl, groupInterface, dummyImplementation);
+		final DefinedInterfaceOutline interfaceDecl = new DefinedInterfaceOutline(groupDecl, groupInterface, dummyImplementation, supportInterface);
 			/*
 			if (this.needsCopyMethod) {
 				groupInterface._implements(Copyable.class);
@@ -501,6 +502,7 @@ class GroupInterfaceGenerator {
 		return interfaceDecl;
 	}
 
+
 	private FieldOutline findField(final ClassOutline implClass, final PropertyUse propertyUse) throws SAXException {
 		if (!propertyUse.isFixed()) {
 			for (final FieldOutline field : implClass.getDeclaredFields()) {
@@ -508,18 +510,22 @@ class GroupInterfaceGenerator {
 					return field;
 				}
 			}
-			this.apiConstructs.errorHandler.error(new SAXParseException(MessageFormat.format(GroupInterfaceGenerator.RESOURCE_BUNDLE.getString("error.property-not-found"), propertyUse.declaration.toString(), propertyUse.getName(), implClass.implClass.fullName()), propertyUse.declaration.getLocator()));
+			this.pluginContext.errorHandler.error(new SAXParseException(MessageFormat.format(GroupInterfaceGenerator.RESOURCE_BUNDLE.getString("error.property-not-found"), propertyUse.declaration.toString(), propertyUse.getName(), implClass.implClass.fullName()), propertyUse.declaration.getLocator()));
 		}
 		return null;
 	}
 
 	private FieldOutline generateProperty(final DefinedInterfaceOutline groupInterface, final FieldOutline implementedField) {
 		if (implementedField != null) {
-			final JMethod implementedGetter = ApiConstructs.findGetter(implementedField);
+			final JMethod implementedGetter = PluginContext.findGetter(implementedField);
 			if (implementedGetter != null) {
-				groupInterface.getImplClass().method(JMod.NONE, implementedGetter.type(), implementedGetter.name());
+				if(this.overrideCollectionClass != null && implementedField.getPropertyInfo().isCollection()) {
+					groupInterface.getImplClass().method(JMod.NONE, this.overrideCollectionClass.narrow(((JClass)implementedGetter.type()).getTypeParameters().get(0)), implementedGetter.name());
+				} else {
+					groupInterface.getImplClass().method(JMod.NONE, implementedGetter.type(), implementedGetter.name());
+				}
 				if (!this.immutable) {
-					final JMethod implementedSetter = ApiConstructs.findSetter(implementedField);
+					final JMethod implementedSetter = PluginContext.findSetter(implementedField);
 					if (implementedSetter != null) {
 						final JMethod newSetter = groupInterface.getImplClass().method(JMod.NONE, implementedSetter.type(),
 								implementedSetter.name());
@@ -542,7 +548,7 @@ class GroupInterfaceGenerator {
 	Map<QName, ReferencedInterfaceOutline> getReferencedInterfaces() {
 		if (this.referencedInterfaces == null) {
 			if (this.upstreamEpisode != null) {
-				this.referencedInterfaces = loadInterfaceEpisode(this.apiConstructs, this.upstreamEpisode);
+				this.referencedInterfaces = loadInterfaceEpisode(this.pluginContext, this.upstreamEpisode);
 			} else {
 				this.referencedInterfaces = Collections.emptyMap();
 			}

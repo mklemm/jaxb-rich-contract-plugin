@@ -88,4 +88,7 @@ public class DefinedPropertyOutline implements PropertyOutline {
 		return this.fieldOutline.getPropertyInfo().isCollection();
 	}
 
+	public boolean isArray() {
+		return getRawType().isArray();
+	}
 }

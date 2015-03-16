@@ -36,7 +36,6 @@ public class BuilderGeneratorSettings {
 	private final String newCopyBuilderMethodName;
 	private final String builderFieldSuffix;
 	private final ClassName builderClassName;
-	private boolean generatingNewCopyBuilderMethod = true;
 
 	public BuilderGeneratorSettings(final boolean generatingPartialCopy, final boolean generatingNarrowCopy, final String newBuilderMethodName, final String newCopyBuilderMethodName, final String builderFieldSuffix, final ClassName builderClassName) {
 		this.generatingPartialCopy = generatingPartialCopy;
@@ -65,14 +64,6 @@ public class BuilderGeneratorSettings {
 
 	public String getBuilderFieldSuffix() {
 		return this.builderFieldSuffix;
-	}
-
-	public boolean isGeneratingNewCopyBuilderMethod() {
-		return this.generatingNewCopyBuilderMethod;
-	}
-
-	public void setGeneratingNewCopyBuilderMethod(final boolean generatingNewCopyBuilderMethod) {
-		this.generatingNewCopyBuilderMethod = generatingNewCopyBuilderMethod;
 	}
 
 	public ClassName getBuilderClassName() {

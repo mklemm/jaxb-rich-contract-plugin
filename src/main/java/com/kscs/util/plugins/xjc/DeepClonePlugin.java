@@ -64,7 +64,7 @@ public class DeepClonePlugin extends AbstractPlugin {
 
 	@Override
 	public boolean run(final Outline outline, final Options opt, final ErrorHandler errorHandler) throws SAXException {
-		final ApiConstructs apiConstructs = new ApiConstructs(outline, opt, errorHandler);
+		final PluginContext pluginContext = PluginContext.get(outline, opt, errorHandler);
 
 
 		for (final ClassOutline classOutline : outline.getClasses()) {
@@ -72,26 +72,22 @@ public class DeepClonePlugin extends AbstractPlugin {
 		}
 
 		for (final ClassOutline classOutline : outline.getClasses()) {
-			generateCloneMethod(apiConstructs, classOutline);
+			generateCloneMethod(pluginContext, classOutline);
 		}
 		return true;
 
 	}
 
-	private void generateCloneMethod(final ApiConstructs apiConstructs, final ClassOutline classOutline) {
+	private void generateCloneMethod(final PluginContext pluginContext, final ClassOutline classOutline) {
 		final JDefinedClass definedClass = classOutline.implClass;
-		final JMethod cloneMethod = definedClass.method(JMod.PUBLIC, definedClass, apiConstructs.cloneMethodName);
+		final JMethod cloneMethod = definedClass.method(JMod.PUBLIC, definedClass, pluginContext.cloneMethodName);
 		cloneMethod.annotate(Override.class);
 		final JBlock body = cloneMethod.body();
 		final JVar newObjectVar;
-		if (this.cloneThrows) {
-			cloneMethod._throws(CloneNotSupportedException.class);
-			newObjectVar = body.decl(JMod.FINAL, definedClass, ApiConstructs.NEW_OBJECT_VAR_NAME,  JExpr.cast(definedClass, JExpr._super().invoke(apiConstructs.cloneMethodName)));
-		} else {
-			newObjectVar = body.decl(JMod.FINAL, definedClass, ApiConstructs.NEW_OBJECT_VAR_NAME, null);
-			final JBlock maybeTryBlock = apiConstructs.catchCloneNotSupported(body, definedClass._extends());
-			maybeTryBlock.assign(newObjectVar, JExpr.cast(definedClass, JExpr._super().invoke(apiConstructs.cloneMethodName)));
-		}
+		newObjectVar = body.decl(JMod.FINAL, definedClass, PluginContext.NEW_OBJECT_VAR_NAME, null);
+		final JBlock superMaybeTryBlock = pluginContext.catchCloneNotSupported(body, definedClass._extends());
+		superMaybeTryBlock.assign(newObjectVar, JExpr.cast(definedClass, JExpr._super().invoke(pluginContext.cloneMethodName)));
+		boolean cloneNotSupportedExceptionPossible = false;
 		for (final FieldOutline fieldOutline : classOutline.getDeclaredFields()) {
 			final JFieldVar field = PluginUtil.getDeclaredField(fieldOutline);
 			if (field != null) {
@@ -99,24 +95,21 @@ public class DeepClonePlugin extends AbstractPlugin {
 					final JClass fieldType = (JClass) field.type();
 					final JFieldRef newField = JExpr.ref(newObjectVar, field);
 					final JFieldRef fieldRef = JExpr._this().ref(field);
-					if (apiConstructs.collectionClass.isAssignableFrom(fieldType)) {
+					if (pluginContext.collectionClass.isAssignableFrom(fieldType)) {
 						final JClass elementType = fieldType.getTypeParameters().get(0);
-						if (apiConstructs.cloneableInterface.isAssignableFrom(elementType)) {
-							final JBlock maybeTryBlock = this.cloneThrows ? body : apiConstructs.catchCloneNotSupported(body, elementType);
-							final JForEach forLoop = apiConstructs.loop(maybeTryBlock, fieldRef, elementType, newField, elementType);
-							forLoop.body().invoke(newField, "add").arg(nullSafe(forLoop.var(), apiConstructs.castOnDemand(elementType, forLoop.var().invoke(apiConstructs.cloneMethodName))));
+						if (pluginContext.cloneableInterface.isAssignableFrom(elementType)) {
+							final JBlock maybeTryBlock = this.cloneThrows ? body : pluginContext.catchCloneNotSupported(body, elementType);
+							cloneNotSupportedExceptionPossible |= pluginContext.mustCatch(elementType);
+							final JForEach forLoop = pluginContext.loop(maybeTryBlock, fieldRef, elementType, newField, elementType);
+							forLoop.body().invoke(newField, "add").arg(nullSafe(forLoop.var(), pluginContext.castOnDemand(elementType, forLoop.var().invoke(pluginContext.cloneMethodName))));
 						} else {
-							body.assign(newField, nullSafe(fieldRef, apiConstructs.newArrayList(elementType).arg(fieldRef)));
+							body.assign(newField, nullSafe(fieldRef, pluginContext.newArrayList(elementType).arg(fieldRef)));
 						}
-
-						final ImmutablePlugin immutablePlugin = apiConstructs.findPlugin(ImmutablePlugin.class);
-						if (immutablePlugin != null && !immutablePlugin.fake) {
-							immutablePlugin.immutableInit(apiConstructs, body, newObjectVar, field);
-						}
-					}
-					if (apiConstructs.cloneableInterface.isAssignableFrom(fieldType)) {
-						final JBlock maybeTryBlock = this.cloneThrows ? body : apiConstructs.catchCloneNotSupported(body, fieldType);
-						maybeTryBlock.assign(newField, nullSafe(fieldRef, apiConstructs.castOnDemand(fieldType, JExpr._this().ref(field).invoke(apiConstructs.cloneMethodName))));
+						pluginContext.generateImmutableFieldInit(body, newObjectVar, field);
+					} else if (pluginContext.cloneableInterface.isAssignableFrom(fieldType)) {
+						final JBlock maybeTryBlock = this.cloneThrows ? body : pluginContext.catchCloneNotSupported(body, fieldType);
+						cloneNotSupportedExceptionPossible |= pluginContext.mustCatch(fieldType);
+						maybeTryBlock.assign(newField, nullSafe(fieldRef, pluginContext.castOnDemand(fieldType, JExpr._this().ref(field).invoke(pluginContext.cloneMethodName))));
 					} else {
 						// body.assign(newField, JExpr._this().ref(field));
 					}
@@ -124,5 +117,8 @@ public class DeepClonePlugin extends AbstractPlugin {
 			}
 		}
 		body._return(newObjectVar);
+		if (this.cloneThrows && cloneNotSupportedExceptionPossible) {
+			cloneMethod._throws(CloneNotSupportedException.class);
+		}
 	}
 }
