@@ -18,15 +18,15 @@ Currently, **indexed properties** are NOT supported in the way specified by Java
 #### Optionen
 
 ##### -constrained=`{y|n}` (y)
-Erzeuge "constrained properties", die durch das Werfen einer  Exception eine Ã„nderung ihres Zustandes unterbinden kÃ¶nnen.
+Erzeuge "constrained properties", die durch das Werfen einer  Exception eine Änderung ihres Zustandes unterbinden können.
 
 
 ##### -bound=`{y|n}` (y)
-Erzeuge "bound properties", die die Ã„nderung ihres Zustandes als Event weitermelden.
+Erzeuge "bound properties", die die Änderung ihres Zustandes als Event weitermelden.
 
 
 ##### -setterThrows=`{y|n}` (n)
-Wenn Constrained Properties verwendet werden, soll eine PropertyVetoException bei unerlaubter ZustandsÃ¤nderung geworfen werden.
+Wenn Constrained Properties verwendet werden, soll eine PropertyVetoException bei unerlaubter Zustandsänderung geworfen werden.
 Wenn dies auf "no" gesetzt ist, wird stattdessen eine "RuntimeException" erzeugt.
 
 
