@@ -47,6 +47,20 @@
 	* fluent-builder: Made "add..." and "with..." methods for collection properties fall through if they are given a NULL arg for the item collection.
 * **1.6.0**:
 	* immutable: You can now have a "modifier" class generated that provides methods to modify the state of an otherwise immutable object anyway.
-	
+* **1.6.1**:
+	* minor bugfixes
+* **1.6.2**:
+	* immutable: Introduced alternate collection type when generating immutable collection properties
+	* made more names of generated items configurable
+* **1.6.3**:
+	* Added "fake" mode for immutable, only for test purposes
+* **1.6.4**:
+	* group-contract: when generating methods that could conflict with each other in cases where two interfaces are
+	used at the same time as generic type parameter boundaries, an extra level of interfaces is declared so that the
+	potentially problematic methods are in their own interface definition which can be omitted in your code if desired.
+	* Issue #16 resolved.
+	* clone: Resolved an issue with generating the "throws CloneNotSupportedException" declarations. Now they are only generated
+	if actually needed.
+
 	
 

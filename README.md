@@ -33,7 +33,7 @@ Get it with Maven (Now hosted on maven central):
 ``` xml
     <groupId>net.codesup.util</groupId>
     <artifactId>jaxb2-rich-contract-plugin</artifactId>
-    <version>1.6.0</version>
+    <version>1.6.4</version>
 ```
 
 ###  Version History
@@ -85,7 +85,21 @@ Get it with Maven (Now hosted on maven central):
 	* fluent-builder: Made "add..." and "with..." methods for collection properties fall through if they are given a NULL arg for the item collection.
 * **1.6.0**:
 	* immutable: You can now have a "modifier" class generated that provides methods to modify the state of an otherwise immutable object anyway.
-	
+* **1.6.1**:
+	* minor bugfixes
+* **1.6.2**:
+	* immutable: Introduced alternate collection type when generating immutable collection properties
+	* made more names of generated items configurable
+* **1.6.3**:
+	* Added "fake" mode for immutable, only for test purposes
+* **1.6.4**:
+	* group-contract: when generating methods that could conflict with each other in cases where two interfaces are
+	used at the same time as generic type parameter boundaries, an extra level of interfaces is declared so that the
+	potentially problematic methods are in their own interface definition which can be omitted in your code if desired.
+	* Issue #16 resolved.
+	* clone: Resolved an issue with generating the "throws CloneNotSupportedException" declarations. Now they are only generated
+	if actually needed.
+
 	
 
 ###  Usage
@@ -317,12 +331,32 @@ Do not actually make anything immutable. For test and debug purpose only.
 
 
 ##### -overrideCollectionClass=`<string>` (null)
-Modify collection getters to be declared to return a custom type implementing java.util.Iterable instead of List.
+Modify collection getters to be declared to return a custom type implementing java.lang.Iterable instead of List.
 
 
 ##### -constructorAccess=`<string>` (public)
 Generate constructors of an immutable class with the specified access level ("public", "private", "protected", "default"). By specification, JAXB needs a public no-arg constructor for marshalling and unmarshalling objects to an from XML. It turns out, however, that many implementations support protected constructors as well.
 This option has been included since it doesn't make sense to construct an empty object which then cannot be modified, But anyway, use with caution.
+
+
+## modifier
+### Motivation
+Sometimes you wish to make as many of your classes immutable as possible, but in some scenarios they should still be modifiable. This plugin allows you to create a controlled entry point for modifications like this.
+
+### Function
+This plugin simply creates an inner instance class that provides access through tne normal setXXX methods and getXXX methods for collections that return the mutable version of the collection property.
+
+### Usage
+#### -Xmodifier
+
+#### Options
+
+##### -modifierClassName=`<string>` (Modifier)
+Name of the generated inner class that allows to modify the state of generated objects (if generateModifier=y).
+
+
+##### -modifierMethodName=`<string>` (modifier)
+Name of the generated method that allows to instantiate the modifier class (if generateModifier=y).
 
 
 ## group-contract
@@ -585,8 +619,9 @@ Name of the generated meta-information nested class.
 
 [1]: #fluent-builder
 [2]: #immutable
-[3]: #group-contract
-[4]: #clone
-[5]: #copy
-[6]: #constrained-properties
-[7]: #meta
+[3]: #modifier
+[4]: #group-contract
+[5]: #clone
+[6]: #copy
+[7]: #constrained-properties
+[8]: #meta

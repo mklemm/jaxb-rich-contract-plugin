@@ -19,7 +19,7 @@ Nur für Test und Debug: Es wird nichts wirklich unveränderlich gemacht, aber d
 
 
 ##### -overrideCollectionClass=`<string>` (null)
-Modify collection getters to be declared to return a custom type implementing java.util.Iterable instead of List.
+Modify collection getters to be declared to return a custom type implementing java.lang.Iterable instead of List.
 
 
 ##### -constructorAccess=`<string>` (public)

@@ -44,6 +44,7 @@ import com.kscs.util.plugins.xjc.FluentBuilderPlugin;
 import com.kscs.util.plugins.xjc.GroupInterfacePlugin;
 import com.kscs.util.plugins.xjc.ImmutablePlugin;
 import com.kscs.util.plugins.xjc.MetaPlugin;
+import com.kscs.util.plugins.xjc.ModifierPlugin;
 import com.kscs.util.plugins.xjc.base.AbstractPlugin;
 import com.kscs.util.plugins.xjc.base.HtmlUsageBuilder;
 import com.kscs.util.plugins.xjc.base.MarkdownPluginUsageBuilder;
@@ -61,6 +62,7 @@ public class PluginDocPrinter {
 	public static final java.util.List<AbstractPlugin> PLUGINS = Arrays.asList(
 			new FluentBuilderPlugin(),
 			new ImmutablePlugin(),
+			new ModifierPlugin(),
 			new GroupInterfacePlugin(),
 			new DeepClonePlugin(),
 			new DeepCopyPlugin(),
