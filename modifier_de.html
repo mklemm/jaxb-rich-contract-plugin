@@ -169,12 +169,12 @@
 <h2>modifier<a name="modifier"></a></h2>
 <div class="section">
 <h3>Motivation<a name="Motivation"></a></h3>
-<p>Generell ist es vorteilhaft, Anwendungslogik so zu implementieren, dass Objekte in der Regel nach der Initialisierung in ihrem Zustand unver&#xfffd;nderlich sind. In traditionellen Programmiersprachen wie z.B. Java bleibt dies jedoch oftmals ein akademischer Ansatz, da oft auf bestehendem Code und bestehenden Bibliotheken aufgesetzt werden muss, die ein derartiges Programmiermodell nicht oder nur unzul&#xfffd;nglich unterst&#xfffd;tzen.</p>
-<p>Das <tt>modifier</tt>-Plugin schafft eine M&#xfffd;glichkeit, einerseits (z.B. durch das <tt>immutable</tt>-Plugin) die allgemeine Schnittstelle einer Klasse so zu definieren, dass dar&#xfffd;ber keine Zustands&#xfffd;nderungen am Objekt m&#xfffd;glich sind, aber gleichzeitig f&#xfffd;r bestimmte Szenarien eine explizit abzurufende Referenz bereit zu stellen, &#xfffd;ber die das Objekt dennoch einfach ver&#xfffd;ndert werden kann.</p>
-<p>Der Einsatz dieses Plugins ist haupts&#xfffd;chlich f&#xfffd;r eine &#xfffd;bergangszeit w&#xfffd;hrend der Refaktorierung von existierendem Code vorgesehen, sodass zur Compilezeit die Stellen im Code deutlich werden, die zustandsver&#xfffd;nderliche Objekte voraussetzen. Ziel sollte es dann sein, dieses Plugin irgendwann im eigenen Projekt abschalten zu k&#xfffd;nnen.</p></div>
+<p>Generell ist es vorteilhaft, Anwendungslogik so zu implementieren, dass Objekte in der Regel nach der Initialisierung in ihrem Zustand unver&#xe4;nderlich sind. In traditionellen Programmiersprachen wie z.B. Java bleibt dies jedoch oftmals ein akademischer Ansatz, da oft auf bestehendem Code und bestehenden Bibliotheken aufgesetzt werden muss, die ein derartiges Programmiermodell nicht oder nur unzul&#xe4;nglich unterst&#xfc;tzen.</p>
+<p>Das <tt>modifier</tt>-Plugin schafft eine M&#xf6;glichkeit, einerseits (z.B. durch das <tt>immutable</tt>-Plugin) die allgemeine Schnittstelle einer Klasse so zu definieren, dass dar&#xfc;ber keine Zustands&#xe4;nderungen am Objekt m&#xf6;glich sind, aber gleichzeitig f&#xfc;r bestimmte Szenarien eine explizit abzurufende Referenz bereit zu stellen, &#xfc;ber die das Objekt dennoch einfach ver&#xe4;ndert werden kann.</p>
+<p>Der Einsatz dieses Plugins ist haupts&#xe4;chlich f&#xfc;r eine &#xdc;bergangszeit w&#xe4;hrend der Refaktorierung von existierendem Code vorgesehen, sodass zur Compilezeit die Stellen im Code deutlich werden, die zustandsver&#xe4;nderliche Objekte voraussetzen. Ziel sollte es dann sein, dieses Plugin irgendwann im eigenen Projekt abschalten zu k&#xf6;nnen.</p></div>
 <div class="section">
 <h3>Function<a name="Function"></a></h3>
-<p>Es wird eine innere Klasse generiert, die &#xfffd;ffentliche setXXX-Methoden und getXXX-Methoden f&#xfffd;r Collections enth&#xfffd;lt, wobei schreibbare Collection-Instanzen zur&#xfffd;ckgegeben werden.</p>
+<p>Es wird eine innere Klasse generiert, die &#xf6;ffentliche setXXX-Methoden und getXXX-Methoden f&#xfc;r Collections enth&#xe4;lt, wobei schreibbare Collection-Instanzen zur&#xfc;ckgegeben werden.</p>
 <p>Wenn das <tt>group-contract</tt>-Plugin ebenfalls aktiviert ist, werden diese Konstrukte auch in den Interfaces erzeugt.</p></div>
 <div class="section">
 <h3>Aktivierung<a name="Aktivierung"></a></h3>
