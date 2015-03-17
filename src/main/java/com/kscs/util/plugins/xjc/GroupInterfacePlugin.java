@@ -81,7 +81,7 @@ public class GroupInterfacePlugin extends AbstractPlugin {
 	@Opt
 	private boolean declareBuilderInterface = true;
 	@Opt
-	private String supportInterfaceNameSuffix = "Support";
+	private String supportInterfaceNameSuffix = "Lifecycle";
 	@Opt
 	private String upstreamEpisodeFile = "/META-INF/jaxb-interfaces.episode";
 	@Opt
@@ -147,7 +147,7 @@ public class GroupInterfacePlugin extends AbstractPlugin {
 			final BuilderGeneratorSettings builderGeneratorSettings = fluentBuilderPlugin.getSettings();
 			return new GroupInterfaceGeneratorSettings(this.declareSetters, this.declareBuilderInterface, this.supportInterfaceNameSuffix, builderGeneratorSettings);
 		} else {
-			return new GroupInterfaceGeneratorSettings(this.declareSetters, this.declareBuilderInterface, this.supportInterfaceNameSuffix, null);
+			return new GroupInterfaceGeneratorSettings(this.declareSetters, this.declareBuilderInterface, pluginContext.hasPlugin(ModifierPlugin.class) ? this.supportInterfaceNameSuffix : null, null);
 		}
 	}
 
