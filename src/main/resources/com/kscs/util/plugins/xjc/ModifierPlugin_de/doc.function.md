@@ -1,4 +1,4 @@
-Es wird eine innere Klasse generiert, die öffentliche setXXX-Methoden und getXXX-Methoden für Collections enthält, wobei
-schreibbare Collection-Instanzen zurückgegeben werden.
+Es wird eine innere Klasse generiert, die Ã¶ffentliche setXXX-Methoden und getXXX-Methoden fÃ¼r Collections enthÃ¤lt, wobei
+schreibbare Collection-Instanzen zurÃ¼ckgegeben werden.
 
 Wenn das `group-contract`-Plugin ebenfalls aktiviert ist, werden diese Konstrukte auch in den Interfaces erzeugt.
