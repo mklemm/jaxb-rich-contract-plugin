@@ -230,6 +230,38 @@ There already is the widely used "fluent-api" plugin for XJC. That, however isn'
 
 fluent-builder now creates a real "Builder" pattern, implemented as an inner class to the generated classes.
 
+### Function
+fluent-builder creates a static inner class for every generated class representing the builder, and a static method on the generated class to create a builder.
+
+Example use in code:
+
+        MyElement newElement = MyElement.builder().withPropertyA(...).withPropertyB(...).addCollectionPropertyA(...).build();
+
+In addition, new instances can be created as copies of existing instances using the builder, with an optional modification by other builder methods:
+
+        MyElement newElement = MyElement.copyOf(oldElement).withPropertyA(...).withPropertyB(...).build();
+
+Or, similar to the java `clone()` method, creating a runtime copy of a reference:
+
+		MyObj myObj = oldObj.newCopyBuilder().with... .build();
+
+The "partial" copy introduced in the "copy" plugin will work here as well:
+
+        PropertyTree selection = MyElement.Select.root().propertyA().propertyAB().build();
+        MyElement newElement = MyElement.copyExcept(oldElement, selection).withPropertyA(...).withPropertyB(...).build();
+		MyObj myObj = oldObj.newCopyBuilder(selection, PropertyTreeUse.EXCLUDE).with.... .build();
+
+Often, properties of generated classes represent containment or references to generated classes in the same model.
+The fluent-builder plugin lets you initialise properties of such a type (and of types declared in upstream modules
+via the "episode" feature) - if it isn't an abstract type - by using sub-builders ("chained" builders) in the following
+way, given that both A and B are types defined in the XSD model, and A has a property of type B, and B has three
+properties of type String, x,y, and z:
+
+        A newA = A.builder().withB().withX("x").withY("y").withZ("z").end().build();
+
+Of course, this plugin is most useful if `immutable` is also activated.
+
+
 ### Limitations
 * It generates a large amount of code.
 * Note: Shared builder instances are NOT thread-safe by themselves.
@@ -310,6 +342,27 @@ This option has been included since it doesn't make sense to construct an empty 
 
 
 ## modifier
+### Motivation
+In general, you may wish to implement application logic in a way so that objects are initialized once
+and then are immutable.
+For traditional programming languages, like Java, for example, this is not always feasible in practice,
+because legacy code and libraries have to be used.
+
+With the `modifier` plugin, you can make the public interface of your classes immutable via the `immutable`
+plugin, but at the same time provide a handle to modify the state of your objects anyway vi a reference that
+needs to be queried explicitly.
+
+This plugin is intended for use while refactoring existing code to a more "functional" and thread-friendly
+code base. Eventually, your code should work so this plugin can be deactivated in your XJC configuration.
+
+
+### Function
+This plugin creates an inner class with public setXXX methods, and getXXX methods for collection properties that
+return a writable version of the collection the property is implemented by.
+
+If the `group-contract` plugin is also activated, these constructs will also be generated into the interfaces.
+
+
 ### Usage
 #### -Xmodifier
 
@@ -324,6 +377,76 @@ Name of the generated method that allows to instantiate the modifier class.
 
 
 ## group-contract
+### Motivation
+In most object-oriented programming languages, there are constructs to define a "contract", that concrete implementations of complex
+types will implement. In Java, for example, there is the `interface`, in Scala there are "traits", and so on.
+The XML Schema Definition Language (XSD) in contrast, has no explicit construct to ensure a complex type meets a
+pre-defined contract. There are, however, the `group` and `attributeGroup` elements, that could be considered
+a way to achieve just that: A complexType that uses a `<group>` or an `<attributeGroup>` will expose the
+properties defined in these group definitions. Looking at it that way, you could say that the `complexType`
+"implements" the contract defined by the `group` or `attributeGroup`.
+
+
+
+### Function
+The group-contract plugin now tries to model that case in the generated source code. For every `group`and `attributeGroup`
+definition in the XSD model (or in any upstream XSD model that is included via the "episode" mechanism, for that matter),
+it generates an `interface` definition with all the getter, and optionally setter, methods of the properties defined via
+the `group` or `attributeGroup` definition.
+
+Then, it declares every class that was generated from a `complexType` that uses the `group` or `attributeGroup` as implementing
+just that interface. This way, all classes generated from XSD complexTypes that use the same group definitions, will
+share a common contract and can be treated in a common way by client code.
+
+If the "fluent-builder" plugin is also activated, the interface definition can optionally include the declarations of the "with..."
+and "add..." methods of the generated builder class as a nested interface declaration, so you can even rely on a common
+"builder" contract for classes using the same `group` and `attributeGroup` definitions.
+
+For example, you may wish to add "XLink" functionality to your generated classes. If the group-contract plugin is
+activated, you can define a complexType in XSD that supports the "simple" attributes by adding to its XSD definition:
+
+``` xml
+<complexType name="some-type">
+	.... (model group of the type...)
+	<attributeGroup ref="xlink:simpleAttrs"/>
+</complexType>
+```
+
+Which will generate a class something like:
+
+``` java
+public class SomeType implements SimpleAttrs {
+...
+```
+
+And an interface definition like:
+
+``` java
+public interface SimpleAttrs {
+	String getHref();
+	void setHref(final String value);
+	// ... more properties ...
+
+	// this part is generated only if fluent-builder is also active
+	interface BuildSupport<TParentBuilder >{
+            public SimpleAttrs.BuildSupport<TParentBuilder> withHref(final String href);
+            //... more properties ...
+	}
+}
+```
+
+Similar effects could be achieved by subclassing complexTypes, but since there is no multiple inheritance, inheritance
+hierarchies can get overly complex this way, and inheritance is less flexible than interface implementations.
+
+**Note:** The group-contract plugin supports JAXB modular compilation, i.e. the "episode" mechanism implemented
+in the JAXB reference impplementation.
+However, due to the lack of extensibility of the current default episode data structures and processing, this plugin
+has to manage its own "episode" file. There are two command line options to control the  names of the "upstream" episode
+file, i.e. the file name the plugin should look for when using other modules, and the "downstream" file, i.e. the file
+name that should be generated for use by other modules.
+
+
+
 ### Usage
 #### -Xgroup-contract
 
@@ -481,6 +604,14 @@ Generate helper classes needed for collection change event detection. Turn off i
 
 
 ## meta
+### Motivation
+Sometimes, you need information about the properties of a class, or you wish to have a constant for the names of properties.
+The "meta" plugin creates an inner class (the name of which can be controlled by a command-line option), and adds a constant
+field for each property. If the `-extended=y` command-line option is specified, these constants will hold instances of the
+`PropertyInfo` class, on which the name, type, multiplicity (collection or not) and default value (from XSD) are exposed.
+Without `-extended`, the constants are simply string constants holding the property names.
+
+
 ### Usage
 #### -Xmeta
 

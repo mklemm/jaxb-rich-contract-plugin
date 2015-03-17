@@ -29,6 +29,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.URL;
+import java.nio.charset.Charset;
 import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -143,7 +144,7 @@ public class PropertyDirectoryResourceBundle extends ResourceBundle {
 						final URL textFileURL = loader.getResource(textFilePath.toString());
 						PropertyDirectoryResourceBundle.LOGGER.finest("Resource text file \"" + textFilePath + "\" URL: " + textFileURL);
 						final StringBuilder sb = new StringBuilder();
-						try(final BufferedReader reader = new BufferedReader(new InputStreamReader(loader.getResourceAsStream(textFilePath.toString())))) {
+						try(final BufferedReader reader = new BufferedReader(new InputStreamReader(loader.getResourceAsStream(textFilePath.toString()), Charset.forName("UTF-8")))) {
 							String line;
 							while ((line = reader.readLine()) != null) {
 								sb.append(line);

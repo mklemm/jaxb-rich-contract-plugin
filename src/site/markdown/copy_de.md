@@ -45,7 +45,7 @@ This works for single and multi-valued properties, where for multi-valued proper
 #### Optionen
 
 ##### -partial=`{y|n}` (y)
-Generiert zusätzlich eine 'createCopy()'-Methode und einen Konstruktor (wenn "-constructor=yes"), mit dem sich Objekte partiell kopieren lassen. Dabei wird ein PropertyPath-Objekt mitgegeben, welches die zu kopierenden Knoten des Objektbaumes angibt.
+Generiert zusÃ¤tzlich eine 'createCopy()'-Methode und einen Konstruktor (wenn "-constructor=yes"), mit dem sich Objekte partiell kopieren lassen. Dabei wird ein PropertyPath-Objekt mitgegeben, welches die zu kopierenden Knoten des Objektbaumes angibt.
 
 
 ##### -generateTools=`{y|n}` (y)
@@ -53,18 +53,18 @@ Generiere Hilfsklassen als Quelltext (y). Wenn dies ausgeschaltet ist, muss sich
 
 
 ##### -constructor=`{y|n}` (y)
-Erzeugt einen Copy-Konstruktor für jede generierte Klasse des XSD-Modells.
+Erzeugt einen Copy-Konstruktor fÃ¼r jede generierte Klasse des XSD-Modells.
 
 
 ##### -narrow=`{y|n}` (n)
-Für untergeordnete Knoten im zu kopierenden Objektbaum werden ebenfalls die Copy-Konstruktoren der deklarierten Typen verwendet, soweit diese vorhanden sind und die Typen der entsprechenden Instanzen ebenfalls aus dem XSD-Model generierte Klassen sind. Dies erzeugt eine möglichst "schmale" Kopie des Ausgangsobjekts, was in bestimmten Fällen nützlich sein kann. Ein Unterknoten, dessen Typ nicht im aktuellen XSD-Modell deklariert ist, wird immer wie bei der 'createCopy()'-Methode kopiert. Ist diese Option "no", gilt dies auch für generierte Typen.
+FÃ¼r untergeordnete Knoten im zu kopierenden Objektbaum werden ebenfalls die Copy-Konstruktoren der deklarierten Typen verwendet, soweit diese vorhanden sind und die Typen der entsprechenden Instanzen ebenfalls aus dem XSD-Model generierte Klassen sind. Dies erzeugt eine mÃ¶glichst "schmale" Kopie des Ausgangsobjekts, was in bestimmten FÃ¤llen nÃ¼tzlich sein kann. Ein Unterknoten, dessen Typ nicht im aktuellen XSD-Modell deklariert ist, wird immer wie bei der 'createCopy()'-Methode kopiert. Ist diese Option "no", gilt dies auch fÃ¼r generierte Typen.
 
 
 ##### -selectorClassName=`<string>` (Selector)
-Name der generierten inneren "Selector" Builder-Klasse, die intern zum Aufbau des Property-Baums für das partielle Kopieren benutzt wird. Diese Einstellung gilt auch für das "Fluent Builder"-Plugin, wenn dieses zusätzlich aktiv ist und dort "copy-partial=y" eingestellt ist.
+Name der generierten inneren "Selector" Builder-Klasse, die intern zum Aufbau des Property-Baums fÃ¼r das partielle Kopieren benutzt wird. Diese Einstellung gilt auch fÃ¼r das "Fluent Builder"-Plugin, wenn dieses zusÃ¤tzlich aktiv ist und dort "copy-partial=y" eingestellt ist.
 
 
 ##### -rootSelectorClassName=`<string>` (Select)
-Name der generierten inneren "Select" -Klasse, die vom aufrufenden Code als Einstieg in den Aufbau eines Property-Baumes für das partielle Kopieren verwendet werden kann. Diese Einstellung gilt auch für das "Fluent Builder"-Plugin, wenn dieses zusätzlich aktiv ist und dort "-copy-partial=y" eingestellt ist.
+Name der generierten inneren "Select" -Klasse, die vom aufrufenden Code als Einstieg in den Aufbau eines Property-Baumes fÃ¼r das partielle Kopieren verwendet werden kann. Diese Einstellung gilt auch fÃ¼r das "Fluent Builder"-Plugin, wenn dieses zusÃ¤tzlich aktiv ist und dort "-copy-partial=y" eingestellt ist.
 
 
