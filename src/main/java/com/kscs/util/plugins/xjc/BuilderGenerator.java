@@ -62,8 +62,8 @@ import static com.kscs.util.plugins.xjc.base.PluginUtil.nullSafe;
  */
 class BuilderGenerator {
 	public static final String PRODUCT_VAR_NAME = "_product";
-	public static final String PARENT_BUILDER_TYPE_PARAMETER_NAME = "B";
-	public static final String PRODUCT_TYPE_PARAMETER_NAME = "P";
+	public static final String PARENT_BUILDER_TYPE_PARAMETER_NAME = "_B";
+	public static final String PRODUCT_TYPE_PARAMETER_NAME = "_P";
 	public static final String OTHER_PARAM_NAME = "_other";
 	public static final String OTHER_VAR_NAME = "_my";
 	public static final String PARENT_BUILDER_PARAM_NAME = "_parentBuilder";
