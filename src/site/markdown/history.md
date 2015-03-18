@@ -62,6 +62,8 @@
 	* clone: Resolved an issue with generating the "throws CloneNotSupportedException" declarations. Now they are only generated
 	if actually needed.
 	* Put "modifier" generation into separate plugin class.
+* **1.6.5**:
+	* fluent-builder: Changed logic of static "copyOf" method to allow widening type conversion of input parameter.
 
 
 
