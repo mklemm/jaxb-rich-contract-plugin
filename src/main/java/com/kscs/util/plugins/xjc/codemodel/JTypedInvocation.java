@@ -26,12 +26,12 @@ package com.kscs.util.plugins.xjc.codemodel;
 
 import java.util.ArrayList;
 import java.util.List;
+import com.sun.codemodel.JClass;
 import com.sun.codemodel.JExpression;
 import com.sun.codemodel.JExpressionImpl;
 import com.sun.codemodel.JFormatter;
 import com.sun.codemodel.JStatement;
 import com.sun.codemodel.JType;
-import com.sun.codemodel.JVar;
 
 /**
  * @author Mirko Klemm 2015-03-06
@@ -40,30 +40,47 @@ public class JTypedInvocation extends JExpressionImpl implements JStatement {
 	private final List<JType> typeArguments = new ArrayList<>();
 	private final JExpression lhs;
 	private final String method;
-	private final List<JVar> args = new ArrayList<>();
+	private final JType type;
+	private final boolean constructor;
+	private final List<JExpression> args = new ArrayList<>();
 
 	public JTypedInvocation(final JExpression lhs, final String method) {
+		this.type = null;
+		this.constructor = false;
 		this.lhs = lhs;
 		this.method = method;
 	}
 
+	public JTypedInvocation(final JClass type) {
+		this.type = type;
+		this.constructor = true;
+		this.lhs = null;
+		this.method = null;
+	}
+
 	@Override
 	public void generate(JFormatter f) {
-		f = f.g(this.lhs).p('.');
-		if(!this.typeArguments.isEmpty()) {
-			f = f.p("<");
-			boolean first = true;
-			for (final JType type : this.typeArguments) {
-				if(!first) {
-					f = f.p(", ");
-				} else {
-					first = false;
-				}
-				f = f.g(type);
-			}
-			f = f.p(">");
+		if (this.lhs != null) {
+			f = f.g(this.lhs).p('.');
 		}
-		f = f.p(this.method).p('(');
+		if (this.constructor) {
+			f = f.p("new").g(this.type).p('(');
+		} else {
+			if (!this.typeArguments.isEmpty()) {
+				f = f.p("<");
+				boolean first = true;
+				for (final JType type : this.typeArguments) {
+					if (!first) {
+						f = f.p(", ");
+					} else {
+						first = false;
+					}
+					f = f.g(type);
+				}
+				f = f.p(">");
+			}
+			f = f.p(this.method).p('(');
+		}
 		f.g(this.args);
 		f.p(')');
 	}
@@ -73,7 +90,7 @@ public class JTypedInvocation extends JExpressionImpl implements JStatement {
 		f.g(this).p(";").nl();
 	}
 
-	public JTypedInvocation arg(final JVar var) {
+	public JTypedInvocation arg(final JExpression var) {
 		this.args.add(var);
 		return this;
 	}

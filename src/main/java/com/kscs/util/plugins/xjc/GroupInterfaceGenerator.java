@@ -458,15 +458,6 @@ class GroupInterfaceGenerator {
 			return null;
 		}
 		final DefinedInterfaceOutline interfaceDecl = new DefinedInterfaceOutline(groupDecl, groupInterface, dummyImplementation, supportInterface);
-			/*
-			if (this.needsCopyMethod) {
-				groupInterface._implements(Copyable.class);
-			}
-
-			if (this.needsCloneMethod) {
-				groupInterface._implements(Cloneable.class);
-				//groupInterface.method(JMod.NONE, Object.class, "clone");
-			}*/
 
 		// Generate Javadoc with schema fragment
 		final StringWriter out = new StringWriter();

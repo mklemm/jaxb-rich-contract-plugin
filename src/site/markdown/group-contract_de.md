@@ -85,7 +85,7 @@ Auch die Setter-Methoden in den generierten Interfaces deklarieren. Wenn nein, w
 Wenn das "fluent builder plugin" (-Xfluent-builder) ebenfalls aktive ist, generiere auch Interfaces für die inneren Builder-Klassen.
 
 
-##### -supportInterfaceNameSuffix=`<string>` (Support)
+##### -supportInterfaceNameSuffix=`<string>` (Lifecycle)
 Methoden, die zu Typkonflikten führen können, wenn zwei oder mehr interfaces aus diesem Generat gleichzeitig(mit "&") als Grenzen generischer Typparameter verwendet werden, werden in ein eigenes Interface ausgelagert, dessen Name dann mit dem angegebenen Wortbestandteil endet.
 
 

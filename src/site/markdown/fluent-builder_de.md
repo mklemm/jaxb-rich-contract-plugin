@@ -57,6 +57,10 @@ Name der generierten statischen Methode zum Erzeugen eines neuen Builders. Kann 
 Name der generierten Instanzmethode zum Erzeugen eines neuen Builders, der mit dem von dieser Instanz kopierten Zustand initialisiert ist.
 
 
+##### -copyToMethodName=`<string>` (copyTo)
+Name der generierten Methode zum kopieren des internen Zustands dieses Builders auf einen anderen Builder.
+
+
 ##### -builderFieldSuffix=`<string>` (_Builder)
 Suffix, das an den Namen der generierten Sub-Builder Instanzvariablen angefügt wird.
 

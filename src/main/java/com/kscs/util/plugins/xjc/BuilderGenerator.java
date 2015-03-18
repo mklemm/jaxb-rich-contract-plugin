@@ -30,7 +30,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.ResourceBundle;
 import com.kscs.util.jaxb.PropertyTree;
-import com.kscs.util.jaxb.PropertyTreeUse;
 import com.kscs.util.plugins.xjc.codemodel.ClassName;
 import com.kscs.util.plugins.xjc.codemodel.GenerifiedClass;
 import com.kscs.util.plugins.xjc.codemodel.JTypedInvocation;
@@ -51,7 +50,6 @@ import com.sun.codemodel.JFieldVar;
 import com.sun.codemodel.JForEach;
 import com.sun.codemodel.JMethod;
 import com.sun.codemodel.JMod;
-import com.sun.codemodel.JPrimitiveType;
 import com.sun.codemodel.JType;
 import com.sun.codemodel.JTypeVar;
 import com.sun.codemodel.JVar;
@@ -64,14 +62,14 @@ import static com.kscs.util.plugins.xjc.base.PluginUtil.nullSafe;
  */
 class BuilderGenerator {
 	public static final String PRODUCT_VAR_NAME = "_product";
-	private static final String ITEM_VAR_NAME = "_item";
-	public static final String PARENT_BUILDER_TYPE_PARAMETER_NAME = "PB";
+	public static final String PARENT_BUILDER_TYPE_PARAMETER_NAME = "B";
 	public static final String PRODUCT_TYPE_PARAMETER_NAME = "P";
 	public static final String OTHER_PARAM_NAME = "_other";
-	public static final String PROPERTY_TREE_PARAM_NAME = "_propertyTree";
-	public static final String PROPERTY_TREE_USE_PARAM_NAME = "_propertyTreeUse";
+	public static final String OTHER_VAR_NAME = "_my";
 	public static final String PARENT_BUILDER_PARAM_NAME = "_parentBuilder";
+	public static final String NEW_BUILDER_VAR_NAME = "_newBuilder";
 	public static final String COPY_FLAG_PARAM_NAME = "_copy";
+	private static final String ITEM_VAR_NAME = "_item";
 	private final PluginContext pluginContext;
 	private final JDefinedClass definedClass;
 	private final GenerifiedClass builderClass;
@@ -93,13 +91,11 @@ class BuilderGenerator {
 		this.builderClass = new GenerifiedClass(builderOutline.getDefinedBuilderClass(), BuilderGenerator.PARENT_BUILDER_TYPE_PARAMETER_NAME);
 		this.resources = ResourceBundle.getBundle(BuilderGenerator.class.getName());
 		this.implement = !this.builderClass.raw.isInterface();
-
 		if (builderOutline.getClassOutline().getSuperClass() == null) {
 			final JMethod endMethod = this.builderClass.raw.method(JMod.PUBLIC, this.builderClass.typeParam, "end");
 			if (this.implement) {
 				this.parentBuilderField = this.builderClass.raw.field(JMod.PROTECTED | JMod.FINAL, this.builderClass.typeParam, BuilderGenerator.PARENT_BUILDER_PARAM_NAME);
 				this.productField = this.builderClass.raw.field(JMod.PROTECTED | JMod.FINAL, this.definedClass, BuilderGenerator.OTHER_PARAM_NAME);
-
 				endMethod.body()._return(JExpr._this().ref(this.parentBuilderField));
 			} else {
 				this.parentBuilderField = null;
@@ -111,12 +107,11 @@ class BuilderGenerator {
 		}
 
 		if (this.implement) {
-			generateCopyConstructor();
+			generateCopyConstructor(false);
 			if (this.settings.isGeneratingPartialCopy()) {
-				generatePartialCopyConstructor();
+				generateCopyConstructor(true);
 			}
 		}
-
 	}
 
 	void generateBuilderMember(final PropertyOutline fieldOutline, final JBlock initBody, final JVar productParam) {
@@ -295,7 +290,6 @@ class BuilderGenerator {
 		}
 	}
 
-
 	void generateBuilderMemberOverride(final PropertyOutline superFieldOutline, final PropertyOutline fieldOutline, final String superPropertyName) {
 		final JType fieldType = fieldOutline.getRawType();
 		final String fieldName = fieldOutline.getFieldName();
@@ -435,10 +429,10 @@ class BuilderGenerator {
 		final JMethod buildMethod = this.builderClass.raw.method(JMod.PUBLIC, this.definedClass, PluginContext.BUILD_METHOD_NAME);
 		if (this.implement) {
 			if (this.definedClass.isAbstract()) {
-				buildMethod.body()._return(JExpr.cast(this.definedClass,JExpr._this().ref(BuilderGenerator.OTHER_PARAM_NAME)));
+				buildMethod.body()._return(JExpr.cast(this.definedClass, JExpr._this().ref(BuilderGenerator.OTHER_PARAM_NAME)));
 			} else {
 				final JConditional ifStatement = buildMethod.body()._if(JExpr._this().ref(BuilderGenerator.OTHER_PARAM_NAME).eq(JExpr._null()));
-				ifStatement._then()._return((JExpr._this().invoke(initMethod).arg(JExpr._new(this.definedClass))));
+				ifStatement._then()._return(JExpr._this().invoke(initMethod).arg(JExpr._new(this.definedClass)));
 				ifStatement._else()._return(JExpr.cast(this.definedClass, JExpr._this().ref(BuilderGenerator.OTHER_PARAM_NAME)));
 			}
 		}
@@ -448,150 +442,83 @@ class BuilderGenerator {
 	JMethod generateNewBuilderMethod() {
 		final JMethod builderMethod = this.definedClass.method(JMod.PUBLIC | JMod.STATIC, this.builderClass.raw.narrow(Void.class), this.settings.getNewBuilderMethodName());
 		builderMethod.body()._return(JExpr._new(this.builderClass.raw.narrow(Void.class)).arg(JExpr._null()).arg(JExpr._null()).arg(JExpr.FALSE));
-
-		final JMethod copyOfMethod = this.definedClass.method(JMod.PUBLIC | JMod.STATIC, this.builderClass.raw.narrow(Void.class), this.pluginContext.buildCopyMethodName);
-		final JTypeVar copyOfMethodTypeParam = copyOfMethod.generify(BuilderGenerator.PRODUCT_TYPE_PARAMETER_NAME);
-		copyOfMethod.type(this.builderClass.raw.narrow(copyOfMethodTypeParam));
-		final JVar otherParam = copyOfMethod.param(JMod.FINAL, this.definedClass, BuilderGenerator.OTHER_PARAM_NAME);
-		copyOfMethod.body()._return(JExpr._new((this.builderClass.raw.narrow(copyOfMethodTypeParam))).arg(JExpr._null()).arg(otherParam).arg(JExpr.TRUE));
-
-		if (this.settings.isGeneratingPartialCopy()) {
-			final JMethod partialCopyOfMethod = this.definedClass.method(JMod.PUBLIC | JMod.STATIC, this.builderClass.raw.narrow(Void.class), this.pluginContext.buildCopyMethodName);
-			final JTypeVar partialCopyOfMethodTypeParam = partialCopyOfMethod.generify(BuilderGenerator.PRODUCT_TYPE_PARAMETER_NAME);
-			partialCopyOfMethod.type(this.builderClass.raw.narrow(partialCopyOfMethodTypeParam));
-			final JVar partialOtherParam = partialCopyOfMethod.param(JMod.FINAL, this.definedClass, BuilderGenerator.OTHER_PARAM_NAME);
-			final JVar propertyPathParam = partialCopyOfMethod.param(JMod.FINAL, PropertyTree.class, BuilderGenerator.PROPERTY_TREE_PARAM_NAME);
-			final JVar graphUseParam = partialCopyOfMethod.param(JMod.FINAL, PropertyTreeUse.class, BuilderGenerator.PROPERTY_TREE_USE_PARAM_NAME);
-			partialCopyOfMethod.body()._return(JExpr._new((this.builderClass.raw.narrow(partialCopyOfMethodTypeParam))).arg(JExpr._null()).arg(partialOtherParam).arg(JExpr.TRUE).arg(propertyPathParam).arg(graphUseParam));
-
-			generateConveniencePartialCopyMethod(partialCopyOfMethod, this.pluginContext.copyExceptMethodName, this.pluginContext.excludeConst);
-			generateConveniencePartialCopyMethod(partialCopyOfMethod, this.pluginContext.copyOnlyMethodName, this.pluginContext.includeConst);
-		}
 		return builderMethod;
 	}
 
-	JMethod generateNewCopyBuilderMethod() {
-			final JDefinedClass typeDefinition = this.typeOutline.isInterface() && ((DefinedInterfaceOutline)this.typeOutline).getSupportInterface() != null ? ((DefinedInterfaceOutline)this.typeOutline).getSupportInterface() : this.definedClass;
-			final int mods = this.implement ? (this.definedClass.isAbstract() ? JMod.PUBLIC | JMod.ABSTRACT : JMod.PUBLIC) : JMod.NONE;
-			final JMethod copyBuilderMethod = typeDefinition.method(mods, this.builderClass.raw, this.settings.getNewCopyBuilderMethodName());
-			final JTypeVar copyBuilderMethodTypeParam = copyBuilderMethod.generify(BuilderGenerator.PRODUCT_TYPE_PARAMETER_NAME);
-			copyBuilderMethod.type(this.builderClass.raw.narrow(copyBuilderMethodTypeParam));
-			if (this.implement && !this.definedClass.isAbstract()) {
-				copyBuilderMethod.body()._return(JExpr.invoke(this.pluginContext.buildCopyMethodName).arg(JExpr._this()));
-			}
+	JMethod generateCopyOfMethod(final boolean partial) {
+		final JMethod copyOfMethod = this.definedClass.method(JMod.PUBLIC | JMod.STATIC, this.builderClass.raw.narrow(Void.class), this.pluginContext.buildCopyMethodName);
+		final JTypeVar copyOfMethodTypeParam = copyOfMethod.generify(BuilderGenerator.PARENT_BUILDER_TYPE_PARAMETER_NAME);
+		copyOfMethod.type(this.builderClass.raw.narrow(copyOfMethodTypeParam));
+		final JVar otherParam = copyOfMethod.param(JMod.FINAL, getInheritanceRoot(this.typeOutline).getImplClass(), BuilderGenerator.OTHER_PARAM_NAME);
+		final CopyGenerator copyGenerator = this.pluginContext.createCopyGenerator(copyOfMethod, partial);
+		final JVar newBuilderVar = copyOfMethod.body().decl(JMod.FINAL, copyOfMethod.type(), BuilderGenerator.NEW_BUILDER_VAR_NAME, JExpr._new(copyOfMethod.type()).arg(JExpr._null()).arg(JExpr._null()).arg(JExpr.FALSE));
+		copyOfMethod.body().add(copyGenerator.generatePartialArgs(this.pluginContext.invoke(otherParam, this.settings.getCopyToMethodName()).arg(newBuilderVar)));
+		copyOfMethod.body()._return(newBuilderVar);
+		return copyOfMethod;
+	}
 
-			if (this.settings.isGeneratingPartialCopy()) {
-				final JMethod partialCopyBuilderMethod = typeDefinition.method(mods, this.builderClass.raw, this.settings.getNewCopyBuilderMethodName());
-				final JTypeVar partialCopyBuilderMethodTypeParam = partialCopyBuilderMethod.generify(BuilderGenerator.PRODUCT_TYPE_PARAMETER_NAME);
-				partialCopyBuilderMethod.type(this.builderClass.raw.narrow(partialCopyBuilderMethodTypeParam));
-				final JVar propertyPathParam = partialCopyBuilderMethod.param(JMod.FINAL, PropertyTree.class, BuilderGenerator.PROPERTY_TREE_PARAM_NAME);
-				final JVar graphUseParam = partialCopyBuilderMethod.param(JMod.FINAL, PropertyTreeUse.class, BuilderGenerator.PROPERTY_TREE_USE_PARAM_NAME);
-				if (this.implement && !this.definedClass.isAbstract()) {
-					partialCopyBuilderMethod.body()._return(JExpr.invoke(this.pluginContext.buildCopyMethodName).arg(JExpr._this()).arg(propertyPathParam).arg(graphUseParam));
-				}
-			}
-			return copyBuilderMethod;
+	private TypeOutline getInheritanceRoot(final TypeOutline typeOutline) {
+		return typeOutline.getSuperClass() != null ? getInheritanceRoot(typeOutline.getSuperClass()) : typeOutline;
+	}
+
+	JMethod generateNewCopyBuilderMethod(final boolean partial) {
+		final JDefinedClass typeDefinition = this.typeOutline.isInterface() && ((DefinedInterfaceOutline) this.typeOutline).getSupportInterface() != null ? ((DefinedInterfaceOutline) this.typeOutline).getSupportInterface() : this.definedClass;
+		final int mods = this.implement ? this.definedClass.isAbstract() ? JMod.PUBLIC | JMod.ABSTRACT : JMod.PUBLIC : JMod.NONE;
+		final JMethod copyBuilderMethod = typeDefinition.method(mods, this.builderClass.raw, this.settings.getNewCopyBuilderMethodName());
+		final JTypeVar copyBuilderMethodTypeParam = copyBuilderMethod.generify(BuilderGenerator.PARENT_BUILDER_TYPE_PARAMETER_NAME);
+		final CopyGenerator copyGenerator = this.pluginContext.createCopyGenerator(copyBuilderMethod, partial);
+		copyBuilderMethod.type(this.builderClass.raw.narrow(copyBuilderMethodTypeParam));
+		if (this.implement && !this.definedClass.isAbstract()) {
+			copyBuilderMethod.body()._return(copyGenerator.generatePartialArgs(this.pluginContext.invoke(this.pluginContext.buildCopyMethodName).arg(JExpr._this())));
+		}
+		return copyBuilderMethod;
 	}
 
 	private JMethod generateConveniencePartialCopyMethod(final JMethod partialCopyOfMethod, final String methodName, final JExpression propertyTreeUseArg) {
 		final JMethod conveniencePartialCopyMethod = this.definedClass.method(JMod.PUBLIC | JMod.STATIC, this.builderClass.raw.narrow(Void.class), methodName);
 		final JVar partialOtherParam = conveniencePartialCopyMethod.param(JMod.FINAL, this.definedClass, BuilderGenerator.OTHER_PARAM_NAME);
-		final JVar propertyPathParam = conveniencePartialCopyMethod.param(JMod.FINAL, PropertyTree.class, BuilderGenerator.PROPERTY_TREE_PARAM_NAME);
+		final JVar propertyPathParam = conveniencePartialCopyMethod.param(JMod.FINAL, PropertyTree.class, PartialCopyGenerator.PROPERTY_TREE_PARAM_NAME);
 		conveniencePartialCopyMethod.body()._return(JExpr.invoke(partialCopyOfMethod).arg(partialOtherParam).arg(propertyPathParam).arg(propertyTreeUseArg));
 		return conveniencePartialCopyMethod;
 	}
 
-	final void generateCopyConstructor() {
-		final JMethod constructor = this.builderClass.raw.constructor(this.builderClass.raw.isAbstract() ? JMod.PROTECTED : JMod.PUBLIC);
-		final JVar parentBuilderParam = constructor.param(JMod.FINAL, this.builderClass.typeParam, BuilderGenerator.PARENT_BUILDER_PARAM_NAME);
-		final JVar otherParam = constructor.param(JMod.FINAL, this.typeOutline.getImplClass(), BuilderGenerator.OTHER_PARAM_NAME);
-		final JVar copyParam = constructor.param(JMod.FINAL, this.pluginContext.codeModel.BOOLEAN, BuilderGenerator.COPY_FLAG_PARAM_NAME);
+	final void generateCopyToMethod(final boolean partial) {
+		if (this.implement) {
+			final JDefinedClass typeDefinition = this.typeOutline.isInterface() && ((DefinedInterfaceOutline) this.typeOutline).getSupportInterface() != null ? ((DefinedInterfaceOutline) this.typeOutline).getSupportInterface() : this.definedClass;
+			final JMethod copyToMethod = typeDefinition.method(JMod.PUBLIC, this.pluginContext.voidType, this.settings.getCopyToMethodName());
+			final JTypeVar typeVar = copyToMethod.generify(BuilderGenerator.PARENT_BUILDER_TYPE_PARAMETER_NAME);
+			final JVar otherParam = copyToMethod.param(JMod.FINAL, getBuilderDeclaration(getInheritanceRoot(this.typeOutline).getImplClass()).getBuilderClass().narrow(typeVar), BuilderGenerator.OTHER_PARAM_NAME);
+			final CopyGenerator cloneGenerator = this.pluginContext.createCopyGenerator(copyToMethod, partial);
 
-		if (this.typeOutline.getSuperClass() != null) {
-			constructor.body().invoke("super").arg(parentBuilderParam).arg(otherParam).arg(copyParam);
-		} else {
-			constructor.body().assign(JExpr._this().ref(this.parentBuilderField), parentBuilderParam);
-		}
+			final JBlock body = copyToMethod.body();
+			final JVar otherRef;
+			if (this.typeOutline.getSuperClass() != null) {
+				body.add(cloneGenerator.generatePartialArgs(this.pluginContext.invoke(JExpr._super(), copyToMethod.name()).arg(otherParam)));
+				otherRef = body.decl(JMod.FINAL, this.builderClass.raw.narrow(typeVar), BuilderGenerator.OTHER_VAR_NAME, JExpr.cast( this.builderClass.raw.narrow(typeVar), otherParam));
+			} else {
+				otherRef = otherParam;
+			}
 
-		final JConditional ifStmt = constructor.body()._if(copyParam);
-		final JBlock outer = ifStmt._then();
-
-		if (this.typeOutline.getSuperClass() == null) {
-			outer.assign(JExpr._this().ref(this.productField), JExpr._null());
-			ifStmt._else().assign(JExpr._this().ref(this.productField), otherParam);
-		}
-
-		final JBlock body = outer.block();
-
-		final JExpression newObjectVar = JExpr._this();
-		for (final PropertyOutline fieldOutline : this.typeOutline.getDeclaredFields()) {
-			final JFieldVar field = fieldOutline.getFieldVar();
-			if (field != null) {
-				if (field.type().isReference()) {
-					final JClass fieldType = (JClass) field.type();
-					final JFieldRef newField = JExpr.ref(newObjectVar, field);
-					final JFieldRef fieldRef = otherParam.ref(field);
-					if (this.pluginContext.collectionClass.isAssignableFrom(fieldType)) {
-						final JClass elementType = fieldType.getTypeParameters().get(0);
-						final BuilderOutline childBuilderOutline = getBuilderDeclaration(elementType);
-						if (this.settings.isGeneratingNarrowCopy() && this.pluginContext.canInstantiate(elementType)) {
-							final JClass childBuilderType = childBuilderOutline.getBuilderClass().narrow(this.builderClass.type);
-							final JForEach forLoop = loop(body, fieldRef, elementType, newField, childBuilderType);
-							forLoop.body().invoke(newField, "add").arg(nullSafe(forLoop.var(), JExpr._new(childBuilderType).arg(JExpr._this()).arg(forLoop.var()).arg(JExpr.TRUE)));
-						} else if (childBuilderOutline != null) {
-							final JClass childBuilderType = childBuilderOutline.getBuilderClass().narrow(this.builderClass.type);
-							final JForEach forLoop = loop(body, fieldRef, elementType, newField, childBuilderType);
-							forLoop.body().invoke(newField, "add").arg(nullSafe(fieldRef, generateRuntimeTypeExpression(forLoop.var(), null, null)));
-						} else if (this.pluginContext.cloneableInterface.isAssignableFrom(elementType)) {
-							final JBlock maybeTryBlock = this.pluginContext.catchCloneNotSupported(body, elementType);
-							final JForEach forLoop = loop(maybeTryBlock, fieldRef, elementType, newField, elementType);
-							forLoop.body().invoke(newField, "add").arg(nullSafe(forLoop.var(), this.pluginContext.castOnDemand(elementType, forLoop.var().invoke(this.pluginContext.cloneMethodName))));
-						} else {
-							body.assign(newField, nullSafe(fieldRef, JExpr._new(this.pluginContext.arrayListClass.narrow(elementType)).arg(fieldRef)));
-						}
-
-					} else {
-						final BuilderOutline childBuilderOutline = getBuilderDeclaration(fieldType);
-						if (this.settings.isGeneratingNarrowCopy() && this.pluginContext.canInstantiate(fieldType)) {
-							final JClass childBuilderType = childBuilderOutline.getBuilderClass().narrow(this.builderClass.type);
-							body.assign(newField, nullSafe(fieldRef, JExpr._new(childBuilderType).arg(JExpr._this()).arg(fieldRef).arg(JExpr.TRUE)));
-						} else if (childBuilderOutline != null) {
-							final JClass childBuilderType = childBuilderOutline.getBuilderClass().narrow(this.builderClass.type);
-							body.assign(newField, nullSafe(fieldRef, generateRuntimeTypeExpression(fieldRef, null, null)));
-						} else if (this.pluginContext.cloneableInterface.isAssignableFrom(fieldType)) {
-							final JBlock maybeTryBlock = this.pluginContext.catchCloneNotSupported(body, fieldType);
-							maybeTryBlock.assign(newField, nullSafe(fieldRef, this.pluginContext.castOnDemand(fieldType, fieldRef.invoke(this.pluginContext.cloneMethodName))));
-						} else {
-							body.assign(newField, fieldRef);
-						}
-					}
-				} else {
-					final JPrimitiveType fieldType = (JPrimitiveType) field.type();
-					final JFieldRef newField = JExpr.ref(newObjectVar, field);
-					final JFieldRef fieldRef = otherParam.ref(field);
-					body.assign(newField, fieldRef);
+			for (final PropertyOutline fieldOutline : this.typeOutline.getDeclaredFields()) {
+				final JFieldVar field = fieldOutline.getFieldVar();
+				if (field != null && (field.mods().getValue() & (JMod.FINAL | JMod.STATIC)) == 0) {
+					final JFieldRef targetField = JExpr.ref(otherRef, field);
+					final JFieldRef sourceField = JExpr._this().ref(field);
+					generateFieldCopyExpression(cloneGenerator, body, fieldOutline, targetField, sourceField);
 				}
 			}
 		}
 	}
 
-	private JExpression generateRuntimeTypeExpression(final JExpression instanceVar, final JVar clonePathVar, final JVar treeUseVar) {
-		final JTypedInvocation getConstructorInvocation = this.pluginContext.invoke(instanceVar, this.settings.getNewCopyBuilderMethodName()).narrow(this.builderClass.type);
-		if (clonePathVar != null) {
-			getConstructorInvocation.arg(clonePathVar).arg(treeUseVar);
-		}
-		return getConstructorInvocation;
-	}
-
-	final void generatePartialCopyConstructor() {
+	final void generateCopyConstructor(final boolean partial) {
 		final JMethod constructor = this.builderClass.raw.constructor(this.builderClass.raw.isAbstract() ? JMod.PROTECTED : JMod.PUBLIC);
 		final JVar parentBuilderParam = constructor.param(JMod.FINAL, this.builderClass.typeParam, BuilderGenerator.PARENT_BUILDER_PARAM_NAME);
 		final JVar otherParam = constructor.param(JMod.FINAL, this.typeOutline.getImplClass(), BuilderGenerator.OTHER_PARAM_NAME);
 		final JVar copyParam = constructor.param(JMod.FINAL, this.pluginContext.codeModel.BOOLEAN, BuilderGenerator.COPY_FLAG_PARAM_NAME);
-		final PartialCopyGenerator cloneGenerator = new PartialCopyGenerator(this.pluginContext, constructor, BuilderGenerator.PROPERTY_TREE_PARAM_NAME, BuilderGenerator.PROPERTY_TREE_USE_PARAM_NAME);
+		final CopyGenerator cloneGenerator = this.pluginContext.createCopyGenerator(constructor, partial);
 
 		if (this.typeOutline.getSuperClass() != null) {
-			constructor.body().invoke("super").arg(parentBuilderParam).arg(otherParam).arg(copyParam).arg(cloneGenerator.getPropertyTreeParam()).arg(cloneGenerator.getPropertyTreeUseParam());
+			constructor.body().add(cloneGenerator.generatePartialArgs(this.pluginContext._super().arg(parentBuilderParam).arg(otherParam).arg(copyParam)));
 		} else {
 			constructor.body().assign(JExpr._this().ref(this.parentBuilderField), parentBuilderParam);
 		}
@@ -604,7 +531,6 @@ class BuilderGenerator {
 			ifStmt._else().assign(JExpr._this().ref(this.productField), otherParam);
 		}
 
-		JBlock currentBlock;
 		final JExpression newObjectVar = JExpr._this();
 		for (final PropertyOutline fieldOutline : this.typeOutline.getDeclaredFields()) {
 			final JFieldVar field = fieldOutline.getFieldVar();
@@ -612,57 +538,65 @@ class BuilderGenerator {
 				if ((field.mods().getValue() & (JMod.FINAL | JMod.STATIC)) == 0) {
 					final JFieldRef newField = JExpr.ref(newObjectVar, field);
 					final JFieldRef fieldRef = otherParam.ref(field);
-					final JVar fieldPathVar = cloneGenerator.generatePropertyTreeVarDeclaration(body, field);
-					final JConditional ifHasClonePath = body._if(cloneGenerator.getIncludeCondition(fieldPathVar));
-					currentBlock = ifHasClonePath._then();
-					if (field.type().isReference()) {
-						final JClass fieldType = (JClass) field.type();
-						if (this.pluginContext.collectionClass.isAssignableFrom(fieldType)) {
-							final JClass elementType = fieldType.getTypeParameters().get(0);
-							final BuilderOutline childBuilderOutline = getBuilderDeclaration(elementType);
-							if (this.settings.isGeneratingNarrowCopy() && this.pluginContext.canInstantiate(elementType)) {
-								final JClass childBuilderType = childBuilderOutline.getBuilderClass().narrow(this.builderClass.type);
-								final JForEach forLoop = loop(currentBlock, fieldRef, elementType, newField, childBuilderType);
-								forLoop.body().invoke(newField, "add").arg(nullSafe(forLoop.var(), JExpr._new(childBuilderType).arg(JExpr._this()).arg(forLoop.var()).arg(JExpr.TRUE).arg(fieldPathVar).arg(cloneGenerator.getPropertyTreeUseParam())));
-							} else if (childBuilderOutline != null) {
-								final JClass childBuilderType = childBuilderOutline.getBuilderClass().narrow(this.builderClass.type);
-								final JForEach forLoop = loop(currentBlock, fieldRef, elementType, newField, childBuilderType);
-								forLoop.body().invoke(newField, "add").arg(nullSafe(forLoop.var(), generateRuntimeTypeExpression(forLoop.var(), fieldPathVar, cloneGenerator.getPropertyTreeUseParam())));
-							} else if (this.pluginContext.partialCopyableInterface.isAssignableFrom(elementType)) {
-								final JForEach forLoop = loop(currentBlock, fieldRef, elementType, newField, elementType);
-								forLoop.body().invoke(newField, "add").arg(nullSafe(forLoop.var(), this.pluginContext.castOnDemand(elementType, forLoop.var().invoke(this.pluginContext.copyMethodName).arg(fieldPathVar).arg(cloneGenerator.getPropertyTreeUseParam()))));
-							} else if (this.pluginContext.cloneableInterface.isAssignableFrom(elementType)) {
-								final JBlock maybeTryBlock = this.pluginContext.catchCloneNotSupported(currentBlock, elementType);
-								final JForEach forLoop = loop(maybeTryBlock, fieldRef, elementType, newField, elementType);
-								forLoop.body().invoke(newField, "add").arg(nullSafe(forLoop.var(), this.pluginContext.castOnDemand(elementType, forLoop.var().invoke(this.pluginContext.cloneMethodName))));
-							} else {
-								currentBlock.assign(newField, nullSafe(fieldRef, JExpr._new(this.pluginContext.arrayListClass.narrow(elementType)).arg(fieldRef)));
-							}
-
-						} else {
-							final BuilderOutline childBuilderOutline = getBuilderDeclaration(fieldType);
-							if (this.settings.isGeneratingNarrowCopy() && this.pluginContext.canInstantiate(fieldType)) {
-								final JClass childBuilderType = childBuilderOutline.getBuilderClass().narrow(this.builderClass.type);
-								currentBlock.assign(newField, nullSafe(fieldRef, JExpr._new(childBuilderType).arg(JExpr._this()).arg(fieldRef).arg(JExpr.TRUE).arg(fieldPathVar).arg(cloneGenerator.getPropertyTreeUseParam())));
-							} else if (childBuilderOutline != null) {
-								final JClass childBuilderType = childBuilderOutline.getBuilderClass().narrow(this.builderClass.type);
-								currentBlock.assign(newField, nullSafe(fieldRef, generateRuntimeTypeExpression(fieldRef, fieldPathVar, cloneGenerator.getPropertyTreeUseParam())));
-							} else if (this.pluginContext.partialCopyableInterface.isAssignableFrom(fieldType)) {
-								currentBlock.assign(newField, nullSafe(fieldRef, this.pluginContext.castOnDemand(fieldType, fieldRef.invoke(this.pluginContext.copyMethodName).arg(fieldPathVar).arg(cloneGenerator.getPropertyTreeUseParam()))));
-							} else if (this.pluginContext.cloneableInterface.isAssignableFrom(fieldType)) {
-								final JBlock maybeTryBlock = this.pluginContext.catchCloneNotSupported(currentBlock, fieldType);
-								maybeTryBlock.assign(newField, nullSafe(fieldRef, this.pluginContext.castOnDemand(fieldType, fieldRef.invoke(this.pluginContext.cloneMethodName))));
-							} else {
-								currentBlock.assign(newField, fieldRef);
-							}
-						}
-					} else {
-						currentBlock.assign(newField, fieldRef);
-					}
+					generateFieldCopyExpression(cloneGenerator, body, fieldOutline, newField, fieldRef);
 				}
 			}
 		}
 
+	}
+
+	private void generateFieldCopyExpression(final CopyGenerator cloneGenerator, final JBlock body, final PropertyOutline property, final JFieldRef targetField, final JFieldRef sourceField) {
+		final PropertyTreeVarGenerator treeVarGenerator = cloneGenerator.createPropertyTreeVarGenerator(body, property.getFieldName());
+		final JType fieldType = property.getRawType();
+		final JBlock currentBlock = treeVarGenerator.generateEnclosingBlock(body);
+		if (fieldType.isReference()) {
+			final JClass fieldClass = (JClass) fieldType;
+			if (this.pluginContext.collectionClass.isAssignableFrom(fieldClass)) {
+				final JClass elementType = fieldClass.getTypeParameters().get(0);
+				final BuilderOutline childBuilderOutline = getBuilderDeclaration(elementType);
+				if (this.settings.isGeneratingNarrowCopy() && this.pluginContext.canInstantiate(elementType)) {
+					final JClass childBuilderType = childBuilderOutline.getBuilderClass().narrow(this.builderClass.type);
+					final JForEach forLoop = loop(currentBlock, sourceField, elementType, targetField, childBuilderType);
+					forLoop.body().invoke(targetField, "add").arg(nullSafe(forLoop.var(), treeVarGenerator.generatePartialArgs(JExpr._new(childBuilderType).arg(JExpr._this()).arg(forLoop.var()).arg(JExpr.TRUE))));
+				} else if (childBuilderOutline != null) {
+					final JClass childBuilderType = childBuilderOutline.getBuilderClass().narrow(this.builderClass.type);
+					final JForEach forLoop = loop(currentBlock, sourceField, elementType, targetField, childBuilderType);
+					forLoop.body().invoke(targetField, "add").arg(nullSafe(forLoop.var(), generateRuntimeTypeExpression(forLoop.var(), treeVarGenerator)));
+				} else if (this.pluginContext.partialCopyableInterface.isAssignableFrom(elementType)) {
+					final JForEach forLoop = loop(currentBlock, sourceField, elementType, targetField, elementType);
+					forLoop.body().invoke(targetField, "add").arg(nullSafe(forLoop.var(), this.pluginContext.castOnDemand(elementType, treeVarGenerator.generatePartialArgs(forLoop.var().invoke(this.pluginContext.copyMethodName)))));
+				} else if (this.pluginContext.cloneableInterface.isAssignableFrom(elementType)) {
+					final JBlock maybeTryBlock = this.pluginContext.catchCloneNotSupported(currentBlock, elementType);
+					final JForEach forLoop = loop(maybeTryBlock, sourceField, elementType, targetField, elementType);
+					forLoop.body().invoke(targetField, "add").arg(nullSafe(forLoop.var(), this.pluginContext.castOnDemand(elementType, forLoop.var().invoke(this.pluginContext.cloneMethodName))));
+				} else {
+					currentBlock.assign(targetField, nullSafe(sourceField, JExpr._new(this.pluginContext.arrayListClass.narrow(elementType)).arg(sourceField)));
+				}
+			} else {
+				final BuilderOutline childBuilderOutline = getBuilderDeclaration(fieldType);
+				if (this.settings.isGeneratingNarrowCopy() && this.pluginContext.canInstantiate(fieldType)) {
+					final JClass childBuilderType = childBuilderOutline.getBuilderClass().narrow(this.builderClass.type);
+					currentBlock.assign(targetField, nullSafe(sourceField, treeVarGenerator.generatePartialArgs(JExpr._new(childBuilderType).arg(JExpr._this()).arg(sourceField).arg(JExpr.TRUE))));
+				} else if (childBuilderOutline != null) {
+					final JClass childBuilderType = childBuilderOutline.getBuilderClass().narrow(this.builderClass.type);
+					currentBlock.assign(targetField, nullSafe(sourceField, generateRuntimeTypeExpression(sourceField, treeVarGenerator)));
+				} else if (this.pluginContext.partialCopyableInterface.isAssignableFrom(fieldClass)) {
+					currentBlock.assign(targetField, nullSafe(sourceField, this.pluginContext.castOnDemand(fieldType, treeVarGenerator.generatePartialArgs(sourceField.invoke(this.pluginContext.copyMethodName)))));
+				} else if (this.pluginContext.cloneableInterface.isAssignableFrom(fieldClass)) {
+					final JBlock maybeTryBlock = this.pluginContext.catchCloneNotSupported(currentBlock, fieldClass);
+					maybeTryBlock.assign(targetField, nullSafe(sourceField, this.pluginContext.castOnDemand(fieldType, sourceField.invoke(this.pluginContext.cloneMethodName))));
+				} else {
+					currentBlock.assign(targetField, sourceField);
+				}
+			}
+		} else {
+			currentBlock.assign(targetField, sourceField);
+		}
+	}
+
+	private JExpression generateRuntimeTypeExpression(final JExpression instanceVar, final PropertyTreeVarGenerator treeVarGenerator) {
+		final JTypedInvocation getConstructorInvocation = this.pluginContext.invoke(instanceVar, this.settings.getNewCopyBuilderMethodName()).narrow(this.builderClass.type);
+		return treeVarGenerator.generatePartialArgs(getConstructorInvocation);
 	}
 
 	public void buildProperties() throws SAXException {
@@ -701,13 +635,22 @@ class BuilderGenerator {
 
 		generateImplementsClause();
 		generateBuildMethod(initMethod);
-		if (this.settings.getNewBuilderMethodName() != null) {
-			generateNewCopyBuilderMethod();
-		}
+		generateCopyToMethod(false);
+		generateNewCopyBuilderMethod(false);
 		if (this.implement && !this.definedClass.isAbstract()) {
 			generateNewBuilderMethod();
+			generateCopyOfMethod(false);
 		}
 
+		if (this.settings.isGeneratingPartialCopy()) {
+			generateCopyToMethod(true);
+			generateNewCopyBuilderMethod(true);
+			if (this.implement && !this.definedClass.isAbstract()) {
+				final JMethod partialCopyOfMethod = generateCopyOfMethod(true);
+				generateConveniencePartialCopyMethod(partialCopyOfMethod, this.pluginContext.copyExceptMethodName, this.pluginContext.excludeConst);
+				generateConveniencePartialCopyMethod(partialCopyOfMethod, this.pluginContext.copyOnlyMethodName, this.pluginContext.includeConst);
+			}
+		}
 	}
 
 

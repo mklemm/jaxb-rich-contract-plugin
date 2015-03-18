@@ -283,6 +283,10 @@ Name of the generated static method to instantiate a new fluent builder. Can be 
 Name of the generated instance method to instantiate a new fluent builder intitialized with a copy of the current instance.
 
 
+##### -copyToMethodName=`<string>` (copyTo)
+Name of the generated "copyTo" method.
+
+
 ##### -builderFieldSuffix=`<string>` (_Builder)
 Suffix to append to the field holding the builder, change to  prevent name clashes.
 
@@ -460,7 +464,7 @@ Also generate property setter methods in interface declarations.
 If the "fluent builder plugin" (-Xfluent-builder) is also active, generate interface for the internal builder classes as well.
 
 
-##### -supportInterfaceNameSuffix=`<string>` (Support)
+##### -supportInterfaceNameSuffix=`<string>` (Lifecycle)
 If this is set, methods that could cause type conflicts when two generated interfaces are used together as type parameter bounds, will be put in another interface named the same as the original interface, but with the suffix specified here.
 
 

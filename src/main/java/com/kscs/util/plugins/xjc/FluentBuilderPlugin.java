@@ -55,6 +55,8 @@ public class FluentBuilderPlugin extends AbstractPlugin {
 	@Opt
 	protected String newCopyBuilderMethodName = PluginContext.NEW_COPY_BUILDER_METHOD_NAME;
 	@Opt
+	protected String copyToMethodName = PluginContext.COPY_TO_METHOD_NAME;
+	@Opt
 	protected String builderFieldSuffix = "_Builder";
 	@Opt
 	private boolean generateTools = true;
@@ -111,7 +113,7 @@ public class FluentBuilderPlugin extends AbstractPlugin {
 
 	public BuilderGeneratorSettings getSettings() {
 		return new BuilderGeneratorSettings(this.copyPartial, this.narrow, this.newBuilderMethodName, this.newCopyBuilderMethodName, this.builderFieldSuffix,
-				new ClassName(this.builderInterfaceName, this.builderClassName)
+				new ClassName(this.builderInterfaceName, this.builderClassName), this.copyToMethodName
 		);
 	}
 }

@@ -105,6 +105,7 @@ public class PluginContext extends Plugin {
 	public static final String NEW_BUILDER_METHOD_NAME = "builder";
 	public static final String NEW_MODIFIER_METHOD_NAME = "modifier";
 	public static final String NEW_COPY_BUILDER_METHOD_NAME = "newCopyBuilder";
+	public static final String COPY_TO_METHOD_NAME = "copyTo";
 	private static final String AS_LIST = "asList";
 	private static final String UNMODIFIABLE_LIST = "unmodifiableList";
 	public final JCodeModel codeModel;
@@ -121,6 +122,7 @@ public class PluginContext extends Plugin {
 	public final JClass copyableInterface;
 	public final JClass stringClass;
 	public final JClass voidClass;
+	public final JType voidType;
 	public final JClass cloneGraphClass;
 	public final JExpression excludeConst;
 	public final JExpression includeConst;
@@ -137,24 +139,6 @@ public class PluginContext extends Plugin {
 	private final JClass arraysClass;
 	private final Map<String, ClassOutline> classes;
 	private final Map<String, EnumOutline> enums;
-
-	public static PluginContext get(final Outline outline, final Options opt, final ErrorHandler errorHandler) {
-		PluginContext context = findPlugin(opt.getAllPlugins(), PluginContext.class);
-		if(context == null) {
-			context = new PluginContext(outline, opt, errorHandler);
-			opt.getAllPlugins().add(context);
-		}
-		return context;
-	}
-
-	public static <T> T coalesce(final T... args) {
-		for(final T t : args) {
-			if(t != null) {
-				return t;
-			}
-		}
-		return null;
-	}
 
 	private PluginContext(final Outline outline, final Options opt, final ErrorHandler errorHandler) {
 		this.outline = outline;
@@ -176,6 +160,7 @@ public class PluginContext extends Plugin {
 		this.cloneGraphClass = this.codeModel.ref(PropertyTree.class);
 		this.stringClass = this.codeModel.ref(String.class);
 		this.voidClass = this.codeModel.ref(Void.class);
+		this.voidType = this.codeModel.VOID;
 		for (final ClassOutline classOutline : this.outline.getClasses()) {
 			this.classes.put(classOutline.implClass.fullName(), classOutline);
 			this.classesBySchemaComponent.put(classOutline.target.getTypeName(), classOutline);
@@ -194,6 +179,24 @@ public class PluginContext extends Plugin {
 		this.newModifierMethodName = PluginContext.NEW_MODIFIER_METHOD_NAME;
 		this.newCopyBuilderMethodName = PluginContext.NEW_COPY_BUILDER_METHOD_NAME;
 		this.newObjectVarName = PluginContext.NEW_OBJECT_VAR_NAME;
+	}
+
+	public static PluginContext get(final Outline outline, final Options opt, final ErrorHandler errorHandler) {
+		PluginContext context = findPlugin(opt.getAllPlugins(), PluginContext.class);
+		if (context == null) {
+			context = new PluginContext(outline, opt, errorHandler);
+			opt.getAllPlugins().add(context);
+		}
+		return context;
+	}
+
+	public static <T> T coalesce(final T... args) {
+		for (final T t : args) {
+			if (t != null) {
+				return t;
+			}
+		}
+		return null;
 	}
 
 	public static Class<?> findInnerClass(final Class<?> outer, final String name) {
@@ -276,6 +279,21 @@ public class PluginContext extends Plugin {
 		return null;
 	}
 
+	@SuppressWarnings("unchecked")
+	public static <P extends Plugin> P findPlugin(final Options opt, final Class<P> pluginClass) {
+		return findPlugin(opt.activePlugins, pluginClass);
+	}
+
+	@SuppressWarnings("unchecked")
+	public static <P extends Plugin> P findPlugin(final Iterable<Plugin> pluginCollection, final Class<P> pluginClass) {
+		for (final Plugin plugin : pluginCollection) {
+			if (pluginClass.isInstance(plugin)) {
+				return (P) plugin;
+			}
+		}
+		return null;
+	}
+
 	private boolean cloneThrows(final Class<? extends Cloneable> cloneableClass) {
 		if (cloneableClass.getSuperclass() == null) {
 			// java.lang.Object.clone() throws CloneNotSupportedException
@@ -310,21 +328,6 @@ public class PluginContext extends Plugin {
 
 	public <P extends Plugin> P findPlugin(final Class<P> pluginClass) {
 		return findPlugin(this.opt, pluginClass);
-	}
-
-	@SuppressWarnings("unchecked")
-	public static <P extends Plugin> P findPlugin(final Options opt, final Class<P> pluginClass) {
-		return findPlugin(opt.activePlugins, pluginClass);
-	}
-
-	@SuppressWarnings("unchecked")
-	public static <P extends Plugin> P findPlugin(final Iterable<Plugin> pluginCollection, final Class<P> pluginClass) {
-		for (final Plugin plugin : pluginCollection) {
-			if (pluginClass.isInstance(plugin)) {
-				return (P) plugin;
-			}
-		}
-		return null;
 	}
 
 	public boolean canInstantiate(final JType type) {
@@ -369,6 +372,18 @@ public class PluginContext extends Plugin {
 
 	public JTypedInvocation invoke(final JExpression lhs, final String method) {
 		return new JTypedInvocation(lhs, method);
+	}
+
+	public JTypedInvocation invoke(final String method) {
+		return new JTypedInvocation(null, method);
+	}
+
+	public JTypedInvocation _super() {
+		return invoke("super");
+	}
+
+	public CopyGenerator createCopyGenerator(final JMethod method, final boolean partial) {
+		return partial ? new PartialCopyGenerator(this, method) : new FullCopyGenerator();
 	}
 
 	public void writeSourceFile(final Class<?> classToBeWritten) {
@@ -467,5 +482,9 @@ public class PluginContext extends Plugin {
 	@Override
 	public boolean run(final Outline outline, final Options opt, final ErrorHandler errorHandler) throws SAXException {
 		return true;
+	}
+
+	public JTypedInvocation _new(final JClass type) {
+		return new JTypedInvocation(type);
 	}
 }
