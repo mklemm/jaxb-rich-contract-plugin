@@ -5,7 +5,7 @@
 	<modelVersion>4.0.0</modelVersion>
 
 	<artifactId>jaxb2-rich-contract-plugin</artifactId>
-	<version>1.6.7-SNAPSHOT</version>
+	<version>1.6.7</version>
 
 	<parent>
 		<groupId>net.codesup.util</groupId>
