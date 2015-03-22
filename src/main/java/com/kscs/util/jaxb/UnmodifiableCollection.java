@@ -80,12 +80,10 @@ public interface UnmodifiableCollection<E> extends Iterable<E> {
 	 * If this collection makes any guarantees as to what order its elements
 	 * are returned by its iterator, this method must return the elements in
 	 * the same order.
-	 * <p/>
 	 * <p>The returned array will be "safe" in that no references to it are
 	 * maintained by this collection.  (In other words, this method must
 	 * allocate a new array even if this collection is backed by an array).
 	 * The caller is thus free to modify the returned array.
-	 * <p/>
 	 * <p>This method acts as bridge between array-based and collection-based
 	 * APIs.
 	 *
@@ -99,27 +97,22 @@ public interface UnmodifiableCollection<E> extends Iterable<E> {
 	 * If the collection fits in the specified array, it is returned therein.
 	 * Otherwise, a new array is allocated with the runtime type of the
 	 * specified array and the size of this collection.
-	 * <p/>
 	 * <p>If this collection fits in the specified array with room to spare
 	 * (i.e., the array has more elements than this collection), the element
 	 * in the array immediately following the end of the collection is set to
 	 * <tt>null</tt>.  (This is useful in determining the length of this
 	 * collection <i>only</i> if the caller knows that this collection does
 	 * not contain any <tt>null</tt> elements.)
-	 * <p/>
 	 * <p>If this collection makes any guarantees as to what order its elements
 	 * are returned by its iterator, this method must return the elements in
 	 * the same order.
-	 * <p/>
 	 * <p>Like the {@link #toArray()} method, this method acts as bridge between
 	 * array-based and collection-based APIs.  Further, this method allows
 	 * precise control over the runtime type of the output array, and may,
 	 * under certain circumstances, be used to save allocation costs.
-	 * <p/>
 	 * <p>Suppose <tt>x</tt> is a collection known to contain only strings.
 	 * The following code can be used to dump the collection into a newly
 	 * allocated array of <tt>String</tt>:
-	 * <p/>
 	 * <pre>
 	 *     String[] y = x.toArray(new String[0]);</pre>
 	 *

@@ -32,6 +32,10 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+
+import org.xml.sax.SAXException;
+import org.xml.sax.SAXParseException;
+
 import com.kscs.util.plugins.xjc.base.Namespaces;
 import com.sun.codemodel.JDefinedClass;
 import com.sun.codemodel.fmt.JTextFile;
@@ -62,8 +66,6 @@ import com.sun.xml.xsom.XSSimpleType;
 import com.sun.xml.xsom.XSWildcard;
 import com.sun.xml.xsom.XSXPath;
 import com.sun.xml.xsom.visitor.XSFunction;
-import org.xml.sax.SAXException;
-import org.xml.sax.SAXParseException;
 
 /**
  * @author Mirko Klemm 2015-02-11
@@ -97,6 +99,7 @@ public class EpisodeBuilder {
 	/**
 	 * Capture all the generated classes from global schema components
 	 * and generate them in an episode file.
+	 * @throws org.xml.sax.SAXException if a problem was encountered
 	 */
 	public void build() throws SAXException {
 		// reorganize qualifying components by their namespaces to
