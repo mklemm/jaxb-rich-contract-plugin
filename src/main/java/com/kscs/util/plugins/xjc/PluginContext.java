@@ -24,12 +24,6 @@
 
 package com.kscs.util.plugins.xjc;
 
-import javax.xml.bind.JAXB;
-import javax.xml.bind.annotation.XmlRootElement;
-import javax.xml.bind.annotation.XmlSchema;
-import javax.xml.bind.annotation.XmlType;
-import javax.xml.namespace.QName;
-import javax.xml.transform.dom.DOMSource;
 import java.lang.reflect.Method;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
@@ -40,6 +34,17 @@ import java.util.Deque;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
+import javax.xml.bind.JAXB;
+import javax.xml.bind.annotation.XmlRootElement;
+import javax.xml.bind.annotation.XmlSchema;
+import javax.xml.bind.annotation.XmlType;
+import javax.xml.namespace.QName;
+import javax.xml.transform.dom.DOMSource;
+
+import org.xml.sax.ErrorHandler;
+import org.xml.sax.SAXException;
+
 import com.kscs.util.jaxb.Copyable;
 import com.kscs.util.jaxb.PartialCopyable;
 import com.kscs.util.jaxb.PropertyTree;
@@ -55,7 +60,6 @@ import com.sun.codemodel.JCodeModel;
 import com.sun.codemodel.JConditional;
 import com.sun.codemodel.JExpr;
 import com.sun.codemodel.JExpression;
-import com.sun.codemodel.JFieldRef;
 import com.sun.codemodel.JFieldVar;
 import com.sun.codemodel.JForEach;
 import com.sun.codemodel.JInvocation;
@@ -74,8 +78,6 @@ import com.sun.tools.xjc.outline.EnumOutline;
 import com.sun.tools.xjc.outline.FieldOutline;
 import com.sun.tools.xjc.outline.Outline;
 import com.sun.xml.xsom.XSDeclaration;
-import org.xml.sax.ErrorHandler;
-import org.xml.sax.SAXException;
 
 /**
  * Common context for all plugins implemented by this
@@ -346,7 +348,7 @@ public class PluginContext extends Plugin {
 		return this.enums.get(typeSpec.fullName());
 	}
 
-	public JForEach loop(final JBlock block, final JFieldRef source, final JType sourceElementType, final JAssignmentTarget target, final JType targetElementType) {
+	public JForEach loop(final JBlock block, final JExpression source, final JType sourceElementType, final JAssignmentTarget target, final JType targetElementType) {
 		final JConditional ifNull = block._if(source.eq(JExpr._null()));
 		ifNull._then().assign(target, JExpr._null());
 		ifNull._else().assign(target, JExpr._new(this.arrayListClass.narrow(targetElementType)));
@@ -374,8 +376,12 @@ public class PluginContext extends Plugin {
 		return new JTypedInvocation(lhs, method);
 	}
 
+	public JTypedInvocation invoke(final JType lhs, final String method) {
+		return new JTypedInvocation(lhs, method);
+	}
+
 	public JTypedInvocation invoke(final String method) {
-		return new JTypedInvocation(null, method);
+		return new JTypedInvocation(method);
 	}
 
 	public JTypedInvocation _super() {
@@ -395,14 +401,14 @@ public class PluginContext extends Plugin {
 
 	public void generateImmutableFieldInit(final JBlock body, final JExpression object, final JFieldVar field) {
 		final ImmutablePlugin immutablePlugin = findPlugin(ImmutablePlugin.class);
-		if (immutablePlugin != null && !immutablePlugin.fake) {
+		if (immutablePlugin != null) {
 			immutablePlugin.immutableInit(this, body, object, field);
 		}
 	}
 
 	public void generateImmutableFieldInit(final JBlock body, final JExpression object, final PropertyOutline propertyOutline) {
 		final ImmutablePlugin immutablePlugin = findPlugin(ImmutablePlugin.class);
-		if (immutablePlugin != null && !immutablePlugin.fake) {
+		if (immutablePlugin != null) {
 			immutablePlugin.immutableInit(this, body, object, propertyOutline);
 		}
 	}

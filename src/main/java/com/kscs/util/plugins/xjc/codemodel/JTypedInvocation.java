@@ -51,6 +51,13 @@ public class JTypedInvocation extends JExpressionImpl implements JStatement {
 		this.method = method;
 	}
 
+	public JTypedInvocation(final String method) {
+		this.type = null;
+		this.constructor = false;
+		this.lhs = null;
+		this.method = method;
+	}
+
 	public JTypedInvocation(final JClass type) {
 		this.type = type;
 		this.constructor = true;
@@ -58,24 +65,33 @@ public class JTypedInvocation extends JExpressionImpl implements JStatement {
 		this.method = null;
 	}
 
+	public JTypedInvocation(final JType type, final String method) {
+		this.type = type;
+		this.constructor = false;
+		this.lhs = null;
+		this.method = method;
+	}
+
 	@Override
 	public void generate(JFormatter f) {
 		if (this.lhs != null) {
 			f = f.g(this.lhs).p('.');
+		} else if(this.type != null && !this.constructor) {
+			f = f.g(this.type).p('.');
 		}
-		if (this.constructor) {
+		if (this.type != null && this.constructor) {
 			f = f.p("new").g(this.type).p('(');
 		} else {
 			if (!this.typeArguments.isEmpty()) {
 				f = f.p("<");
 				boolean first = true;
-				for (final JType type : this.typeArguments) {
+				for (final JType typeArg : this.typeArguments) {
 					if (!first) {
 						f = f.p(", ");
 					} else {
 						first = false;
 					}
-					f = f.g(type);
+					f = f.g(typeArg);
 				}
 				f = f.p(">");
 			}

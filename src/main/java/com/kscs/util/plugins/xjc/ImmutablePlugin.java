@@ -26,6 +26,10 @@ package com.kscs.util.plugins.xjc;
 
 import java.util.Collection;
 import java.util.Iterator;
+
+import org.xml.sax.ErrorHandler;
+import org.xml.sax.SAXException;
+
 import com.kscs.util.plugins.xjc.base.AbstractPlugin;
 import com.kscs.util.plugins.xjc.base.Opt;
 import com.kscs.util.plugins.xjc.base.PluginUtil;
@@ -46,15 +50,13 @@ import com.sun.tools.xjc.Options;
 import com.sun.tools.xjc.outline.ClassOutline;
 import com.sun.tools.xjc.outline.FieldOutline;
 import com.sun.tools.xjc.outline.Outline;
-import org.xml.sax.ErrorHandler;
-import org.xml.sax.SAXException;
 
 /**
  * XJC Plugin to make generated classes immutable
  */
 public class ImmutablePlugin extends AbstractPlugin {
 	@Opt
-	protected boolean fake = false;
+	private boolean fake = false;
 	@Opt
 	protected String overrideCollectionClass = null;
 	@Opt
@@ -132,11 +134,15 @@ public class ImmutablePlugin extends AbstractPlugin {
 	}
 
 	public void immutableInit(final PluginContext pluginContext, final JBlock body, final JExpression instanceRef, final PropertyOutline collectionField) {
-		body.assign(instanceRef.ref(getImmutableFieldName(collectionField)), PluginUtil.nullSafe(collectionField, generateImmutableListInstantiation(pluginContext, instanceRef.ref(collectionField.getFieldName()), collectionField.getElementType())));
+		if(!this.fake) {
+			body.assign(instanceRef.ref(getImmutableFieldName(collectionField)), PluginUtil.nullSafe(collectionField, generateImmutableListInstantiation(pluginContext, instanceRef.ref(collectionField.getFieldName()), collectionField.getElementType())));
+		}
 	}
 
 	public void immutableInit(final PluginContext pluginContext, final JBlock body, final JExpression instanceRef, final JFieldVar declaredField) {
-		body.assign(instanceRef.ref(getImmutableFieldName(declaredField)), PluginUtil.nullSafe(declaredField, generateImmutableListInstantiation(pluginContext, instanceRef.ref(declaredField), ((JClass)declaredField.type()).getTypeParameters().get(0))));
+		if(!this.fake) {
+			body.assign(instanceRef.ref(getImmutableFieldName(declaredField)), PluginUtil.nullSafe(declaredField, generateImmutableListInstantiation(pluginContext, instanceRef.ref(declaredField), ((JClass)declaredField.type()).getTypeParameters().get(0))));
+		}
 	}
 
 	private JInvocation generateImmutableListInstantiation(final PluginContext pluginContext, final JFieldRef fieldRef, final JType elementType) {
