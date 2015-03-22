@@ -51,17 +51,23 @@ public class Selector<TRoot extends Selector<TRoot, ?>, TParent> {
 
 	/**
 	 * This is only used by builders and other implementational details
+	 * @return A map representing thze child nodes of this selector
 	 */
 	public Map<String, PropertyTree> buildChildren() {
 		return Collections.emptyMap();
 	}
 
+	/**
+	 * Builds a property tree specified by this selector
+	 * @return A property tree specified by this selector
+	 */
 	public PropertyTree build() {
 		return this._root.init();
 	}
 
 	/**
 	 * This is only used by builders and other implementational details
+	 * @return A property tree specified by this selector
 	 */
 	public PropertyTree init() {
 		return new PropertyTree(this._propertyName, buildChildren());
