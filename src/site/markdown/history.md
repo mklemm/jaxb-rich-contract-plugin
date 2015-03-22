@@ -66,6 +66,8 @@
 	* fluent-builder: Changed logic of static "copyOf" method to allow widening type conversion of input parameter.
 * **1.6.6**:
 	* fluent-builder: Changed type parameter names to make name conflicts less likely
+* **1.6.7**:
+	* Fixed a bug in fluent-builder generation that could prevent builder chaining under some circumastances
 	
 
 
