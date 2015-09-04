@@ -238,8 +238,11 @@ class GroupInterfaceGenerator {
 	private List<PropertyUse> findElementDecls(final XSModelGroupDecl modelGroup) {
 		final List<PropertyUse> elementDecls = new ArrayList<>();
 		for (final XSParticle child : modelGroup.getModelGroup()) {
-			if (child.getTerm() instanceof XSElementDecl) {
-				elementDecls.add(new PropertyUse(child.getTerm()));
+			XSTerm term = child.getTerm();
+			if (term instanceof XSElementDecl) {
+				elementDecls.add(new PropertyUse(term));
+			} else if (term instanceof XSModelGroupDecl && ((XSModelGroupDecl)term).getName().equals(modelGroup.getName())) {
+				elementDecls.addAll(findElementDecls((XSModelGroupDecl)term));
 			}
 		}
 		return elementDecls;
@@ -310,17 +313,19 @@ class GroupInterfaceGenerator {
 			final XSDeclaration classComponent = typeDef.getSchemaComponent();
 			final Collection<? extends XSDeclaration> groupRefs = (classComponent instanceof XSAttGroupDecl) ? ((XSAttGroupDecl) classComponent).getAttGroups() : findModelGroups(((XSModelGroupDecl) classComponent).getModelGroup());
 			for (final XSDeclaration groupRef : groupRefs) {
-				InterfaceOutline superInterfaceOutline = groupInterfaces.get(PluginContext.getQName(groupRef));
-				if (superInterfaceOutline == null) {
-					superInterfaceOutline = getReferencedInterfaceOutline(PluginContext.getQName(groupRef));
-				}
-				if (superInterfaceOutline != null) {
-					typeDef.addSuperInterface(superInterfaceOutline);
-					typeDef.getImplClass()._implements(superInterfaceOutline.getImplClass());
-					if(typeDef.getSupportInterface() != null) {
-						typeDef.getSupportInterface()._implements(superInterfaceOutline.getSupportInterface());
+				if (!PluginContext.getQName(groupRef).equals(typeDef.getName())) {
+					InterfaceOutline superInterfaceOutline = groupInterfaces.get(PluginContext.getQName(groupRef));
+					if (superInterfaceOutline == null) {
+						superInterfaceOutline = getReferencedInterfaceOutline(PluginContext.getQName(groupRef));
 					}
-					putGroupInterfaceForClass(typeDef.getImplClass().fullName(), superInterfaceOutline);
+					if (superInterfaceOutline != null) {
+						typeDef.addSuperInterface(superInterfaceOutline);
+						typeDef.getImplClass()._implements(superInterfaceOutline.getImplClass());
+						if(typeDef.getSupportInterface() != null) {
+							typeDef.getSupportInterface()._implements(superInterfaceOutline.getSupportInterface());
+						}
+						putGroupInterfaceForClass(typeDef.getImplClass().fullName(), superInterfaceOutline);
+					}
 				}
 			}
 		}
