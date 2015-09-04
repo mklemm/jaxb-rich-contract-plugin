@@ -26,6 +26,7 @@ package com.kscs.util.plugins.xjc;
 
 import com.kscs.util.plugins.xjc.codemodel.JTypedInvocation;
 import com.sun.codemodel.JBlock;
+import com.sun.codemodel.JDocComment;
 import com.sun.codemodel.JExpression;
 import com.sun.codemodel.JVar;
 
@@ -33,6 +34,9 @@ import com.sun.codemodel.JVar;
  * @author Mirko Klemm 2015-03-17
  */
 public class FullCopyGenerator implements CopyGenerator {
+	@Override
+	public void generatePartialArgs(final JDocComment javadoc) {
+	}
 
 	@Override
 	public PropertyTreeVarGenerator createPropertyTreeVarGenerator(final JBlock body, final String fieldName) {

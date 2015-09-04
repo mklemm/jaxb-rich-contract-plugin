@@ -26,12 +26,15 @@ package com.kscs.util.plugins.xjc;
 
 import com.kscs.util.plugins.xjc.codemodel.JTypedInvocation;
 import com.sun.codemodel.JBlock;
+import com.sun.codemodel.JDocComment;
 import com.sun.codemodel.JVar;
 
 /**
  * @author Mirko Klemm 2015-03-17
  */
 public interface CopyGenerator {
+	void generatePartialArgs(JDocComment javadoc);
+
 	PropertyTreeVarGenerator createPropertyTreeVarGenerator(final JBlock body, final String fieldName);
 
 	JVar getPropertyTreeUseParam();

@@ -22,46 +22,28 @@
  * THE SOFTWARE.
  */
 
-package com.kscs.util.plugins.xjc.outline;
-
-import java.util.List;
-
-import javax.xml.namespace.QName;
-
-import com.sun.codemodel.JFieldVar;
-import com.sun.codemodel.JType;
-import com.sun.tools.xjc.model.nav.NClass;
-import com.sun.tools.xjc.model.nav.NType;
-import com.sun.xml.bind.v2.model.core.TypeInfo;
+package com.kscs.util.jaxb;
 
 /**
- * @author Mirko Klemm 2015-01-28
+ * @author Mirko Klemm 2015-09-03
  */
-public interface PropertyOutline {
-	String getBaseName();
-	String getFieldName();
-	JType getRawType();
-	JType getElementType();
-	JFieldVar getFieldVar();
-	boolean hasGetter();
-	boolean isCollection();
-	List<TagRef> getChoiceProperties();
+public interface Buildable {
+	Object build();
 
-	class TagRef {
-		private final QName tagName;
-		private final TypeInfo<NType,NClass> typeInfo;
+	class PrimitiveBuildable implements Buildable {
+		private final Object content;
 
-		public TagRef(final QName tagName, final TypeInfo<NType, NClass> typeInfo) {
-			this.tagName = tagName;
-			this.typeInfo = typeInfo;
+		public PrimitiveBuildable(final Object content) {
+			this.content = content;
 		}
 
-		public QName getTagName() {
-			return this.tagName;
+		public Object getContent() {
+			return this.content;
 		}
 
-		public TypeInfo<NType, NClass> getTypeInfo() {
-			return this.typeInfo;
+		@Override
+		public Object build() {
+			return this.content;
 		}
 	}
 }

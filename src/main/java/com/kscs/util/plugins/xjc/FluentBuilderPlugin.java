@@ -26,12 +26,18 @@ package com.kscs.util.plugins.xjc;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
+
+import org.xml.sax.ErrorHandler;
+import org.xml.sax.SAXException;
+import org.xml.sax.SAXParseException;
+
+import com.kscs.util.jaxb.Buildable;
 import com.kscs.util.jaxb.PropertyTree;
 import com.kscs.util.jaxb.PropertyTreeUse;
 import com.kscs.util.jaxb.Selector;
 import com.kscs.util.plugins.xjc.base.AbstractPlugin;
-import com.kscs.util.plugins.xjc.codemodel.ClassName;
 import com.kscs.util.plugins.xjc.base.Opt;
+import com.kscs.util.plugins.xjc.codemodel.ClassName;
 import com.kscs.util.plugins.xjc.outline.DefinedClassOutline;
 import com.sun.codemodel.ClassType;
 import com.sun.codemodel.JClassAlreadyExistsException;
@@ -40,9 +46,6 @@ import com.sun.codemodel.JMod;
 import com.sun.tools.xjc.Options;
 import com.sun.tools.xjc.outline.ClassOutline;
 import com.sun.tools.xjc.outline.Outline;
-import org.xml.sax.ErrorHandler;
-import org.xml.sax.SAXException;
-import org.xml.sax.SAXParseException;
 
 /**
  * Plugin to generate fluent Builders for generated classes
@@ -81,6 +84,9 @@ public class FluentBuilderPlugin extends AbstractPlugin {
 		final Map<String, BuilderOutline> builderClasses = new LinkedHashMap<>(outline.getClasses().size());
 		final PluginContext pluginContext = PluginContext.get(outline, opt, errorHandler);
 
+		if(this.generateTools) {
+			pluginContext.writeSourceFile(Buildable.class);
+		}
 		if (this.copyPartial) {
 			if (this.generateTools) {
 				pluginContext.writeSourceFile(PropertyTreeUse.class);

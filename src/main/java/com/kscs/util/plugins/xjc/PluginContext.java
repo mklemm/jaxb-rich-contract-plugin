@@ -45,6 +45,7 @@ import javax.xml.transform.dom.DOMSource;
 import org.xml.sax.ErrorHandler;
 import org.xml.sax.SAXException;
 
+import com.kscs.util.jaxb.Buildable;
 import com.kscs.util.jaxb.Copyable;
 import com.kscs.util.jaxb.PartialCopyable;
 import com.kscs.util.jaxb.PropertyTree;
@@ -125,6 +126,8 @@ public class PluginContext extends Plugin {
 	public final JClass stringClass;
 	public final JClass voidClass;
 	public final JType voidType;
+	public final JClass buildableClass;
+	public final JClass buildableInterface;
 	public final JClass cloneGraphClass;
 	public final JExpression excludeConst;
 	public final JExpression includeConst;
@@ -181,6 +184,8 @@ public class PluginContext extends Plugin {
 		this.newModifierMethodName = PluginContext.NEW_MODIFIER_METHOD_NAME;
 		this.newCopyBuilderMethodName = PluginContext.NEW_COPY_BUILDER_METHOD_NAME;
 		this.newObjectVarName = PluginContext.NEW_OBJECT_VAR_NAME;
+		this.buildableInterface = this.codeModel.ref(Buildable.class);
+		this.buildableClass = this.codeModel.ref(Buildable.PrimitiveBuildable.class);
 	}
 
 	public static PluginContext get(final Outline outline, final Options opt, final ErrorHandler errorHandler) {

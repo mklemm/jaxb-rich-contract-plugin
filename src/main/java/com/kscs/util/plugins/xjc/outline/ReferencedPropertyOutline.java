@@ -28,6 +28,9 @@ import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.ParameterizedType;
 import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
+
 import com.sun.codemodel.JCodeModel;
 import com.sun.codemodel.JFieldVar;
 import com.sun.codemodel.JType;
@@ -114,4 +117,8 @@ public class ReferencedPropertyOutline implements PropertyOutline {
 		return this.collection;
 	}
 
+	@Override
+	public List<TagRef> getChoiceProperties() {
+		return Collections.emptyList();
+	}
 }

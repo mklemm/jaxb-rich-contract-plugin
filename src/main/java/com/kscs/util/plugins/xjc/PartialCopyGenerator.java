@@ -23,10 +23,15 @@
  */
 package com.kscs.util.plugins.xjc;
 
+import java.text.MessageFormat;
+import java.util.ResourceBundle;
+
 import com.kscs.util.jaxb.PropertyTree;
 import com.kscs.util.jaxb.PropertyTreeUse;
+import com.kscs.util.plugins.xjc.base.PropertyDirectoryResourceBundle;
 import com.kscs.util.plugins.xjc.codemodel.JTypedInvocation;
 import com.sun.codemodel.JBlock;
+import com.sun.codemodel.JDocComment;
 import com.sun.codemodel.JExpr;
 import com.sun.codemodel.JExpression;
 import com.sun.codemodel.JInvocation;
@@ -39,6 +44,7 @@ import com.sun.codemodel.JVar;
  * @author mirko 2014-06-04
  */
 class PartialCopyGenerator implements CopyGenerator {
+	public static final ResourceBundle RESOURCE_BUNDLE = PropertyDirectoryResourceBundle.getInstance(PartialCopyGenerator.class);
 	public static final String PROPERTY_TREE_PARAM_NAME = "_propertyTree";
 	public static final String PROPERTY_TREE_USE_PARAM_NAME = "_propertyTreeUse";
 
@@ -75,6 +81,14 @@ class PartialCopyGenerator implements CopyGenerator {
 	@Override
 	public JTypedInvocation generatePartialArgs(final JTypedInvocation invocation) {
 		return invocation.arg(this.propertyTreeParam).arg(this.propertyTreeUseParam);
+	}
+
+	@Override
+	public void generatePartialArgs(final JDocComment javadoc) {
+		javadoc	.addParam(this.propertyTreeParam)
+				.append(PartialCopyGenerator.RESOURCE_BUNDLE.getString("javadoc.method.param.propertyTree"));
+		javadoc	.addParam(this.propertyTreeUseParam)
+				.append(MessageFormat.format(PartialCopyGenerator.RESOURCE_BUNDLE.getString("javadoc.method.param.propertyTreeUse"), this.propertyTreeParam.name()));
 	}
 
 	public JMethod getCopyMethod() {

@@ -24,6 +24,17 @@
 
 package com.kscs.util.plugins.xjc;
 
+import java.io.IOException;
+import java.io.Reader;
+import java.io.StringWriter;
+import java.net.URI;
+import java.net.URL;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
 import javax.xml.bind.JAXB;
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBException;
@@ -41,16 +52,15 @@ import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathExpression;
 import javax.xml.xpath.XPathExpressionException;
 import javax.xml.xpath.XPathFactory;
-import java.io.IOException;
-import java.io.Reader;
-import java.io.StringWriter;
-import java.net.URI;
-import java.net.URL;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
+import org.xml.sax.ErrorHandler;
+import org.xml.sax.InputSource;
+import org.xml.sax.SAXException;
+
 import com.kscs.util.jaxb.bindings.Interface;
 import com.kscs.util.plugins.xjc.base.AbstractPlugin;
 import com.kscs.util.plugins.xjc.base.MappingNamespaceContext;
@@ -61,13 +71,6 @@ import com.kscs.util.plugins.xjc.outline.TypeOutline;
 import com.sun.tools.xjc.BadCommandLineException;
 import com.sun.tools.xjc.Options;
 import com.sun.tools.xjc.outline.Outline;
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
-import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
-import org.xml.sax.ErrorHandler;
-import org.xml.sax.InputSource;
-import org.xml.sax.SAXException;
 
 /**
  * Generates interface declarations from &lt;group&gt; and &lt;attributeGroup&gt;
@@ -178,30 +181,28 @@ public class GroupInterfacePlugin extends AbstractPlugin {
 			final XPathExpression modelGroupExpression = xPath.compile("/xs:schema/xs:group");
 			final XPathExpression targetNamespaceExpression = xPath.compile("/xs:schema/@targetNamespace");
 
+			final Map<String,List<String>> includeMappings = findIncludeMappings(xPath, opts.getGrammars());
 
 			final List<InputSource> newGrammars = new ArrayList<>();
 			for (final InputSource grammar : opts.getGrammars()) {
 				final InputSource schemaCopy = new InputSource(grammar.getSystemId());
-
-				final String targetNamespaceUri = targetNamespaceExpression.evaluate(schemaCopy);
-				final NodeList attGroupNodes = (NodeList)attGroupExpression.evaluate(schemaCopy, XPathConstants.NODESET);
-				final NodeList modelGroupNodes = (NodeList)modelGroupExpression.evaluate(schemaCopy, XPathConstants.NODESET);
-
-				final Groups currentGroups = new Groups(targetNamespaceUri);
-
-				for(int i = 0; i < attGroupNodes.getLength(); i++) {
-					final Element node = (Element)attGroupNodes.item(i);
-					currentGroups.attGroupNames.add(node.getAttribute("name"));
-				}
-
-				for(int i = 0; i < modelGroupNodes.getLength(); i++) {
-					final Element node = (Element)modelGroupNodes.item(i);
-					currentGroups.modelGroupNames.add(node.getAttribute("name"));
-				}
-
-				final InputSource newSchema = generateImplementationSchema(opts, transformer, currentGroups, schemaCopy.getSystemId());
-				if(newSchema != null) {
-					newGrammars.add(newSchema);
+				final String declaredTargetNamespaceUri = targetNamespaceExpression.evaluate(schemaCopy);
+				for(final String targetNamespaceUri : declaredTargetNamespaceUri == null ? includeMappings.get(grammar.getSystemId()) : Collections.singletonList(declaredTargetNamespaceUri)) {
+					final NodeList attGroupNodes = (NodeList)attGroupExpression.evaluate(schemaCopy, XPathConstants.NODESET);
+					final NodeList modelGroupNodes = (NodeList)modelGroupExpression.evaluate(schemaCopy, XPathConstants.NODESET);
+					final Groups currentGroups = new Groups(targetNamespaceUri);
+					for (int i = 0; i < attGroupNodes.getLength(); i++) {
+						final Element node = (Element)attGroupNodes.item(i);
+						currentGroups.attGroupNames.add(node.getAttribute("name"));
+					}
+					for (int i = 0; i < modelGroupNodes.getLength(); i++) {
+						final Element node = (Element)modelGroupNodes.item(i);
+						currentGroups.modelGroupNames.add(node.getAttribute("name"));
+					}
+					final InputSource newSchema = generateImplementationSchema(opts, transformer, currentGroups, schemaCopy.getSystemId());
+					if (newSchema != null) {
+						newGrammars.add(newSchema);
+					}
 				}
 			}
 
@@ -271,12 +272,32 @@ public class GroupInterfacePlugin extends AbstractPlugin {
 			}
 	}
 
+	private Map<String,List<String>> findIncludeMappings(final XPath xPath, final InputSource[] grammars) throws XPathExpressionException {
+		final XPathExpression includeExpression = xPath.compile("/xs:schema/xs:include/@schemaLocation");
+		final XPathExpression targetNamespaceExpression = xPath.compile("/xs:schema/@targetNamespace");
+
+		final Map<String,List<String>> mappings = new HashMap<>();
+		for(final InputSource grammar: grammars) {
+			final Node targetNamespaceNode = (Node)targetNamespaceExpression.evaluate(grammar, XPathConstants.NODE);
+			final NodeList includeNodes = (NodeList)includeExpression.evaluate(grammar, XPathConstants.NODESET);
+			if(targetNamespaceNode != null) {
+				for(int i = 0; i < includeNodes.getLength(); i++) {
+					final String includedSchema = includeNodes.item(i).getNodeValue();
+					List<String> includers = mappings.get(includedSchema);
+					if(includers == null) {
+						includers = new ArrayList<>();
+						mappings.put(includedSchema, includers);
+					}
+					includers.add(targetNamespaceNode.getNodeValue());
+				}
+			}
+		}
+		return mappings;
+	}
 
 	private void processCustomizations(final Element elementAnnotation, final NodeList childAnnotations) {
 		final Interface interfaceCustomization = JAXB.unmarshal(new DOMSource(elementAnnotation), Interface.class);
-
 	}
-
 
 	private static class Groups {
 		public final String targetNamespace;
