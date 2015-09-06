@@ -68,11 +68,15 @@
 	* fluent-builder: Changed type parameter names to make name conflicts less likely
 * **1.6.7**:
 	* Fixed a bug in fluent-builder generation that could prevent builder chaining under some circumastances
+* **1.6.7**:
+	* Fixed a bug in fluent-builder generation that could prevent builder chaining under some circumastances
 * **1.6.8**:
 	* Integrated a fix from JulianPaoloThiry
 	* Improved fluent builder to support building of sub-objects defined in a `choice`. All possible have a buidler method now,
 	so, for example, in XHTML, instead of doing somethoin like `htmlBuilder.withPorH1orH2(H1.builder().withContent("bla").build())....` you can do
 	`htmlBuilder.withH1().withContent("bla").end()....`.
+* **1.6.9**:
+	* Fixed errors in release workflow
 	
 	
 
