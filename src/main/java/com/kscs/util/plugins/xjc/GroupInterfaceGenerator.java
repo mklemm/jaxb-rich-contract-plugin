@@ -23,18 +23,11 @@
  */
 package com.kscs.util.plugins.xjc;
 
-import javax.xml.bind.JAXB;
-import javax.xml.namespace.QName;
-import javax.xml.transform.Transformer;
-import javax.xml.transform.dom.DOMResult;
-import javax.xml.transform.dom.DOMSource;
-import javax.xml.transform.stream.StreamSource;
 import java.beans.PropertyVetoException;
 import java.io.StringWriter;
 import java.net.URL;
 import java.text.MessageFormat;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -43,6 +36,17 @@ import java.util.List;
 import java.util.Map;
 import java.util.ResourceBundle;
 import java.util.logging.Logger;
+
+import javax.xml.bind.JAXB;
+import javax.xml.namespace.QName;
+import javax.xml.transform.Transformer;
+import javax.xml.transform.dom.DOMResult;
+import javax.xml.transform.dom.DOMSource;
+import javax.xml.transform.stream.StreamSource;
+
+import org.xml.sax.SAXException;
+import org.xml.sax.SAXParseException;
+
 import com.kscs.util.jaxb._interface.Interface;
 import com.kscs.util.jaxb._interface.Interfaces;
 import com.kscs.util.plugins.xjc.base.AbstractXSFunction;
@@ -79,8 +83,6 @@ import com.sun.xml.xsom.XSParticle;
 import com.sun.xml.xsom.XSTerm;
 import com.sun.xml.xsom.impl.util.SchemaWriter;
 import com.sun.xml.xsom.visitor.XSFunction;
-import org.xml.sax.SAXException;
-import org.xml.sax.SAXParseException;
 
 import static com.kscs.util.plugins.xjc.PluginContext.coalesce;
 
@@ -194,7 +196,7 @@ class GroupInterfaceGenerator {
 		if (particle != null && !particle.isRepeated()) {
 			final XSTerm term = particle.getTerm();
 			if (term instanceof XSModelGroupDecl) {
-				return Arrays.asList((XSModelGroupDecl) term);
+				return Collections.singletonList((XSModelGroupDecl)term);
 			} else {
 				final XSModelGroup modelGroup = term.asModelGroup();
 				return modelGroup != null ? findModelGroups(modelGroup) : Collections.<XSModelGroupDecl>emptyList();
