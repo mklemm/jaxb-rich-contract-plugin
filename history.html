@@ -41,7 +41,7 @@
                   <li id="publishDate">Last Published: 2015-09-06
                       <span class="divider">|</span>
                    </li>
-                  <li id="projectVersion">Version: 1.6.8-SNAPSHOT
+                  <li id="projectVersion">Version: 1.6.9-SNAPSHOT
                       </li>
                       
                 
@@ -354,14 +354,28 @@
 <li>Fixed a bug in fluent-builder generation that could prevent builder chaining under some circumastances</li>
   </ul></li>
   
-<li>
-<p><b>1.6.8</b>:</p>
+<li><b>1.6.7</b>:
+  
+<ul>
+    
+<li>Fixed a bug in fluent-builder generation that could prevent builder chaining under some circumastances</li>
+  </ul></li>
+  
+<li><b>1.6.8</b>:
   
 <ul>
     
 <li>Integrated a fix from JulianPaoloThiry</li>
     
 <li>Improved fluent builder to support building of sub-objects defined in a <tt>choice</tt>. All possible have a buidler method now, so, for example, in XHTML, instead of doing somethoin like <tt>htmlBuilder.withPorH1orH2(H1.builder().withContent(&quot;bla&quot;).build())....</tt> you can do <tt>htmlBuilder.withH1().withContent(&quot;bla&quot;).end()....</tt>.</li>
+  </ul></li>
+  
+<li>
+<p><b>1.6.9</b>:</p>
+  
+<ul>
+    
+<li>Fixed errors in release workflow</li>
   </ul></li>
 </ul></div></div>
                   </div>
