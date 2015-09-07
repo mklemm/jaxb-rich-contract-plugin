@@ -21,11 +21,16 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-
 package com.kscs.util.plugins.xjc;
 
+import java.io.BufferedReader;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.PrintWriter;
 import java.io.Reader;
+import java.io.StringReader;
 import java.io.StringWriter;
 import java.net.URI;
 import java.net.URL;
@@ -89,7 +94,6 @@ public class GroupInterfacePlugin extends AbstractPlugin {
 	private String upstreamEpisodeFile = "/META-INF/jaxb-interfaces.episode";
 	@Opt
 	private String downstreamEpisodeFile = "/META-INF/jaxb-interfaces.episode";
-
 	private GroupInterfaceGenerator generator = null;
 	public static final TransformerFactory TRANSFORMER_FACTORY;
 	private static final DocumentBuilderFactory DOCUMENT_BUILDER_FACTORY;
@@ -116,7 +120,6 @@ public class GroupInterfacePlugin extends AbstractPlugin {
 		return Namespaces.KSCS_BINDINGS_NS.equals(nsUri) && "interface".equals(localName);
 	}
 
-
 	@Override
 	public String getOptionName() {
 		return "Xgroup-contract";
@@ -135,7 +138,7 @@ public class GroupInterfacePlugin extends AbstractPlugin {
 	}
 
 	private void generate(final PluginContext pluginContext) throws SAXException {
-		if(this.generator == null) {
+		if (this.generator == null) {
 			final URL interfaceEpisodeURL = getClass().getResource(this.upstreamEpisodeFile);
 			final EpisodeBuilder episodeBuilder = new EpisodeBuilder(pluginContext, this.downstreamEpisodeFile);
 			this.generator = new GroupInterfaceGenerator(pluginContext, interfaceEpisodeURL, episodeBuilder, getSettings(pluginContext));
@@ -146,7 +149,7 @@ public class GroupInterfacePlugin extends AbstractPlugin {
 
 	public GroupInterfaceGeneratorSettings getSettings(final PluginContext pluginContext) {
 		final FluentBuilderPlugin fluentBuilderPlugin = pluginContext.findPlugin(FluentBuilderPlugin.class);
-		if(fluentBuilderPlugin != null) {
+		if (fluentBuilderPlugin != null) {
 			final BuilderGeneratorSettings builderGeneratorSettings = fluentBuilderPlugin.getSettings();
 			return new GroupInterfaceGeneratorSettings(this.declareSetters, this.declareBuilderInterface, this.supportInterfaceNameSuffix, builderGeneratorSettings);
 		} else {
@@ -165,6 +168,7 @@ public class GroupInterfacePlugin extends AbstractPlugin {
 	 * Later, this plugin will transform the classes into interface declarations.
 	 * This approach avoids tedious re-implementation of the property generation code,
 	 * with all the effects of settings, options, and customizations, in this plugin.
+	 *
 	 * @param opts Options given to XJC
 	 * @throws BadCommandLineException
 	 */
@@ -180,16 +184,14 @@ public class GroupInterfacePlugin extends AbstractPlugin {
 			final XPathExpression attGroupExpression = xPath.compile("/xs:schema/xs:attributeGroup");
 			final XPathExpression modelGroupExpression = xPath.compile("/xs:schema/xs:group");
 			final XPathExpression targetNamespaceExpression = xPath.compile("/xs:schema/@targetNamespace");
-
-			final Map<String,List<String>> includeMappings = findIncludeMappings(xPath, opts.getGrammars());
-
+			final Map<String, List<String>> includeMappings = findIncludeMappings(xPath, opts.getGrammars());
 			final List<InputSource> newGrammars = new ArrayList<>();
-			for (final InputSource grammar : opts.getGrammars()) {
-				final InputSource schemaCopy = new InputSource(grammar.getSystemId());
-				final String declaredTargetNamespaceUri = targetNamespaceExpression.evaluate(schemaCopy);
-				for(final String targetNamespaceUri : declaredTargetNamespaceUri == null ? includeMappings.get(grammar.getSystemId()) : Collections.singletonList(declaredTargetNamespaceUri)) {
-					final NodeList attGroupNodes = (NodeList)attGroupExpression.evaluate(schemaCopy, XPathConstants.NODESET);
-					final NodeList modelGroupNodes = (NodeList)modelGroupExpression.evaluate(schemaCopy, XPathConstants.NODESET);
+			for (final InputSource grammarSource : opts.getGrammars()) {
+				final Document grammar = copyInputSource(grammarSource);
+				final String declaredTargetNamespaceUri = targetNamespaceExpression.evaluate(grammar);
+				for (final String targetNamespaceUri : declaredTargetNamespaceUri == null ? includeMappings.get(grammarSource.getSystemId()) : Collections.singletonList(declaredTargetNamespaceUri)) {
+					final NodeList attGroupNodes = (NodeList)attGroupExpression.evaluate(grammar, XPathConstants.NODESET);
+					final NodeList modelGroupNodes = (NodeList)modelGroupExpression.evaluate(grammar, XPathConstants.NODESET);
 					final Groups currentGroups = new Groups(targetNamespaceUri);
 					for (int i = 0; i < attGroupNodes.getLength(); i++) {
 						final Element node = (Element)attGroupNodes.item(i);
@@ -199,92 +201,122 @@ public class GroupInterfacePlugin extends AbstractPlugin {
 						final Element node = (Element)modelGroupNodes.item(i);
 						currentGroups.modelGroupNames.add(node.getAttribute("name"));
 					}
-					final InputSource newSchema = generateImplementationSchema(opts, transformer, currentGroups, schemaCopy.getSystemId());
+					final InputSource newSchema = generateImplementationSchema(opts, transformer, currentGroups, grammarSource.getSystemId());
 					if (newSchema != null) {
 						newGrammars.add(newSchema);
 					}
 				}
 			}
-
-			for(final InputSource newGrammar : newGrammars) {
+			for (final InputSource newGrammar : newGrammars) {
 				opts.addGrammar(newGrammar);
 			}
-		} catch(final Exception e) {
+		} catch (final Exception e) {
 			throw new BadCommandLineException(getMessage("error.plugin-setup", e));
 		}
 	}
 
-	private static InputSource generateImplementationSchema(final Options opts, final Transformer transformer, final Groups namespaceGroups, final String systemId) throws TransformerException {
-			if(!namespaceGroups.attGroupNames.isEmpty() || !namespaceGroups.modelGroupNames.isEmpty()) {
-				final Document dummySchema = GroupInterfacePlugin.DOCUMENT_BUILDER.newDocument();
-				dummySchema.setXmlVersion("1.0");
-				// Treat "http://www.w3.org/XML/1998/namespace" namespace specially, because the ns prefix always has to be "xml" for this
-				// and only this namespace.
-				final String targetNamespacePrefix = Namespaces.XML_NS.equals(namespaceGroups.targetNamespace) ? "xml" : "tns";
-				final Element rootEl = dummySchema.createElementNS(Namespaces.XS_NS, "xs:schema");
-				rootEl.setAttribute("version", "1.0");
-				rootEl.setAttribute("targetNamespace", namespaceGroups.targetNamespace);
-				rootEl.setAttribute("elementFormDefault", "qualified");
-				rootEl.setAttribute("xmlns:"+targetNamespacePrefix, namespaceGroups.targetNamespace);
-				dummySchema.appendChild(rootEl);
-
-				final Element importEl = dummySchema.createElementNS(Namespaces.XS_NS, "xs:include");
-				importEl.setAttribute("schemaLocation", systemId);
-				rootEl.appendChild(importEl);
-
-				for (final String attGroupName : namespaceGroups.attGroupNames) {
-					final Element complexTypeEl = dummySchema.createElementNS(Namespaces.XS_NS, "xs:complexType");
-					complexTypeEl.setAttribute("name", attGroupName);
-					rootEl.appendChild(complexTypeEl);
-
-					final Element attGroupRefEl = dummySchema.createElementNS(Namespaces.XS_NS, "xs:attributeGroup");
-					attGroupRefEl.setAttribute("ref", targetNamespacePrefix +":" + attGroupName);
-					complexTypeEl.appendChild(attGroupRefEl);
+	private static Document copyInputSource(final InputSource inputSource) throws IOException,SAXException {
+		final Reader characterStream = inputSource.getCharacterStream(); // aliasing because of possible getCharacterStream side effects
+		final InputStream byteStream =  inputSource.getByteStream(); // aliasing because of possible getByteStream side effects
+		if (characterStream != null) {
+			final StringWriter stringWriter = new StringWriter();
+			final BufferedReader bufferedReader = new BufferedReader(characterStream);
+			try (final PrintWriter printWriter = new PrintWriter(stringWriter)) {
+				String line;
+				while ((line = bufferedReader.readLine()) != null) {
+					printWriter.println(line);
 				}
-
-				for (final String modelGroupName : namespaceGroups.modelGroupNames) {
-					final Element complexTypeEl = dummySchema.createElementNS(Namespaces.XS_NS, "xs:complexType");
-					complexTypeEl.setAttribute("name", modelGroupName);
-					rootEl.appendChild(complexTypeEl);
-
-					final Element sequenceEl = dummySchema.createElementNS(Namespaces.XS_NS, "xs:sequence");
-					complexTypeEl.appendChild(sequenceEl);
-
-					final Element modelGroupRefEl = dummySchema.createElementNS(Namespaces.XS_NS, "xs:group");
-					modelGroupRefEl.setAttribute("ref", targetNamespacePrefix +":" + modelGroupName);
-					sequenceEl.appendChild(modelGroupRefEl);
-				}
-
-				final StringWriter stringWriter = new StringWriter();
-				final StreamResult streamResult = new StreamResult(stringWriter);
-
-				transformer.transform(new DOMSource(dummySchema), streamResult);
-
-				final Reader stringReader = new ResettableStringReader(stringWriter.toString());
-
-				final InputSource inputSource = new InputSource(stringReader);
-				final int suffixPos = systemId.lastIndexOf('.');
-				final String baseName = suffixPos > 0 ? systemId.substring(0,suffixPos) : systemId;
-				inputSource.setSystemId(baseName + "-impl.xsd");
-				return inputSource;
-			} else {
-				return null;
 			}
+			inputSource.setCharacterStream(new StringReader(stringWriter.toString()));
+			final InputSource copy = new InputSource(new StringReader(stringWriter.toString()));
+			copy.setSystemId(inputSource.getSystemId());
+			copy.setPublicId(inputSource.getPublicId());
+			copy.setEncoding(inputSource.getEncoding());
+			return GroupInterfacePlugin.DOCUMENT_BUILDER.parse(copy);
+		} else if (byteStream != null) {
+			final int blockSize = 8192;
+			final byte[] buffer = new byte[blockSize];
+			final ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+			int bytesRead;
+			while ((bytesRead = byteStream.read(buffer, 0, blockSize)) > -1) {
+				byteArrayOutputStream.write(buffer, 0, bytesRead);
+			}
+			byteArrayOutputStream.close();
+			final byte[] allBytes = byteArrayOutputStream.toByteArray();
+			inputSource.setByteStream(new ByteArrayInputStream(allBytes));
+			final InputSource copy = new InputSource(new ByteArrayInputStream(allBytes));
+			copy.setSystemId(inputSource.getSystemId());
+			copy.setPublicId(inputSource.getPublicId());
+			copy.setEncoding(inputSource.getEncoding());
+			return GroupInterfacePlugin.DOCUMENT_BUILDER.parse(copy);
+		} else {
+			final InputSource copy = new InputSource(inputSource.getSystemId());
+			copy.setPublicId(inputSource.getPublicId());
+			copy.setEncoding(inputSource.getEncoding());
+			return GroupInterfacePlugin.DOCUMENT_BUILDER.parse(copy);
+		}
 	}
 
-	private Map<String,List<String>> findIncludeMappings(final XPath xPath, final InputSource[] grammars) throws XPathExpressionException {
+	private static InputSource generateImplementationSchema(final Options opts, final Transformer transformer, final Groups namespaceGroups, final String systemId) throws TransformerException {
+		if (!namespaceGroups.attGroupNames.isEmpty() || !namespaceGroups.modelGroupNames.isEmpty()) {
+			final Document dummySchema = GroupInterfacePlugin.DOCUMENT_BUILDER.newDocument();
+			dummySchema.setXmlVersion("1.0");
+			// Treat "http://www.w3.org/XML/1998/namespace" namespace specially, because the ns prefix always has to be "xml" for this
+			// and only this namespace.
+			final String targetNamespacePrefix = Namespaces.XML_NS.equals(namespaceGroups.targetNamespace) ? "xml" : "tns";
+			final Element rootEl = dummySchema.createElementNS(Namespaces.XS_NS, "xs:schema");
+			rootEl.setAttribute("version", "1.0");
+			rootEl.setAttribute("targetNamespace", namespaceGroups.targetNamespace);
+			rootEl.setAttribute("elementFormDefault", "qualified");
+			rootEl.setAttribute("xmlns:" + targetNamespacePrefix, namespaceGroups.targetNamespace);
+			dummySchema.appendChild(rootEl);
+			final Element importEl = dummySchema.createElementNS(Namespaces.XS_NS, "xs:include");
+			importEl.setAttribute("schemaLocation", systemId);
+			rootEl.appendChild(importEl);
+			for (final String attGroupName : namespaceGroups.attGroupNames) {
+				final Element complexTypeEl = dummySchema.createElementNS(Namespaces.XS_NS, "xs:complexType");
+				complexTypeEl.setAttribute("name", attGroupName);
+				rootEl.appendChild(complexTypeEl);
+				final Element attGroupRefEl = dummySchema.createElementNS(Namespaces.XS_NS, "xs:attributeGroup");
+				attGroupRefEl.setAttribute("ref", targetNamespacePrefix + ":" + attGroupName);
+				complexTypeEl.appendChild(attGroupRefEl);
+			}
+			for (final String modelGroupName : namespaceGroups.modelGroupNames) {
+				final Element complexTypeEl = dummySchema.createElementNS(Namespaces.XS_NS, "xs:complexType");
+				complexTypeEl.setAttribute("name", modelGroupName);
+				rootEl.appendChild(complexTypeEl);
+				final Element sequenceEl = dummySchema.createElementNS(Namespaces.XS_NS, "xs:sequence");
+				complexTypeEl.appendChild(sequenceEl);
+				final Element modelGroupRefEl = dummySchema.createElementNS(Namespaces.XS_NS, "xs:group");
+				modelGroupRefEl.setAttribute("ref", targetNamespacePrefix + ":" + modelGroupName);
+				sequenceEl.appendChild(modelGroupRefEl);
+			}
+			final StringWriter stringWriter = new StringWriter();
+			final StreamResult streamResult = new StreamResult(stringWriter);
+			transformer.transform(new DOMSource(dummySchema), streamResult);
+			final Reader stringReader = new ResettableStringReader(stringWriter.toString());
+			final InputSource inputSource = new InputSource(stringReader);
+			final int suffixPos = systemId.lastIndexOf('.');
+			final String baseName = suffixPos > 0 ? systemId.substring(0, suffixPos) : systemId;
+			inputSource.setSystemId(baseName + "-impl.xsd");
+			return inputSource;
+		} else {
+			return null;
+		}
+	}
+
+	private Map<String, List<String>> findIncludeMappings(final XPath xPath, final InputSource[] grammars) throws XPathExpressionException {
 		final XPathExpression includeExpression = xPath.compile("/xs:schema/xs:include/@schemaLocation");
 		final XPathExpression targetNamespaceExpression = xPath.compile("/xs:schema/@targetNamespace");
-
-		final Map<String,List<String>> mappings = new HashMap<>();
-		for(final InputSource grammar: grammars) {
+		final Map<String, List<String>> mappings = new HashMap<>();
+		for (final InputSource grammar : grammars) {
 			final Node targetNamespaceNode = (Node)targetNamespaceExpression.evaluate(grammar, XPathConstants.NODE);
 			final NodeList includeNodes = (NodeList)includeExpression.evaluate(grammar, XPathConstants.NODESET);
-			if(targetNamespaceNode != null) {
-				for(int i = 0; i < includeNodes.getLength(); i++) {
+			if (targetNamespaceNode != null) {
+				for (int i = 0; i < includeNodes.getLength(); i++) {
 					final String includedSchema = includeNodes.item(i).getNodeValue();
 					List<String> includers = mappings.get(includedSchema);
-					if(includers == null) {
+					if (includers == null) {
 						includers = new ArrayList<>();
 						mappings.put(includedSchema, includers);
 					}
@@ -322,7 +354,7 @@ public class GroupInterfacePlugin extends AbstractPlugin {
 		private final XPathContext schemaLocationExpression;
 		private final XPathContext customizationExpression;
 		private final InputSource[] bindFiles;
-		private final Map<String,InputSource> grammars;
+		private final Map<String, InputSource> grammars;
 		private final Unmarshaller unmarshaller;
 
 		CustomizationParser(final XPath xPath, final InputSource[] grammars, final InputSource[] bindFiles) throws XPathExpressionException, JAXBException {
@@ -337,7 +369,7 @@ public class GroupInterfacePlugin extends AbstractPlugin {
 			this.schemaLocationExpression = new XPathContext(xPath.compile("ancestor::jxb:bindings/@schemaLocation"));
 			this.customizationExpression = new XPathContext(xPath.compile("xs:annotation/xs:appInfo/kscs:interface"));
 			this.grammars = new HashMap<>(grammars.length);
-			for(final InputSource grammar : grammars) {
+			for (final InputSource grammar : grammars) {
 				this.grammars.put(grammar.getSystemId(), grammar);
 			}
 			this.bindFiles = bindFiles;
@@ -345,27 +377,26 @@ public class GroupInterfacePlugin extends AbstractPlugin {
 		}
 
 		private void inlineBindings() throws XPathExpressionException, JAXBException {
-			for(final InputSource bindFile : this.bindFiles) {
-				for(final Element customizationElement : this.descendantInterfaceExpression.selectElements(bindFile)) {
+			for (final InputSource bindFile : this.bindFiles) {
+				for (final Element customizationElement : this.descendantInterfaceExpression.selectElements(bindFile)) {
 					StringBuilder targetPathBuilder = null;
 					final List<Element> targetPathNodes = this.targetPathExpression.selectElements(customizationElement);
-					for(int t = targetPathNodes.size() - 1; t <= 0; t--) {
+					for (int t = targetPathNodes.size() - 1; t <= 0; t--) {
 						final Node node = targetPathNodes.get(t);
-						if(targetPathBuilder == null) {
+						if (targetPathBuilder == null) {
 							targetPathBuilder = new StringBuilder();
 						} else {
 							targetPathBuilder.append("/");
 						}
 						targetPathBuilder.append(node.getNodeValue());
 					}
-
-					if(targetPathBuilder != null) {
+					if (targetPathBuilder != null) {
 						final XPathContext targetPath = new XPathContext(this.xPath.compile(targetPathBuilder.toString()));
 						final String schemaLocation = this.schemaLocationExpression.selectText(customizationElement);
 						final URI bindFileUri = URI.create(bindFile.getSystemId());
 						final InputSource grammar = this.grammars.get(bindFileUri.resolve(schemaLocation).toString());
 						final Element targetElement = targetPath.selectElement(grammar);
-						if(targetElement != null) {
+						if (targetElement != null) {
 							createAnnotation(targetElement, customizationElement);
 						}
 					} else {
@@ -387,26 +418,26 @@ public class GroupInterfacePlugin extends AbstractPlugin {
 
 		void parse() throws XPathExpressionException, JAXBException, IOException, SAXException {
 			inlineBindings();
-			for(final InputSource grammar : this.grammars.values()) {
+			for (final InputSource grammar : this.grammars.values()) {
 				final Document doc = GroupInterfacePlugin.DOCUMENT_BUILDER.parse(grammar);
 				final Element schemaEl = doc.getDocumentElement();
 				final String targetNamespace = schemaEl.getAttribute("targetNamespace");
 				final CustomizationContext schemaContext = parse(this.rootCustomizationContext, schemaEl, targetNamespace);
-				for(final Element elementEl : this.elementDefsExpression.selectElements(schemaEl)) {
+				for (final Element elementEl : this.elementDefsExpression.selectElements(schemaEl)) {
 					parse(schemaContext, elementEl, targetNamespace);
 				}
-				for(final Element attributeEl : this.attributeDefsExpression.selectElements(schemaEl)) {
+				for (final Element attributeEl : this.attributeDefsExpression.selectElements(schemaEl)) {
 					parse(schemaContext, attributeEl, targetNamespace);
 				}
-				for(final Element groupEl : this.modelGroupDefsExpression.selectElements(schemaEl)) {
+				for (final Element groupEl : this.modelGroupDefsExpression.selectElements(schemaEl)) {
 					final CustomizationContext groupContext = parse(schemaContext, groupEl, targetNamespace);
-					for(final Element elementEl : this.descendantElementDefsExpression.selectElements(groupEl)) {
+					for (final Element elementEl : this.descendantElementDefsExpression.selectElements(groupEl)) {
 						parse(groupContext, elementEl, targetNamespace);
 					}
 				}
-				for(final Element attGroupEl : this.attGroupDefsExpression.selectElements(schemaEl)) {
+				for (final Element attGroupEl : this.attGroupDefsExpression.selectElements(schemaEl)) {
 					final CustomizationContext groupContext = parse(schemaContext, attGroupEl, targetNamespace);
-					for(final Element attributeEl : this.descendantElementDefsExpression.selectElements(attGroupEl)) {
+					for (final Element attributeEl : this.descendantElementDefsExpression.selectElements(attGroupEl)) {
 						parse(groupContext, attributeEl, targetNamespace);
 					}
 				}
@@ -426,7 +457,7 @@ public class GroupInterfacePlugin extends AbstractPlugin {
 		private final String targetNamespace;
 		private final Interface item;
 		private final CustomizationContext parent;
-		private final Map<String,CustomizationContext> children = new HashMap<>();
+		private final Map<String, CustomizationContext> children = new HashMap<>();
 
 		public CustomizationContext(final String type, final String targetNamespace, final String name, final Interface item, final CustomizationContext parent) {
 			this.type = type;

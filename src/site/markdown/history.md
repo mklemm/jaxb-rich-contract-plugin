@@ -77,6 +77,8 @@
 	`htmlBuilder.withH1().withContent("bla").end()....`.
 * **1.6.9**:
 	* Fixed errors in release workflow
+* **1.6.10**:
+	* Changes in group-contract plugin when handling XSD input sources.
 	
 	
 
