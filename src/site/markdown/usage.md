@@ -12,7 +12,7 @@ jaxb2-rich-contract-plugin is a plugin to the XJC "XML to Java compiler" shipped
 
 ####  From Maven
 
-You should add "maven-jaxb2-plugin" to your `<build>` configuration. Then add "jaxb2-rich-contract-plugin" as an XJC plugin ("plugin for plugin") to the maven plugin declaration. The following example shows all possible options reflecting their default values:
+You should add "maven-jaxb2-plugin" to your `<build>` configuration. Then add "jaxb2-rich-contract-plugin" as an XJC plugin ("plugin for plugin") to the maven plugin declaration. The following cheat sheet shows all possible options reflecting their default values:
 
 ``` xml
     <build>
@@ -39,54 +39,54 @@ You should add "maven-jaxb2-plugin" to your `<build>` configuration. Then add "j
                     <extension>true</extension>
                     <removeOldOutput>true</removeOldOutput>
                     <args>
-						<arg>-Xfluent-builder</arg>
-							<arg>-rootSelectorClassName=Select</arg>
-							<arg>-newBuilderMethodName=builder</arg>
-							<arg>-newCopyBuilderMethodName=newCopyBuilder</arg>
-							<arg>-builderFieldSuffix=_Builder</arg>
-							<arg>-generateTools=y</arg>
-							<arg>-narrow=n</arg>
-							<arg>-copyPartial=y</arg>
-							<arg>-selectorClassName=Selector</arg>
-							<arg>-builderClassName=Builder</arg>
-							<arg>-builderInterfaceName=BuildSupport</arg>
-						<arg>-Ximmutable</arg>
-							<arg>-constructorAccess=public</arg>
-							<arg>-generateModifier=y</arg>
-							<arg>-modifierClassName=Modifier</arg>
-							<arg>-modifierMethodName=modifier</arg>
-						<arg>-Xgroup-contract</arg>
-							<arg>-declareSetters=y</arg>
-							<arg>-declareBuilderInterface=y</arg>
-							<arg>-upstreamEpisodeFile=/META-INF/jaxb-interfaces.episode</arg>
-							<arg>-downstreamEpisodeFile=/META-INF/jaxb-interfaces.episode</arg>
-							<arg>-omitTypeClash=y</arg>
-						<arg>-Xclone</arg>
-							<arg>-cloneThrows=y</arg>
-						<arg>-Xcopy</arg>
-							<arg>-partial=y</arg>
-							<arg>-generateTools=y</arg>
-							<arg>-constructor=y</arg>
-							<arg>-narrow=n</arg>
-							<arg>-selectorClassName=Selector</arg>
-							<arg>-rootSelectorClassName=Select</arg>
-						<arg>-Xconstrained-properties</arg>
-							<arg>-constrained=y</arg>
-							<arg>-bound=y</arg>
-							<arg>-setterThrows=n</arg>
-							<arg>-generateTools=y</arg>
-						<arg>-Xmeta</arg>
-							<arg>-generateTools=y</arg>
-							<arg>-extended=n</arg>
-							<arg>-camelCase=n</arg>
-							<arg>-metaClassName=PropInfo</arg>
+                        <arg>-Xfluent-builder</arg>
+                            <arg>-rootSelectorClassName=Select</arg>
+                            <arg>-newBuilderMethodName=builder</arg>
+                            <arg>-newCopyBuilderMethodName=newCopyBuilder</arg>
+                            <arg>-builderFieldSuffix=_Builder</arg>
+                            <arg>-generateTools=y</arg>
+                            <arg>-narrow=n</arg>
+                            <arg>-copyPartial=y</arg>
+                            <arg>-selectorClassName=Selector</arg>
+                            <arg>-builderClassName=Builder</arg>
+                            <arg>-builderInterfaceName=BuildSupport</arg>
+                        <arg>-Ximmutable</arg>
+                            <arg>-constructorAccess=public</arg>
+                            <arg>-generateModifier=y</arg>
+                            <arg>-modifierClassName=Modifier</arg>
+                            <arg>-modifierMethodName=modifier</arg>
+                        <arg>-Xgroup-contract</arg>
+                            <arg>-declareSetters=y</arg>
+                            <arg>-declareBuilderInterface=y</arg>
+                            <arg>-upstreamEpisodeFile=/META-INF/jaxb-interfaces.episode</arg>
+                            <arg>-downstreamEpisodeFile=/META-INF/jaxb-interfaces.episode</arg>
+                            <arg>-omitTypeClash=y</arg>
+                        <arg>-Xclone</arg>
+                            <arg>-cloneThrows=y</arg>
+                        <arg>-Xcopy</arg>
+                            <arg>-partial=y</arg>
+                            <arg>-generateTools=y</arg>
+                            <arg>-constructor=y</arg>
+                            <arg>-narrow=n</arg>
+                            <arg>-selectorClassName=Selector</arg>
+                            <arg>-rootSelectorClassName=Select</arg>
+                        <arg>-Xconstrained-properties</arg>
+                            <arg>-constrained=y</arg>
+                            <arg>-bound=y</arg>
+                            <arg>-setterThrows=n</arg>
+                            <arg>-generateTools=y</arg>
+                        <arg>-Xmeta</arg>
+                            <arg>-generateTools=y</arg>
+                            <arg>-extended=n</arg>
+                            <arg>-camelCase=n</arg>
+                            <arg>-metaClassName=PropInfo</arg>
                         <arg>...</arg>
                     </args>
                     <plugins>
                         <plugin>
                             <groupId>net.codesup.util</groupId>
                             <artifactId>jaxb2-rich-contract-plugin</artifactId>
-                            <version>1.6.7</version>
+                            <version>1.7.0</version>
                         </plugin>
                     </plugins>
                     <dependencies>

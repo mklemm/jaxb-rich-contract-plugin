@@ -79,6 +79,10 @@
 	* Fixed errors in release workflow
 * **1.6.10**:
 	* Changes in group-contract plugin when handling XSD input sources.
+* **1.7.0**:
+	* Modified fluent builder behavior so that it creates a deep copy of all child objects passed to the builder methods,
+	if the child object is an instance of a JAXB-generated class from the same compilation unit or one of its episode-dependencies.
+	
 	
 	
 
