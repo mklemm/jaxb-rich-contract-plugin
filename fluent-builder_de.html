@@ -190,7 +190,9 @@
 <h4>Additional Features<a name="Additional_Features"></a></h4>
 <div class="section">
 <h5>&#x201c;Choice Expansion&#x201d;<a name="aChoice_Expansion"></a></h5>
-<p>In standard JAXB, if you define a <tt>&lt;choice&gt;</tt> group in an XSD complexType definition with cardinality &#x201c;many&#x201d;, the generated code will only contain a generic collection of &#x201c;java.lang.Object&#x201d; type, named something like &#x201c;AorBorC&#x2026;&#x201d;. However, fluent-builder will determine exactly which types are actually possible in this collection, and will generate individual &#x201c;addXXX&#x201d; methods for each of them. So, imagine you have generated code from the XHTML 1.0 schema, and you wish to use fluent-builder to generate an XHTML document programmatically. Now, again imagine you have already created the &#x201c;html&#x201d; and &#x201c;head&#x201d; elements, and you are about to populate the &#x201c;body&#x201d; eith a table.</p>
+<p>In standard JAXB, if you define a <tt>&lt;choice&gt;</tt> group in an XSD complexType definition with cardinality &#x201c;many&#x201d;, the generated code will only contain a generic collection of &#x201c;java.lang.Object&#x201d; type, named something like &#x201c;AorBorC&#x2026;&#x201d;.</p>
+<p>However, fluent-builder will determine exactly which types are actually possible in this collection, and will generate individual &#x201c;addXXX&#x201d; methods for each of them.</p>
+<p>So, imagine you have generated code from the XHTML 1.0 schema, and you wish to use fluent-builder to generate an XHTML document programmatically. Now, again imagine you have already created the &#x201c;html&#x201d; and &#x201c;head&#x201d; elements, and you are about to populate the &#x201c;body&#x201d; eith a table.</p>
 <p>Without fluent-builder, you would do something like:</p>
 
 <div class="source">
