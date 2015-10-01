@@ -26,6 +26,8 @@ package com.kscs.util.plugins.xjc.doc;
 
 import java.io.IOException;
 import java.io.PrintStream;
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.nio.charset.Charset;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -122,7 +124,7 @@ public final class DocumentationGenerator {
 	}
 
 	private void printMarkdownUsageFiles() throws IOException {
-		printGeneralUsageFile("usage", "usage-header", "usage-footer");
+		printGeneralUsageFile("usage");
 		for(final Locale locale:this.pluginDocumentationFormatters.keySet()) {
 			for (final PluginDocumentationFormatter pluginDocumentationFormatter : this.pluginDocumentationFormatters.get(locale)) {
 				final String usageMarkdown = pluginDocumentationFormatter.getUsageMarkdown();
@@ -133,22 +135,28 @@ public final class DocumentationGenerator {
 		}
 	}
 
-	private void printGeneralUsageFile(final String usageFileBaseName, final String headerFileBaseName, final String footerFileBaseName) throws IOException {
+	private void printGeneralUsageFile(final String usageFileBaseName) throws IOException {
 		for(final Locale locale:this.pluginDocumentationFormatters.keySet()) {
-			final Path usageFile = this.siteDirectory.resolve(usageFileBaseName + (Locale.ROOT.equals(locale) ? "" :  "_" + locale.toLanguageTag()) + ".md");
-			final Path headerFile = getLocalizedFile(headerFileBaseName, locale);
-			final Path footerFile = getLocalizedFile(footerFileBaseName, locale);
-			try (final PrintStream p = new PrintStream(usageFile.toFile())) {
-				for (final String line : Files.readAllLines(headerFile, Charset.defaultCharset())) {
-					p.println(line);
-				}
-				for (final PluginDocumentationFormatter pluginDocumentationFormatter : this.pluginDocumentationFormatters.get(locale)) {
-					p.print(pluginDocumentationFormatter.getConfigCheatSheet(6, "<arg>-", "</arg>"));
-				}
-				for (final String line : Files.readAllLines(footerFile, Charset.defaultCharset())) {
-					p.println(line);
+			final Path usageFile = getLocalizedFile(usageFileBaseName, locale);
+			final StringWriter sw = new StringWriter();
+			boolean skip = false;
+			try (final PrintWriter p = new PrintWriter(sw)) {
+				for (final String line : Files.readAllLines(usageFile, Charset.defaultCharset())) {
+					if(line.trim().equals("<args>")) {
+						p.println(line);
+						for (final PluginDocumentationFormatter pluginDocumentationFormatter : this.pluginDocumentationFormatters.get(locale)) {
+							p.print(pluginDocumentationFormatter.getConfigCheatSheet(6, "<arg>-", "</arg>"));
+						}
+						skip = true;
+					} else if(skip) {
+						skip = !line.trim().equals("</args>");
+					}
+					if(!skip) {
+						p.println(line);
+					}
 				}
 			}
+			Files.write(usageFile, sw.toString().getBytes(Charset.defaultCharset()));
 		}
 	}
 
