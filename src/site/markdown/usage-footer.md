@@ -4,7 +4,7 @@
                         <plugin>
                             <groupId>net.codesup.util</groupId>
                             <artifactId>jaxb2-rich-contract-plugin</artifactId>
-                            <version>1.7.0</version>
+                            <version>1.8.0</version>
                         </plugin>
                     </plugins>
                     <dependencies>

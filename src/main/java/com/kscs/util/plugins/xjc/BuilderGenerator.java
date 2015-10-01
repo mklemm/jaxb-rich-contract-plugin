@@ -74,6 +74,7 @@ class BuilderGenerator {
 	public static final String OTHER_PARAM_NAME = "_other";
 	public static final String OTHER_VAR_NAME = "_my";
 	public static final String PARENT_BUILDER_PARAM_NAME = "_parentBuilder";
+	public static final String STORED_VALUE_PARAM_NAME = "_storedValue";
 	public static final String NEW_BUILDER_VAR_NAME = "_newBuilder";
 	public static final String COPY_FLAG_PARAM_NAME = "_copy";
 	private static final String ITEM_VAR_NAME = "_item";
@@ -83,6 +84,7 @@ class BuilderGenerator {
 	private final DefinedTypeOutline typeOutline;
 	private final Map<String, BuilderOutline> builderOutlines;
 	private final JFieldVar parentBuilderField;
+	private final JAssignmentTarget storedValueField;
 	private final boolean implement;
 	private final BuilderGeneratorSettings settings;
 	private final ResourceBundle resources;
@@ -101,11 +103,14 @@ class BuilderGenerator {
 			if (this.implement) {
 				this.parentBuilderField = this.builderClass.raw.field(JMod.PROTECTED | JMod.FINAL, this.builderClass.typeParam, BuilderGenerator.PARENT_BUILDER_PARAM_NAME);
 				endMethod.body()._return(JExpr._this().ref(this.parentBuilderField));
+				this.storedValueField = this.settings.isCopyAlways() ? null : this.builderClass.raw.field(JMod.PROTECTED | JMod.FINAL, this.definedClass, BuilderGenerator.STORED_VALUE_PARAM_NAME);
 			} else {
 				this.parentBuilderField = null;
+				this.storedValueField = null;
 			}
 		} else {
 			this.parentBuilderField = null;
+			this.storedValueField = this.implement ? JExpr.ref(BuilderGenerator.STORED_VALUE_PARAM_NAME) : null;
 		}
 		if (this.implement) {
 			generateCopyConstructor(false);
@@ -217,7 +222,7 @@ class BuilderGenerator {
 			final JForEach addIterableForEach = addIterableIfParamNull._then().forEach(elementType, BuilderGenerator.ITEM_VAR_NAME, addIterableParam);
 			final JExpression builderCreationExpression = childBuilderOutline == null
 					? JExpr._new(this.pluginContext.buildableClass).arg(addIterableForEach.var())
-					: addIterableForEach.var().invoke(this.settings.getNewCopyBuilderMethodName()).arg(JExpr._this());
+					: JExpr._new(childBuilderType).arg(JExpr._this()).arg(addIterableForEach.var()).arg(this.settings.isCopyAlways() ? JExpr.TRUE : JExpr.FALSE);
 			addIterableForEach.body().add(JExpr._this().ref(builderField).invoke("add").arg(builderCreationExpression));
 			addIterableMethod.body()._return(JExpr._this());
 
@@ -226,7 +231,7 @@ class BuilderGenerator {
 			} else {
 				final JConditional addIfNull = addMethod.body()._if(JExpr._this().ref(builderField).eq(JExpr._null()));
 				addIfNull._then().assign(JExpr._this().ref(builderField), JExpr._new(builderArrayListClass));
-				final JVar childBuilderVar = addMethod.body().decl(JMod.FINAL, childBuilderType, fieldName + this.settings.getBuilderFieldSuffix(), JExpr._new(childBuilderType).arg(JExpr._this()).arg(JExpr._null()));
+				final JVar childBuilderVar = addMethod.body().decl(JMod.FINAL, childBuilderType, fieldName + this.settings.getBuilderFieldSuffix(), JExpr._new(childBuilderType).arg(JExpr._this()).arg(JExpr._null()).arg(JExpr.FALSE));
 				addMethod.body().add(JExpr._this().ref(builderField).invoke("add").arg(childBuilderVar));
 				addMethod.body()._return(childBuilderVar);
 			}
@@ -276,7 +281,7 @@ class BuilderGenerator {
 			final JForEach jForEach = addIterableIfParamNull._then().forEach(elementType, BuilderGenerator.ITEM_VAR_NAME, addIterableParam);
 			final JExpression builderCreationExpression = childBuilderOutline == null
 					? JExpr._new(this.pluginContext.buildableClass).arg(jForEach.var())
-					: jForEach.var().invoke(this.settings.getNewCopyBuilderMethodName()).arg(JExpr._this());
+					: JExpr._new(childBuilderType).arg(JExpr._this()).arg(jForEach.var()).arg(this.settings.isCopyAlways() ? JExpr.TRUE : JExpr.FALSE);
 			jForEach.body().add(JExpr._this().ref(builderField).invoke("add").arg(builderCreationExpression));
 			addIterableMethod.body()._return(JExpr._this());
 			final JConditional withIterableIfNull = withIterableMethod.body()._if(JExpr._this().ref(builderField).ne(JExpr._null()));
@@ -294,7 +299,7 @@ class BuilderGenerator {
 			if (addMethod != null) {
 				final JConditional addIfNull = addMethod.body()._if(JExpr._this().ref(builderField).eq(JExpr._null()));
 				addIfNull._then().assign(JExpr._this().ref(builderField), JExpr._new(builderArrayListClass));
-				final JVar childBuilderVar = addMethod.body().decl(JMod.FINAL, childBuilderType, fieldName + this.settings.getBuilderFieldSuffix(), JExpr._new(builderFieldElementType).arg(JExpr._this()).arg(JExpr._null()));
+				final JVar childBuilderVar = addMethod.body().decl(JMod.FINAL, childBuilderType, fieldName + this.settings.getBuilderFieldSuffix(), JExpr._new(builderFieldElementType).arg(JExpr._this()).arg(JExpr._null()).arg(JExpr.FALSE));
 				addMethod.body().add(JExpr._this().ref(builderField).invoke("add").arg(childBuilderVar));
 				addMethod.body()._return(childBuilderVar);
 			}
@@ -330,10 +335,10 @@ class BuilderGenerator {
 			}
 			if (this.implement) {
 				final JFieldVar builderField = this.builderClass.raw.field(JMod.PRIVATE, builderFieldElementType, fieldName);
-				withValueMethod.body().assign(JExpr._this().ref(builderField), nullSafe(param, param.invoke(this.settings.getNewCopyBuilderMethodName()).arg(JExpr._this())));
+				withValueMethod.body().assign(JExpr._this().ref(builderField), nullSafe(param, JExpr._new(builderFieldElementType).arg(JExpr._this()).arg(param).arg(this.settings.isCopyAlways() ? JExpr.TRUE : JExpr.FALSE)));
 				withValueMethod.body()._return(JExpr._this());
 				if(withBuilderMethod != null) {
-					withBuilderMethod.body()._return(JExpr._this().ref(builderField).assign(JExpr._new(builderFieldElementType).arg(JExpr._this()).arg(JExpr._null())));
+					withBuilderMethod.body()._return(JExpr._this().ref(builderField).assign(JExpr._new(builderFieldElementType).arg(JExpr._this()).arg(JExpr._null()).arg(JExpr.FALSE)));
 				}
 				initBody.assign(productParam.ref(fieldName), nullSafe(JExpr._this().ref(builderField), JExpr._this().ref(builderField).invoke(PluginContext.BUILD_METHOD_NAME)));
 			}
@@ -440,19 +445,28 @@ class BuilderGenerator {
 	}
 
 	JMethod generateBuildMethod(final JMethod initMethod) {
-		final JMethod buildMethod = this.builderClass.raw.method(JMod.PUBLIC | (this.definedClass.isAbstract() && this.implement ? JMod.ABSTRACT : 0), this.definedClass, PluginContext.BUILD_METHOD_NAME);
+		final JMethod buildMethod = this.builderClass.raw.method(JMod.PUBLIC, this.definedClass, PluginContext.BUILD_METHOD_NAME);
 		if(!(this.builderClass.type._extends() == null || this.builderClass.type._extends().name().equals("java.lang.Object"))) {
 			buildMethod.annotate(Override.class);
 		}
-		if (this.implement && !this.definedClass.isAbstract()) {
-			buildMethod.body()._return(JExpr._this().invoke(initMethod).arg(JExpr._new(this.definedClass)));
+		if (this.implement) {
+			final JExpression buildExpression = JExpr._this().invoke(initMethod).arg(JExpr._new(this.definedClass));
+			if(this.settings.isCopyAlways()) {
+				buildMethod.body()._return(buildExpression);
+			} else if(this.definedClass.isAbstract()) {
+				buildMethod.body()._return(JExpr.cast(this.definedClass, this.storedValueField));
+			} else {
+				final JConditional jConditional = buildMethod.body()._if(this.storedValueField.eq(JExpr._null()));
+				jConditional._then()._return(buildExpression);
+				jConditional._else()._return(JExpr.cast(this.definedClass, this.storedValueField));
+			}
 		}
 		return buildMethod;
 	}
 
 	JMethod generateNewBuilderMethod() {
 		final JMethod builderMethod = this.definedClass.method(JMod.PUBLIC | JMod.STATIC, this.builderClass.raw.narrow(Void.class), this.settings.getNewBuilderMethodName());
-		builderMethod.body()._return(JExpr._new(this.builderClass.raw.narrow(Void.class)).arg(JExpr._null()).arg(JExpr._null()));
+		builderMethod.body()._return(JExpr._new(this.builderClass.raw.narrow(Void.class)).arg(JExpr._null()).arg(JExpr._null()).arg(JExpr.FALSE));
 		return builderMethod;
 	}
 
@@ -465,7 +479,7 @@ class BuilderGenerator {
 		copyOfMethod.type(this.builderClass.raw.narrow(copyOfMethodTypeParam));
 		final JVar otherParam = copyOfMethod.param(JMod.FINAL, paramType.getImplClass(), BuilderGenerator.OTHER_PARAM_NAME);
 		final CopyGenerator copyGenerator = this.pluginContext.createCopyGenerator(copyOfMethod, partial);
-		final JVar newBuilderVar = copyOfMethod.body().decl(JMod.FINAL, copyOfMethod.type(), BuilderGenerator.NEW_BUILDER_VAR_NAME, JExpr._new(copyOfMethod.type()).arg(JExpr._null()).arg(JExpr._null()));
+		final JVar newBuilderVar = copyOfMethod.body().decl(JMod.FINAL, copyOfMethod.type(), BuilderGenerator.NEW_BUILDER_VAR_NAME, JExpr._new(copyOfMethod.type()).arg(JExpr._null()).arg(JExpr._null()).arg(JExpr.FALSE));
 		copyOfMethod.body().add(copyGenerator.generatePartialArgs(this.pluginContext.invoke(otherParam, this.settings.getCopyToMethodName()).arg(newBuilderVar)));
 		copyOfMethod.body()._return(newBuilderVar);
 		return copyOfMethod;
@@ -482,7 +496,7 @@ class BuilderGenerator {
 		final JMethod copyBuilderConvenienceMethod = typeDefinition.method(mods, this.builderClass.raw.narrow(this.pluginContext.voidClass), this.settings.getNewCopyBuilderMethodName());
 		final CopyGenerator copyConvenienceGenerator = this.pluginContext.createCopyGenerator(copyBuilderConvenienceMethod, partial);
 		if (this.implement && !this.definedClass.isAbstract()) {
-			copyBuilderMethod.body()._return(copyGenerator.generatePartialArgs(this.pluginContext._new((JClass)copyBuilderMethod.type()).arg(parentBuilderParam).arg(JExpr._this())));
+			copyBuilderMethod.body()._return(copyGenerator.generatePartialArgs(this.pluginContext._new((JClass)copyBuilderMethod.type()).arg(parentBuilderParam).arg(JExpr._this()).arg(JExpr.TRUE)));
 			copyBuilderConvenienceMethod.body()._return(copyConvenienceGenerator.generatePartialArgs(this.pluginContext.invoke(this.settings.getNewCopyBuilderMethodName()).arg(JExpr._null())));
 		}
 		if (this.typeOutline.getSuperClass() != null) {
@@ -526,15 +540,25 @@ class BuilderGenerator {
 		final JMethod constructor = this.builderClass.raw.constructor(this.builderClass.raw.isAbstract() ? JMod.PROTECTED : JMod.PUBLIC);
 		final JVar parentBuilderParam = constructor.param(JMod.FINAL, this.builderClass.typeParam, BuilderGenerator.PARENT_BUILDER_PARAM_NAME);
 		final JVar otherParam = constructor.param(JMod.FINAL, this.typeOutline.getImplClass(), BuilderGenerator.OTHER_PARAM_NAME);
-		//final JVar copyParam = constructor.param(JMod.FINAL, this.pluginContext.codeModel.BOOLEAN, BuilderGenerator.COPY_FLAG_PARAM_NAME);
+		final JVar copyParam = constructor.param(JMod.FINAL, this.pluginContext.codeModel.BOOLEAN, BuilderGenerator.COPY_FLAG_PARAM_NAME);
 		final CopyGenerator cloneGenerator = this.pluginContext.createCopyGenerator(constructor, partial);
 		if (this.typeOutline.getSuperClass() != null) {
-			constructor.body().add(cloneGenerator.generatePartialArgs(this.pluginContext._super().arg(parentBuilderParam).arg(otherParam)));
+			constructor.body().add(cloneGenerator.generatePartialArgs(this.pluginContext._super().arg(parentBuilderParam).arg(otherParam).arg(copyParam)));
 		} else {
 			constructor.body().assign(JExpr._this().ref(this.parentBuilderField), parentBuilderParam);
 		}
-		final JConditional ifStmt = constructor.body()._if(otherParam.ne(JExpr._null()));
-		generateFieldCopyExpressions(cloneGenerator, ifStmt._then(), JExpr._this(), otherParam);
+		final JConditional ifNullStmt = constructor.body()._if(otherParam.ne(JExpr._null()).cand(copyParam));
+		final JBlock body;
+		if(!this.settings.isCopyAlways() && this.typeOutline.getSuperClass() == null) {
+			final JConditional ifCopyStmt = ifNullStmt._then()._if(copyParam);
+			ifCopyStmt._else().assign(this.storedValueField, otherParam);
+			ifNullStmt._else().assign(this.storedValueField, JExpr._null());
+			body = ifCopyStmt._then();
+			body.assign(this.storedValueField, JExpr._null());
+		} else {
+			body = ifNullStmt._then();
+		}
+		generateFieldCopyExpressions(cloneGenerator, body, JExpr._this(), otherParam);
 	}
 
 	private void generateFieldCopyExpressions(final CopyGenerator cloneGenerator, final JBlock body, final JExpression targetObject, final JExpression sourceObject) {

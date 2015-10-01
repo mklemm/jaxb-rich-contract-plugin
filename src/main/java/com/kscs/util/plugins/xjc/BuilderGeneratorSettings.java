@@ -37,8 +37,9 @@ public class BuilderGeneratorSettings {
 	private final String builderFieldSuffix;
 	private final ClassName builderClassName;
 	private final String copyToMethodName;
+	private final boolean copyAlways;
 
-	public BuilderGeneratorSettings(final boolean generatingPartialCopy, final boolean generatingNarrowCopy, final String newBuilderMethodName, final String newCopyBuilderMethodName, final String builderFieldSuffix, final ClassName builderClassName, final String copyToMethodName) {
+	public BuilderGeneratorSettings(final boolean generatingPartialCopy, final boolean generatingNarrowCopy, final String newBuilderMethodName, final String newCopyBuilderMethodName, final String builderFieldSuffix, final ClassName builderClassName, final String copyToMethodName, final boolean copyAlways) {
 		this.generatingPartialCopy = generatingPartialCopy;
 		this.generatingNarrowCopy = generatingNarrowCopy;
 		this.newBuilderMethodName = newBuilderMethodName;
@@ -46,6 +47,7 @@ public class BuilderGeneratorSettings {
 		this.builderFieldSuffix = builderFieldSuffix;
 		this.builderClassName = builderClassName;
 		this.copyToMethodName = copyToMethodName;
+		this.copyAlways = copyAlways;
 	}
 
 	public boolean isGeneratingPartialCopy() {
@@ -76,4 +78,7 @@ public class BuilderGeneratorSettings {
 		return this.copyToMethodName;
 	}
 
+	public boolean isCopyAlways() {
+		return this.copyAlways;
+	}
 }

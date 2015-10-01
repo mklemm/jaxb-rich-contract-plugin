@@ -67,9 +67,7 @@
 * **1.6.6**:
 	* fluent-builder: Changed type parameter names to make name conflicts less likely
 * **1.6.7**:
-	* Fixed a bug in fluent-builder generation that could prevent builder chaining under some circumastances
-* **1.6.7**:
-	* Fixed a bug in fluent-builder generation that could prevent builder chaining under some circumastances
+	* Fixed a bug in fluent-builder generation that could prevent builder chaining under some circumstances
 * **1.6.8**:
 	* Integrated a fix from JulianPaoloThiry
 	* Improved fluent builder to support building of sub-objects defined in a `choice`. All possible have a buidler method now,
@@ -84,6 +82,7 @@
 	if the child object is an instance of a JAXB-generated class from the same compilation unit or one of its episode-dependencies.
 * **1.8.0**:
 	* Made behavior introduced in 1.7.0 switchable with command-line parameter, because it isn't desirable in many cases.
+	* Improved site and documentation generation
 	
 	
 
