@@ -1,3 +1,7 @@
+[![Issue Stats](http://issuestats.com/github/mklemm/jaxb2-rich-contract-plugin/badge/pr)](http://issuestats.com/github/mklemm/jaxb2-rich-contract-plugin)
+[![Issue Stats](http://issuestats.com/github/mklemm/jaxb2-rich-contract-plugin/badge/issue)](http://issuestats.com/github/mklemm/jaxb2-rich-contract-plugin)
+
+
 # jaxb2-rich-contract-plugin
 
 ## A collection of JAXB / XJC plugins to generate advanced contract scenarios from XSD
