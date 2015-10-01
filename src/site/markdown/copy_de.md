@@ -67,4 +67,3 @@ Name der generierten inneren "Selector" Builder-Klasse, die intern zum Aufbau de
 ##### -rootSelectorClassName=`<string>` (Select)
 Name der generierten inneren "Select" -Klasse, die vom aufrufenden Code als Einstieg in den Aufbau eines Property-Baumes für das partielle Kopieren verwendet werden kann. Diese Einstellung gilt auch für das "Fluent Builder"-Plugin, wenn dieses zusätzlich aktiv ist und dort "-copy-partial=y" eingestellt ist.
 
-

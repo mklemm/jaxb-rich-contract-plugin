@@ -28,4 +28,3 @@ Namen der Konstanten wie Feldnamen generieren, nicht nach Java-Konstanten-Konven
 ##### -metaClassName=`<string>` (PropInfo)
 Name der generierten inneren Metainfoklasse.
 
-

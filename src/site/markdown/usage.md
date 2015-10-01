@@ -43,6 +43,7 @@ You should add "maven-jaxb2-plugin" to your `<build>` configuration. Then add "j
                             <arg>-rootSelectorClassName=Select</arg>
                             <arg>-newBuilderMethodName=builder</arg>
                             <arg>-newCopyBuilderMethodName=newCopyBuilder</arg>
+                            <arg>-copyToMethodName=copyTo</arg>
                             <arg>-builderFieldSuffix=_Builder</arg>
                             <arg>-generateTools=y</arg>
                             <arg>-narrow=n</arg>
@@ -50,17 +51,20 @@ You should add "maven-jaxb2-plugin" to your `<build>` configuration. Then add "j
                             <arg>-selectorClassName=Selector</arg>
                             <arg>-builderClassName=Builder</arg>
                             <arg>-builderInterfaceName=BuildSupport</arg>
+                            <arg>-copyAlways=n</arg>
                         <arg>-Ximmutable</arg>
+                            <arg>-fake=n</arg>
+                            <arg>-overrideCollectionClass=null</arg>
                             <arg>-constructorAccess=public</arg>
-                            <arg>-generateModifier=y</arg>
+                        <arg>-Xmodifier</arg>
                             <arg>-modifierClassName=Modifier</arg>
                             <arg>-modifierMethodName=modifier</arg>
                         <arg>-Xgroup-contract</arg>
                             <arg>-declareSetters=y</arg>
                             <arg>-declareBuilderInterface=y</arg>
+                            <arg>-supportInterfaceNameSuffix=Lifecycle</arg>
                             <arg>-upstreamEpisodeFile=/META-INF/jaxb-interfaces.episode</arg>
                             <arg>-downstreamEpisodeFile=/META-INF/jaxb-interfaces.episode</arg>
-                            <arg>-omitTypeClash=y</arg>
                         <arg>-Xclone</arg>
                             <arg>-cloneThrows=y</arg>
                         <arg>-Xcopy</arg>

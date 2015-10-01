@@ -23,4 +23,3 @@ There is currently no way for the plugin to determine whether an object in the o
 Declare CloneNotSupportedException to be thrown by 'clone()' (yes), or suppress throws clause and wrap all `CloneNotSupportedException`s as `RuntimeException` (no).
 If you set this to `no`, the resulting code will violate the `java.lang.Cloneable` contract, since it is stated that an object that cannot be cloned should throw CloneNotSupportedException, and nothing else. This option has been added, however, to support legacy code that doesn't catch CloneNotSupportedExceptions.
 
-

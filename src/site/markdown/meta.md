@@ -28,4 +28,3 @@ Generate names of constant meta fields like field names, instead of Java constan
 ##### -metaClassName=`<string>` (PropInfo)
 Name of the generated meta-information nested class.
 
-

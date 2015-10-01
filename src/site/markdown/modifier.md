@@ -32,4 +32,3 @@ Name of the generated inner class that allows to modify the state of generated o
 ##### -modifierMethodName=`<string>` (modifier)
 Name of the generated method that allows to instantiate the modifier class.
 
-

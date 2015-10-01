@@ -33,4 +33,3 @@ Wenn dies auf "no" gesetzt ist, wird stattdessen eine "RuntimeException" erzeugt
 ##### -generateTools=`{y|n}` (y)
 Generiere die Hilfsklassen, die zur Realisierung der nicht-standardkonformen "Collection Changed" events gebraucht werden, als Quelltext.
 
-

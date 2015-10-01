@@ -25,4 +25,3 @@ Modify collection getters to be declared to return a custom type implementing ja
 ##### -constructorAccess=`<string>` (public)
 Setzt die Sichtbarkeit des von JAXB geforderten argumentlosen Konstruktors auf den angegebenen Wert ("public", "private", "protected", "default"). Die JAXB-Spezifikation fordert eigentlich, dass der Konstruktor "public" sein soll, aber in vielen Implementierungen funktioniert auch "protected". Diese Option wurde eingeführt, da es normalerweise wenig sinnvoll ist, ein leeres Objekt zu erzeugen, das danach nicht mehr verändert werden kann. Dennoch ist dies nicht standardkonform und daher mit Vorsicht zu benutzen.
 
-

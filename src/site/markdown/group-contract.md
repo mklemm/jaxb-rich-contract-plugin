@@ -93,4 +93,3 @@ Use the given resource file to obtain information about interfaces defined in an
 ##### -downstreamEpisodeFile=`<string>` (/META-INF/jaxb-interfaces.episode)
 Generate "episode" file for downstream modules in the given resource location.
 
-

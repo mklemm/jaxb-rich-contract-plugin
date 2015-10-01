@@ -26,4 +26,3 @@ Modify collection getters to be declared to return a custom type implementing ja
 Generate constructors of an immutable class with the specified access level ("public", "private", "protected", "default"). By specification, JAXB needs a public no-arg constructor for marshalling and unmarshalling objects to an from XML. It turns out, however, that many implementations support protected constructors as well.
 This option has been included since it doesn't make sense to construct an empty object which then cannot be modified, But anyway, use with caution.
 
-

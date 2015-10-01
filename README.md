@@ -120,7 +120,8 @@ Get it with Maven (Now hosted on maven central):
 * **1.7.0**:
 	* Modified fluent builder behavior so that it creates a deep copy of all child objects passed to the builder methods,
 	if the child object is an instance of a JAXB-generated class from the same compilation unit or one of its episode-dependencies.
-	
+* **1.8.0**:
+	* Made behavior introduced in 1.7.0 switchable with command-line parameter, because it isn't desirable in many cases.
 	
 	
 
@@ -172,6 +173,7 @@ You should add "maven-jaxb2-plugin" to your `<build>` configuration. Then add "j
                             <arg>-rootSelectorClassName=Select</arg>
                             <arg>-newBuilderMethodName=builder</arg>
                             <arg>-newCopyBuilderMethodName=newCopyBuilder</arg>
+                            <arg>-copyToMethodName=copyTo</arg>
                             <arg>-builderFieldSuffix=_Builder</arg>
                             <arg>-generateTools=y</arg>
                             <arg>-narrow=n</arg>
@@ -179,17 +181,20 @@ You should add "maven-jaxb2-plugin" to your `<build>` configuration. Then add "j
                             <arg>-selectorClassName=Selector</arg>
                             <arg>-builderClassName=Builder</arg>
                             <arg>-builderInterfaceName=BuildSupport</arg>
+                            <arg>-copyAlways=n</arg>
                         <arg>-Ximmutable</arg>
+                            <arg>-fake=n</arg>
+                            <arg>-overrideCollectionClass=null</arg>
                             <arg>-constructorAccess=public</arg>
-                            <arg>-generateModifier=y</arg>
+                        <arg>-Xmodifier</arg>
                             <arg>-modifierClassName=Modifier</arg>
                             <arg>-modifierMethodName=modifier</arg>
                         <arg>-Xgroup-contract</arg>
                             <arg>-declareSetters=y</arg>
                             <arg>-declareBuilderInterface=y</arg>
+                            <arg>-supportInterfaceNameSuffix=Lifecycle</arg>
                             <arg>-upstreamEpisodeFile=/META-INF/jaxb-interfaces.episode</arg>
                             <arg>-downstreamEpisodeFile=/META-INF/jaxb-interfaces.episode</arg>
-                            <arg>-omitTypeClash=y</arg>
                         <arg>-Xclone</arg>
                             <arg>-cloneThrows=y</arg>
                         <arg>-Xcopy</arg>
@@ -339,6 +344,9 @@ Name of the generated nested builder class. Can be set to handle naming conflict
 Name of the generated nested builder interface. Can be set to handle naming conflicts.
 
 
+##### -copyAlways=`{y|n}` (n)
+If true, generate code of fluent-builder "withXXX" methods so that all objects passed to the builder are inherently deep-copied.
+
 ## immutable
 ### Motivation
 Generally it is advisable to make your business classes immutable as much as possible, to minimise side effects and allow for functional programming patterns.
@@ -366,7 +374,6 @@ Modify collection getters to be declared to return a custom type implementing ja
 ##### -constructorAccess=`<string>` (public)
 Generate constructors of an immutable class with the specified access level ("public", "private", "protected", "default"). By specification, JAXB needs a public no-arg constructor for marshalling and unmarshalling objects to an from XML. It turns out, however, that many implementations support protected constructors as well.
 This option has been included since it doesn't make sense to construct an empty object which then cannot be modified, But anyway, use with caution.
-
 
 ## modifier
 ### Motivation
@@ -401,7 +408,6 @@ Name of the generated inner class that allows to modify the state of generated o
 
 ##### -modifierMethodName=`<string>` (modifier)
 Name of the generated method that allows to instantiate the modifier class.
-
 
 ## group-contract
 ### Motivation
@@ -498,7 +504,6 @@ Use the given resource file to obtain information about interfaces defined in an
 ##### -downstreamEpisodeFile=`<string>` (/META-INF/jaxb-interfaces.episode)
 Generate "episode" file for downstream modules in the given resource location.
 
-
 ## clone
 ### Motivation
 Another way to create a deep copy of an object tree. This adheres to the `java.lang.Cloneable` contract, but isn't as versatile as `-Xcopy`.
@@ -523,7 +528,6 @@ There is currently no way for the plugin to determine whether an object in the o
 ##### -cloneThrows=`{y|n}` (y)
 Declare CloneNotSupportedException to be thrown by 'clone()' (yes), or suppress throws clause and wrap all `CloneNotSupportedException`s as `RuntimeException` (no).
 If you set this to `no`, the resulting code will violate the `java.lang.Cloneable` contract, since it is stated that an object that cannot be cloned should throw CloneNotSupportedException, and nothing else. This option has been added, however, to support legacy code that doesn't catch CloneNotSupportedExceptions.
-
 
 ## copy
 ### Motivation
@@ -594,7 +598,6 @@ Name of the generated nested "Selector" builder class, used to build up a proper
 ##### -rootSelectorClassName=`<string>` (Select)
 Name of the generated nested static "Select" entry point class to be used by client code for the "partial copy" feature. This setting will also affect the "fluent-builder" plugin if it is active and set to "copy-partial=y".
 
-
 ## constrained-properties
 ### Motivation
 Many GUI applications use data binding to connect the data model to the view components. The JavaBeans standard defines a simple component model that also supports properties which send notifications whenever the are about to be changed, and there are even vetoable changes that allow a change listener to inhibit modification of a property. While the JAvaBeans standard is a bit dated, data binding and property change notification can come in handy in many situations, even for debugging or reverse-engineering existing code, because you can track any change made to the model instance.
@@ -629,7 +632,6 @@ Declare setXXX methods to throw PropertyVetoException (yes), or rethrow as Runti
 ##### -generateTools=`{y|n}` (y)
 Generate helper classes needed for collection change event detection. Turn off in modules that import other generated modules. Default: yes
 
-
 ## meta
 ### Motivation
 Sometimes, you need information about the properties of a class, or you wish to have a constant for the names of properties.
@@ -659,7 +661,6 @@ Generate names of constant meta fields like field names, instead of Java constan
 
 ##### -metaClassName=`<string>` (PropInfo)
 Name of the generated meta-information nested class.
-
 
 [1]: #fluent-builder
 [2]: #immutable

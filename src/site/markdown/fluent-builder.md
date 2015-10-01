@@ -90,3 +90,6 @@ Name of the generated nested builder class. Can be set to handle naming conflict
 Name of the generated nested builder interface. Can be set to handle naming conflicts.
 
 
+##### -copyAlways=`{y|n}` (n)
+If true, generate code of fluent-builder "withXXX" methods so that all objects passed to the builder are inherently deep-copied.
+

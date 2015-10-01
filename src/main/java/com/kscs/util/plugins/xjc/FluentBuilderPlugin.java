@@ -73,6 +73,8 @@ public class FluentBuilderPlugin extends AbstractPlugin {
 	private String builderClassName = PluginContext.BUILDER_CLASS_NAME;
 	@Opt
 	private String builderInterfaceName = PluginContext.BUILDER_INTERFACE_NAME;
+	@Opt
+	private boolean copyAlways = false;
 
 	@Override
 	public String getOptionName() {

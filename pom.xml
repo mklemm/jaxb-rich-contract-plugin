@@ -48,7 +48,7 @@
 					</execution>
 				</executions>
 				<configuration>
-					<mainClass>com.kscs.util.plugins.xjc.doc.PluginDocPrinter</mainClass>
+					<mainClass>com.kscs.util.plugins.xjc.doc.DocumentationGenerator</mainClass>
 					<arguments>
 						<argument>src/site/markdown</argument>
 						<argument>README.md</argument>

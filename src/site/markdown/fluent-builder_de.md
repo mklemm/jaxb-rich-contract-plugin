@@ -90,3 +90,6 @@ Name der generierten inneren Builder-Klasse. Kann hier gesetzt werden, um Namens
 Name des generierten inneren Builder-Interfaces. Kann hier gesetzt werden, um Namenskonflikte zu lösen.
 
 
+##### -copyAlways=`{y|n}` (n)
+Ist diese Option 'yes', werden alle withXXX-Methoden, die JAXB-generierte Objekte akzeptieren, so generiert, dass die übergebenen Objekte kopiert werden.
+

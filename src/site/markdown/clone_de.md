@@ -22,4 +22,3 @@ There is currently no way for the plugin to determine whether an object in the o
 ##### -cloneThrows=`{y|n}` (y)
 'CloneNotSupportedException' in der Methodensignatur von 'clone()' deklarieren (yes), oder 'throws' weglassen und evtl. Exception intern ignorieren (no).
 
-

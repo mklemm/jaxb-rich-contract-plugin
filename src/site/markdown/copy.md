@@ -67,4 +67,3 @@ Name of the generated nested "Selector" builder class, used to build up a proper
 ##### -rootSelectorClassName=`<string>` (Select)
 Name of the generated nested static "Select" entry point class to be used by client code for the "partial copy" feature. This setting will also affect the "fluent-builder" plugin if it is active and set to "copy-partial=y".
 
-

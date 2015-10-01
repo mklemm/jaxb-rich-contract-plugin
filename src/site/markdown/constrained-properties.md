@@ -32,4 +32,3 @@ Declare setXXX methods to throw PropertyVetoException (yes), or rethrow as Runti
 ##### -generateTools=`{y|n}` (y)
 Generate helper classes needed for collection change event detection. Turn off in modules that import other generated modules. Default: yes
 
-
