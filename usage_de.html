@@ -9,7 +9,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="Date-Revision-yyyymmdd" content="20151001" />
     <meta http-equiv="Content-Language" content="en" />
-    <title>jaxb2-rich-contract-plugin - Usage</title>
+    <title>jaxb2-rich-contract-plugin - Benutzung</title>
     <link rel="stylesheet" href="./css/apache-maven-fluido-1.3.1.min.css" />
     <link rel="stylesheet" href="./css/site.css" />
     <link rel="stylesheet" href="./css/print.css" media="print" />
@@ -80,10 +80,12 @@
         Version History</a>
             </li>
                 
-      <li class="active">
+      <li>
   
-            <a href="#"><i class="none"></i>Usage</a>
-          </li>
+                          <a href="usage.html" title="Usage">
+          <i class="none"></i>
+        Usage</a>
+            </li>
                               <li class="nav-header">XJC Plugin Options</li>
                               
       <li>
@@ -172,26 +174,27 @@
                                   
             <div class="section">
 <div class="section">
-<h3>Usage<a name="Usage"></a></h3>
+<h3>Benutzung<a name="Benutzung"></a></h3>
 <div class="section">
-<h4>General<a name="General"></a></h4>
-<p>jaxb2-rich-contract-plugin is a plugin to the XJC &#x201c;XML to Java compiler&#x201d; shipped with the reference implementation of JAXB, included in all JDKs since 1.6. It is targeted on version 2.2 of the JAXB API. In order to make it work, you need to:</p>
+<h4>Allgemein<a name="Allgemein"></a></h4>
+<p>jaxb2-rich-contract-plugin ist ein Plugin f&#xfc;r den XJC &#x201c;XML to Java compiler&#x201d; der JAXB API, die in allen Java SE-Versionen seit 1.6 enthalten ist. Um das Plugin zu aktivieren, sind folgende Schritte erforderlich:</p>
 
 <ul>
   
-<li>Add the jar file to the classpath of XJC</li>
+<li>JAR des Plugins zum Klassenpfad des XJC-Compilers hinzuf&#xfc;gen.</li>
   
-<li>Add the JAXB 2.2 XJC API to the classpath of XJC, if your environment is running by default under JAXB 2.1 or lower.</li>
+<li>Falls die Standard-JAXB-Version der Compiler-Umgebung kleiner als 2.2 ist, m&#xfc;ssen die JAXB-Bibliotheken in Version 2.2 ebenfalls zum Klassenpfad hinzugef&#xfc;gt werden.</li>
   
-<li>Add the corresponding activating command-line option to XJC&#x2019;s invocation, see below for details of each of the plugins</li>
+<li>Kommandozeilenoption zur Aktivierung des gew&#xfc;schten Plugins zur XJC-Kommandozeile hinzuf&#xfc;gen.</li>
   
-<li>Each of the plugins, except &#x201c;-Ximmutable&#x201d;, has one or more sub-options to fine-control its behavior. These sub-option must be given after the corresponding main &#x201c;-X&#x2026;&#x201d; activation option, to avoid naming conflicts. Names of sub-options can be given dash-separated or in camelCase.</li>
+<li>Die meisten Plugins haben au&#xdf;erdem noch eigene Kommandozeilenoptionen. Diese m&#xfc;ssen direkt nach der Aktivierungsoption (&#x201c;-X&#x2026;&#x201d;) angegeben werden, um Namenskonflikte zwischen Optionen verschiedener Plugins zu vermeiden.</li>
   
-<li>The &#x201c;immutable&#x201d; and &#x201c;constrained-properties&#x201d; plugins are mutually exclusive. An object cannot be both immutable and send change notifications.</li>
+<li>Die Plugins &#x201c;immutable&#x201d; und &#x201c;constrained-properties&#x201d; schlie&#xdf;en sich gegenseitig aus und k&#xf6;nnen nicht beide in einer einzigen Kommandozeile aktiviert werden.  Ein Objekt kann nicht gleichzeitig unver&#xe4;nderlich sein und &#xc4;nderungsnachrichten schicken.</li>
 </ul></div>
 <div class="section">
-<h4>From Maven<a name="From_Maven"></a></h4>
-<p>You should add &#x201c;maven-jaxb2-plugin&#x201d; to your <tt>&lt;build&gt;</tt> configuration. Then add &#x201c;jaxb2-rich-contract-plugin&#x201d; as an XJC plugin (&#x201c;plugin for plugin&#x201d;) to the maven plugin declaration. The following cheat sheet shows all possible options reflecting their default values:</p>
+<h4>Benutzung mit Apache Maven<a name="Benutzung_mit_Apache_Maven"></a></h4>
+<p>Das &#x201c;maven-jaxb2-plugin&#x201d; der <tt>&lt;build&gt;</tt> -Konfiguration hinzuf&#xfc;gen. In dessen Konfigurationsabschnitt m&#xfc;ssen dann die einzelnen Plugins aktiviert werden. Ebenso wird hier der Klassenpfad so gesetzt, dass bei der Ausf&#xfc;hrung von XJC das Plugin-JAR <tt>jaxb2-rich-contract-plugin</tt> im Klassenpfad ist.</p>
+<p>Dieses &#x201c;cheat sheet&#x201d; gibt alle verf&#xfc;gbaren Plugin-Optionen an und zeigt, wie die Abh&#xe4;ngigkeit zum Plugin-JAR in den XJC-Klassenpfad konfiguriert wird:</p>
 
 <div class="source">
 <pre>    &lt;build&gt;
@@ -295,8 +298,8 @@
         &lt;/plugins&gt;
     &lt;/build&gt;
 </pre></div>
-<p>Note: the <tt>&lt;extension/&gt;</tt> flag must be set to &#x201c;true&#x201d; in order to make XJC accept any extensions at all.</p>
-<p>Note: jaxb2-rich-contract-plugin implements JAXB and XJC APIs version 2.2. You most likely will have to add the dependencies to these libraries to your classpath effective at XJC runtime. See the <tt>&lt;dependencies&gt;</tt> element above on how to do this.</p></div></div></div>
+<p>Hinweis: Das Flag <tt>&lt;extension/&gt;</tt> muss auf &#x201c;true&#x201d; gesetzt sein, damit XJC &#xfc;berhaupt plugins akzeptiert.</p>
+<p>Hinweis: jaxb2-rich-contract-plugin implementiert JAXB und XJC APIs in der Version 2.2. Falls Sie mit einem &#xe4;lteren JDK arbeiten, m&#xfc;ssen sie diese Bibliotheken ebenfalls zum Klassenpfad hinzuf&#xfc;gen. Wie dies gemacht wird, ist im <tt>&lt;dependencies&gt;</tt>-Element oben zu sehen.</p></div></div></div>
                   </div>
             </div>
           </div>
