@@ -174,6 +174,33 @@ You should add "maven-jaxb2-plugin" to your `<build>` configuration. Then add "j
                     <extension>true</extension>
                     <removeOldOutput>true</removeOldOutput>
                     <args>
+                        <arg>-Xconstrained-properties</arg>
+                            <arg>-constrained=y</arg>
+                            <arg>-bound=y</arg>
+                            <arg>-setterThrows=n</arg>
+                            <arg>-generateTools=y</arg>
+                        <arg>-Xclone</arg>
+                            <arg>-cloneThrows=y</arg>
+                        <arg>-Xcopy</arg>
+                            <arg>-partial=y</arg>
+                            <arg>-generateTools=y</arg>
+                            <arg>-constructor=y</arg>
+                            <arg>-narrow=n</arg>
+                            <arg>-selectorClassName=Selector</arg>
+                            <arg>-rootSelectorClassName=Select</arg>
+                        <arg>-Xgroup-contract</arg>
+                            <arg>-declareSetters=y</arg>
+                            <arg>-declareBuilderInterface=y</arg>
+                            <arg>-supportInterfaceNameSuffix=Lifecycle</arg>
+                            <arg>-upstreamEpisodeFile=/META-INF/jaxb-interfaces.episode</arg>
+                            <arg>-downstreamEpisodeFile=/META-INF/jaxb-interfaces.episode</arg>
+                        <arg>-Ximmutable</arg>
+                            <arg>-fake=n</arg>
+                            <arg>-overrideCollectionClass=null</arg>
+                            <arg>-constructorAccess=public</arg>
+                        <arg>-Xmodifier</arg>
+                            <arg>-modifierClassName=Modifier</arg>
+                            <arg>-modifierMethodName=modifier</arg>
                         <arg>-Xfluent-builder</arg>
                             <arg>-rootSelectorClassName=Select</arg>
                             <arg>-newBuilderMethodName=builder</arg>
@@ -187,33 +214,6 @@ You should add "maven-jaxb2-plugin" to your `<build>` configuration. Then add "j
                             <arg>-builderClassName=Builder</arg>
                             <arg>-builderInterfaceName=BuildSupport</arg>
                             <arg>-copyAlways=n</arg>
-                        <arg>-Ximmutable</arg>
-                            <arg>-fake=n</arg>
-                            <arg>-overrideCollectionClass=null</arg>
-                            <arg>-constructorAccess=public</arg>
-                        <arg>-Xmodifier</arg>
-                            <arg>-modifierClassName=Modifier</arg>
-                            <arg>-modifierMethodName=modifier</arg>
-                        <arg>-Xgroup-contract</arg>
-                            <arg>-declareSetters=y</arg>
-                            <arg>-declareBuilderInterface=y</arg>
-                            <arg>-supportInterfaceNameSuffix=Lifecycle</arg>
-                            <arg>-upstreamEpisodeFile=/META-INF/jaxb-interfaces.episode</arg>
-                            <arg>-downstreamEpisodeFile=/META-INF/jaxb-interfaces.episode</arg>
-                        <arg>-Xclone</arg>
-                            <arg>-cloneThrows=y</arg>
-                        <arg>-Xcopy</arg>
-                            <arg>-partial=y</arg>
-                            <arg>-generateTools=y</arg>
-                            <arg>-constructor=y</arg>
-                            <arg>-narrow=n</arg>
-                            <arg>-selectorClassName=Selector</arg>
-                            <arg>-rootSelectorClassName=Select</arg>
-                        <arg>-Xconstrained-properties</arg>
-                            <arg>-constrained=y</arg>
-                            <arg>-bound=y</arg>
-                            <arg>-setterThrows=n</arg>
-                            <arg>-generateTools=y</arg>
                         <arg>-Xmeta</arg>
                             <arg>-generateTools=y</arg>
                             <arg>-extended=n</arg>
@@ -255,6 +255,291 @@ Note: the `<extension/>` flag must be set to "true" in order to make XJC accept 
 
 Note: jaxb2-rich-contract-plugin implements JAXB and XJC APIs version 2.2. You most likely will have to add the dependencies to these libraries to your classpath effective at XJC runtime. See the `<dependencies>` element above on how to do this.
 
+
+## constrained-properties
+### Motivation
+Many GUI applications use data binding to connect the data model to the view components. The JavaBeans standard defines a simple component model that also supports properties which send notifications whenever the are about to be changed, and there are even vetoable changes that allow a change listener to inhibit modification of a property. While the JAvaBeans standard is a bit dated, data binding and property change notification can come in handy in many situations, even for debugging or reverse-engineering existing code, because you can track any change made to the model instance.
+
+### Function
+constrained-properties generates additional code in the property setter methods of the POJOs generated by XJC that allow `PropertyChangeListener`s and `VetoableChangeListener`s to be attached to any instance of a XJC-generated class.
+
+Currently, **indexed properties** are NOT supported in the way specified by JavaBeans, but instead, if a property represents a collection, a collection proxy class is generated that supports its own set of collection-specific change notifications, vetoable and other. This decision has been made because by default XJC generates collection properties rather than indexed properties, and indexed properties as mandated by JavaBeans are generally considered "out of style".
+
+### Limitations
+* The JavaBeans standard is only loosely implemented in the generated classes.
+* Indexed Properties as defined in JavaBeans are not supported.
+* The CollectionChange behavior implemented by the classes is not yet documented and non-standard.
+
+### Usage
+#### -Xconstrained-properties
+
+#### Options
+
+##### -constrained=`{y|n}` (y)
+switch "constrained" property contract generation on/off. Default: yes
+
+
+##### -bound=`{y|n}` (y)
+switch "bound" property contract generation on/off. Default: yes
+
+
+##### -setterThrows=`{y|n}` (n)
+Declare setXXX methods to throw PropertyVetoException (yes), or rethrow as RuntimeException (no). Default: no
+
+
+##### -generateTools=`{y|n}` (y)
+Generate helper classes needed for collection change event detection. Turn off in modules that import other generated modules. Default: yes
+
+## clone
+### Motivation
+Another way to create a deep copy of an object tree. This adheres to the `java.lang.Cloneable` contract, but isn't as versatile as `-Xcopy`.
+
+### Function
+The `clone` plugin generates a deep clone method for each of the generated classes, based on the following assumptions:
+
+* Objects implementing `java.lang.Cloneable` and are cloneable by their "clone" Method.
+* Objects not implementing `java.lang.Cloneable` or primitive types are assumed to be immutable, their references are copied over, they are not cloned.
+
+### Bugs
+The `-cloneThrows` option should in fact never have existed.
+
+### Limitations
+There is currently no way for the plugin to determine whether an object in the object graph that isn't cloneable actually is immutable so its reference can be copied. So, there is no guarantee that cloned object graphs are really independent of each other, as mandated by the `java.lang.Cloneable` contract.
+
+### Usage
+#### -Xclone
+
+#### Options
+
+##### -cloneThrows=`{y|n}` (y)
+Declare CloneNotSupportedException to be thrown by 'clone()' (yes), or suppress throws clause and wrap all `CloneNotSupportedException`s as `RuntimeException` (no).
+If you set this to `no`, the resulting code will violate the `java.lang.Cloneable` contract, since it is stated that an object that cannot be cloned should throw CloneNotSupportedException, and nothing else. This option has been added, however, to support legacy code that doesn't catch CloneNotSupportedExceptions.
+
+## copy
+### Motivation
+Sometimes it is necessary to create a deep copy of an object. There are various approaches to this. The "copy" plugin defines its own interface, contract, and definitions that are somewhat different from the standard java "java.lang.Cloneable" contract. The entry point generated in the source code is called `createCopy`, there are optionally also copy constructors.
+
+### Function
+The `copy` plugin generates a deep clone method for each of the generated classes, based on the following assumptions:
+
+* Instances of any other classes implementing the `com.kscs.util.jaxb.Copyable` interface are copyable by the same semantics as "this".
+* Objects implementing `java.lang.Cloneable` and not throwing "CloneNotSupportedException" are also reliably cloneable by their "clone" Method.
+* Objects not implementing `java.lang.Cloneable` or primitive types are assumed to be immutable, their references are copied over, they are not cloned.
+* Optionally, generates a "partial createCopy" method that takes a `PropertyTree` instance which represents a specification of the nodes in the object tree to copy. The PropertyTree is built up by an intuitive builder pattern:
+
+		final PropertyTree excludeEmployees = PropertyTree.builder().with("company").with("employees").build();
+
+* There is also a type-safe way to build a PropertyPath instance by using a generated classes' `Selector` sub structure. The following will generate the same selection as above:
+
+		final PropertyTree excludeEmployees = Business.Select.root().company().employees().build()
+
+Then, you would partially clone an object tree like this:
+
+		final BusinessPartner businessPartnerCopy = businessPartner.createCopy(excludeEmployees, PropertyTreeUse.EXCLUDE);
+
+Which is the same as
+
+		final BusinessPartner businessPartnerCopy = businessPartner.copyExcept(excludeEmployees);
+
+This way, the copy of the original `businessPartner` will have no employees attached to the contained `company`. It is also possible to copy only a specific subset of the original object tree, excluding everything else. The inverse result of the above would be generated by:
+
+		final BusinessPartner businessPartnerCopy = businessPartner.createCopy(excludeEmployees, PropertyTreeUse.INCLUDE);
+
+or
+
+		final BusinessPartner businessPartnerCopy = businessPartner.copyOnly(excludeEmployees);
+
+which will result in a businessPartnerCopy where every property is set to null, except the company property, and in the attached company object, every property is null except "employees".
+
+This works for single and multi-valued properties, where for multi-valued properties, the property tree applies to all elements of the list of values in the same way. As of yet, there is no way to make a tree apply only to specific indexes in generated lists.
+
+### Limitations
+* The `-narrow` option is a somewhat special use case and should be used carefully.
+
+### Usage
+#### -Xcopy
+
+#### Options
+
+##### -partial=`{y|n}` (y)
+Generates an additional 'createCopy'-method and copy-constructor (if constructors are to generated at all) that takes a PropertyTree instance to restrict the copy operation to selected nodes in the object tree.
+
+
+##### -generateTools=`{y|n}` (y)
+Generate utility classes as source code. If you say "no" here, you will have to add the plugin JAR to the runtime classpath of the generated class domain.
+
+
+##### -constructor=`{y|n}` (y)
+Generates a copy constructor on each of the classes generated from the current XSD model.
+
+
+##### -narrow=`{y|n}` (n)
+Uses copy constructors for all child nodes in the object tree as long as they are available. This will cause the new instance to be as narrow as possible to the declared types.
+
+
+##### -selectorClassName=`<string>` (Selector)
+Name of the generated nested "Selector" builder class, used to build up a property tree for partial copy functionality. This setting will also affect the "fluent-builder" plugin if it is active and set to "copy-partial=y".
+
+
+##### -rootSelectorClassName=`<string>` (Select)
+Name of the generated nested static "Select" entry point class to be used by client code for the "partial copy" feature. This setting will also affect the "fluent-builder" plugin if it is active and set to "copy-partial=y".
+
+## group-contract
+### Motivation
+In most object-oriented programming languages, there are constructs to define a "contract", that concrete implementations of complex
+types will implement. In Java, for example, there is the `interface`, in Scala there are "traits", and so on.
+The XML Schema Definition Language (XSD) in contrast, has no explicit construct to ensure a complex type meets a
+pre-defined contract. There are, however, the `group` and `attributeGroup` elements, that could be considered
+a way to achieve just that: A complexType that uses a `<group>` or an `<attributeGroup>` will expose the
+properties defined in these group definitions. Looking at it that way, you could say that the `complexType`
+"implements" the contract defined by the `group` or `attributeGroup`.
+
+
+
+### Function
+The group-contract plugin now tries to model that case in the generated source code. For every `group`and `attributeGroup`
+definition in the XSD model (or in any upstream XSD model that is included via the "episode" mechanism, for that matter),
+it generates an `interface` definition with all the getter, and optionally setter, methods of the properties defined via
+the `group` or `attributeGroup` definition.
+
+Then, it declares every class that was generated from a `complexType` that uses the `group` or `attributeGroup` as implementing
+just that interface. This way, all classes generated from XSD complexTypes that use the same group definitions, will
+share a common contract and can be treated in a common way by client code.
+
+If the "fluent-builder" plugin is also activated, the interface definition can optionally include the declarations of the "with..."
+and "add..." methods of the generated builder class as a nested interface declaration, so you can even rely on a common
+"builder" contract for classes using the same `group` and `attributeGroup` definitions.
+
+For example, you may wish to add "XLink" functionality to your generated classes. If the group-contract plugin is
+activated, you can define a complexType in XSD that supports the "simple" attributes by adding to its XSD definition:
+
+``` xml
+<complexType name="some-type">
+	.... (model group of the type...)
+	<attributeGroup ref="xlink:simpleAttrs"/>
+</complexType>
+```
+
+Which will generate a class something like:
+
+``` java
+public class SomeType implements SimpleAttrs {
+...
+```
+
+And an interface definition like:
+
+``` java
+public interface SimpleAttrs {
+	String getHref();
+	void setHref(final String value);
+	// ... more properties ...
+
+	// this part is generated only if fluent-builder is also active
+	interface BuildSupport<TParentBuilder >{
+            public SimpleAttrs.BuildSupport<TParentBuilder> withHref(final String href);
+            //... more properties ...
+	}
+}
+```
+
+Similar effects could be achieved by subclassing complexTypes, but since there is no multiple inheritance, inheritance
+hierarchies can get overly complex this way, and inheritance is less flexible than interface implementations.
+
+**Note:** The group-contract plugin supports JAXB modular compilation, i.e. the "episode" mechanism implemented
+in the JAXB reference impplementation.
+However, due to the lack of extensibility of the current default episode data structures and processing, this plugin
+has to manage its own "episode" file. There are two command line options to control the  names of the "upstream" episode
+file, i.e. the file name the plugin should look for when using other modules, and the "downstream" file, i.e. the file
+name that should be generated for use by other modules.
+
+
+
+### Usage
+#### -Xgroup-contract
+
+#### Options
+
+##### -declareSetters=`{y|n}` (y)
+Also generate property setter methods in interface declarations.
+
+
+##### -declareBuilderInterface=`{y|n}` (y)
+If the "fluent builder plugin" (-Xfluent-builder) is also active, generate interface for the internal builder classes as well.
+
+
+##### -supportInterfaceNameSuffix=`<string>` (Lifecycle)
+If this is set, methods that could cause type conflicts when two generated interfaces are used together as type parameter bounds, will be put in another interface named the same as the original interface, but with the suffix specified here.
+
+
+##### -upstreamEpisodeFile=`<string>` (/META-INF/jaxb-interfaces.episode)
+Use the given resource file to obtain information about interfaces defined in an upstream module (refer to "-episode" option of XJC).
+
+
+##### -downstreamEpisodeFile=`<string>` (/META-INF/jaxb-interfaces.episode)
+Generate "episode" file for downstream modules in the given resource location.
+
+## immutable
+### Motivation
+Generally it is advisable to make your business classes immutable as much as possible, to minimise side effects and allow for functional programming patterns.
+
+### Function
+This plugin simply makes all "setXXX" methods "protected", thus preventing API consumers to modify state of instances of generated classes after they have been created. This only makes sense together with another plugin that allows for initialization of the instances, like e.g. the included `fluent-builder` plugin. For collection-valued properties, `-Ximmutable` wraps all collections in a `Collections.unmodifiableCollection`, so collections are also made immutable. Because JAXB serialization has a number of constraints regarding the internals of JAXB serializable objects, it wasn't advisable to just remove the setter methods or replace the collections with unmodifiable collections. So, a bit of additional code will be created that leaves the old "mutable" structure of the class intact as much as is needed for JAXB, but modifies the public interface so objects appear immutable to client code.
+
+### Limitations
+* Access level "protected" may not be strict enough to prevent state changes.
+* If you activate plugins like "fluent-api" or the like, these plugins may circumvent the protection provided by the `immutable` plugin.
+
+### Usage
+#### -Ximmutable
+
+#### Options
+
+##### -fake=`{y|n}` (n)
+Do not actually make anything immutable. For test and debug purpose only.
+
+
+##### -overrideCollectionClass=`<string>` (null)
+Modify collection getters to be declared to return a custom type implementing java.lang.Iterable instead of List.
+
+
+##### -constructorAccess=`<string>` (public)
+Generate constructors of an immutable class with the specified access level ("public", "private", "protected", "default"). By specification, JAXB needs a public no-arg constructor for marshalling and unmarshalling objects to an from XML. It turns out, however, that many implementations support protected constructors as well.
+This option has been included since it doesn't make sense to construct an empty object which then cannot be modified, But anyway, use with caution.
+
+## modifier
+### Motivation
+In general, you may wish to implement application logic in a way so that objects are initialized once
+and then are immutable.
+For traditional programming languages, like Java, for example, this is not always feasible in practice,
+because legacy code and libraries have to be used.
+
+With the `modifier` plugin, you can make the public interface of your classes immutable via the `immutable`
+plugin, but at the same time provide a handle to modify the state of your objects anyway vi a reference that
+needs to be queried explicitly.
+
+This plugin is intended for use while refactoring existing code to a more "functional" and thread-friendly
+code base. Eventually, your code should work so this plugin can be deactivated in your XJC configuration.
+
+
+### Function
+This plugin creates an inner class with public setXXX methods, and getXXX methods for collection properties that
+return a writable version of the collection the property is implemented by.
+
+If the `group-contract` plugin is also activated, these constructs will also be generated into the interfaces.
+
+
+### Usage
+#### -Xmodifier
+
+#### Options
+
+##### -modifierClassName=`<string>` (Modifier)
+Name of the generated inner class that allows to modify the state of generated objects.
+
+
+##### -modifierMethodName=`<string>` (modifier)
+Name of the generated method that allows to instantiate the modifier class.
 
 ## fluent-builder
 ### Motivation
@@ -402,291 +687,6 @@ Name of the generated nested builder interface. Can be set to handle naming conf
 ##### -copyAlways=`{y|n}` (n)
 If true, generate code of fluent-builder "withXXX" methods so that all objects passed to the builder are inherently deep-copied.
 
-## immutable
-### Motivation
-Generally it is advisable to make your business classes immutable as much as possible, to minimise side effects and allow for functional programming patterns.
-
-### Function
-This plugin simply makes all "setXXX" methods "protected", thus preventing API consumers to modify state of instances of generated classes after they have been created. This only makes sense together with another plugin that allows for initialization of the instances, like e.g. the included `fluent-builder` plugin. For collection-valued properties, `-Ximmutable` wraps all collections in a `Collections.unmodifiableCollection`, so collections are also made immutable. Because JAXB serialization has a number of constraints regarding the internals of JAXB serializable objects, it wasn't advisable to just remove the setter methods or replace the collections with unmodifiable collections. So, a bit of additional code will be created that leaves the old "mutable" structure of the class intact as much as is needed for JAXB, but modifies the public interface so objects appear immutable to client code.
-
-### Limitations
-* Access level "protected" may not be strict enough to prevent state changes.
-* If you activate plugins like "fluent-api" or the like, these plugins may circumvent the protection provided by the `immutable` plugin.
-
-### Usage
-#### -Ximmutable
-
-#### Options
-
-##### -fake=`{y|n}` (n)
-Do not actually make anything immutable. For test and debug purpose only.
-
-
-##### -overrideCollectionClass=`<string>` (null)
-Modify collection getters to be declared to return a custom type implementing java.lang.Iterable instead of List.
-
-
-##### -constructorAccess=`<string>` (public)
-Generate constructors of an immutable class with the specified access level ("public", "private", "protected", "default"). By specification, JAXB needs a public no-arg constructor for marshalling and unmarshalling objects to an from XML. It turns out, however, that many implementations support protected constructors as well.
-This option has been included since it doesn't make sense to construct an empty object which then cannot be modified, But anyway, use with caution.
-
-## modifier
-### Motivation
-In general, you may wish to implement application logic in a way so that objects are initialized once
-and then are immutable.
-For traditional programming languages, like Java, for example, this is not always feasible in practice,
-because legacy code and libraries have to be used.
-
-With the `modifier` plugin, you can make the public interface of your classes immutable via the `immutable`
-plugin, but at the same time provide a handle to modify the state of your objects anyway vi a reference that
-needs to be queried explicitly.
-
-This plugin is intended for use while refactoring existing code to a more "functional" and thread-friendly
-code base. Eventually, your code should work so this plugin can be deactivated in your XJC configuration.
-
-
-### Function
-This plugin creates an inner class with public setXXX methods, and getXXX methods for collection properties that
-return a writable version of the collection the property is implemented by.
-
-If the `group-contract` plugin is also activated, these constructs will also be generated into the interfaces.
-
-
-### Usage
-#### -Xmodifier
-
-#### Options
-
-##### -modifierClassName=`<string>` (Modifier)
-Name of the generated inner class that allows to modify the state of generated objects.
-
-
-##### -modifierMethodName=`<string>` (modifier)
-Name of the generated method that allows to instantiate the modifier class.
-
-## group-contract
-### Motivation
-In most object-oriented programming languages, there are constructs to define a "contract", that concrete implementations of complex
-types will implement. In Java, for example, there is the `interface`, in Scala there are "traits", and so on.
-The XML Schema Definition Language (XSD) in contrast, has no explicit construct to ensure a complex type meets a
-pre-defined contract. There are, however, the `group` and `attributeGroup` elements, that could be considered
-a way to achieve just that: A complexType that uses a `<group>` or an `<attributeGroup>` will expose the
-properties defined in these group definitions. Looking at it that way, you could say that the `complexType`
-"implements" the contract defined by the `group` or `attributeGroup`.
-
-
-
-### Function
-The group-contract plugin now tries to model that case in the generated source code. For every `group`and `attributeGroup`
-definition in the XSD model (or in any upstream XSD model that is included via the "episode" mechanism, for that matter),
-it generates an `interface` definition with all the getter, and optionally setter, methods of the properties defined via
-the `group` or `attributeGroup` definition.
-
-Then, it declares every class that was generated from a `complexType` that uses the `group` or `attributeGroup` as implementing
-just that interface. This way, all classes generated from XSD complexTypes that use the same group definitions, will
-share a common contract and can be treated in a common way by client code.
-
-If the "fluent-builder" plugin is also activated, the interface definition can optionally include the declarations of the "with..."
-and "add..." methods of the generated builder class as a nested interface declaration, so you can even rely on a common
-"builder" contract for classes using the same `group` and `attributeGroup` definitions.
-
-For example, you may wish to add "XLink" functionality to your generated classes. If the group-contract plugin is
-activated, you can define a complexType in XSD that supports the "simple" attributes by adding to its XSD definition:
-
-``` xml
-<complexType name="some-type">
-	.... (model group of the type...)
-	<attributeGroup ref="xlink:simpleAttrs"/>
-</complexType>
-```
-
-Which will generate a class something like:
-
-``` java
-public class SomeType implements SimpleAttrs {
-...
-```
-
-And an interface definition like:
-
-``` java
-public interface SimpleAttrs {
-	String getHref();
-	void setHref(final String value);
-	// ... more properties ...
-
-	// this part is generated only if fluent-builder is also active
-	interface BuildSupport<TParentBuilder >{
-            public SimpleAttrs.BuildSupport<TParentBuilder> withHref(final String href);
-            //... more properties ...
-	}
-}
-```
-
-Similar effects could be achieved by subclassing complexTypes, but since there is no multiple inheritance, inheritance
-hierarchies can get overly complex this way, and inheritance is less flexible than interface implementations.
-
-**Note:** The group-contract plugin supports JAXB modular compilation, i.e. the "episode" mechanism implemented
-in the JAXB reference impplementation.
-However, due to the lack of extensibility of the current default episode data structures and processing, this plugin
-has to manage its own "episode" file. There are two command line options to control the  names of the "upstream" episode
-file, i.e. the file name the plugin should look for when using other modules, and the "downstream" file, i.e. the file
-name that should be generated for use by other modules.
-
-
-
-### Usage
-#### -Xgroup-contract
-
-#### Options
-
-##### -declareSetters=`{y|n}` (y)
-Also generate property setter methods in interface declarations.
-
-
-##### -declareBuilderInterface=`{y|n}` (y)
-If the "fluent builder plugin" (-Xfluent-builder) is also active, generate interface for the internal builder classes as well.
-
-
-##### -supportInterfaceNameSuffix=`<string>` (Lifecycle)
-If this is set, methods that could cause type conflicts when two generated interfaces are used together as type parameter bounds, will be put in another interface named the same as the original interface, but with the suffix specified here.
-
-
-##### -upstreamEpisodeFile=`<string>` (/META-INF/jaxb-interfaces.episode)
-Use the given resource file to obtain information about interfaces defined in an upstream module (refer to "-episode" option of XJC).
-
-
-##### -downstreamEpisodeFile=`<string>` (/META-INF/jaxb-interfaces.episode)
-Generate "episode" file for downstream modules in the given resource location.
-
-## clone
-### Motivation
-Another way to create a deep copy of an object tree. This adheres to the `java.lang.Cloneable` contract, but isn't as versatile as `-Xcopy`.
-
-### Function
-The `clone` plugin generates a deep clone method for each of the generated classes, based on the following assumptions:
-
-* Objects implementing `java.lang.Cloneable` and are cloneable by their "clone" Method.
-* Objects not implementing `java.lang.Cloneable` or primitive types are assumed to be immutable, their references are copied over, they are not cloned.
-
-### Bugs
-The `-cloneThrows` option should in fact never have existed.
-
-### Limitations
-There is currently no way for the plugin to determine whether an object in the object graph that isn't cloneable actually is immutable so its reference can be copied. So, there is no guarantee that cloned object graphs are really independent of each other, as mandated by the `java.lang.Cloneable` contract.
-
-### Usage
-#### -Xclone
-
-#### Options
-
-##### -cloneThrows=`{y|n}` (y)
-Declare CloneNotSupportedException to be thrown by 'clone()' (yes), or suppress throws clause and wrap all `CloneNotSupportedException`s as `RuntimeException` (no).
-If you set this to `no`, the resulting code will violate the `java.lang.Cloneable` contract, since it is stated that an object that cannot be cloned should throw CloneNotSupportedException, and nothing else. This option has been added, however, to support legacy code that doesn't catch CloneNotSupportedExceptions.
-
-## copy
-### Motivation
-Sometimes it is necessary to create a deep copy of an object. There are various approaches to this. The "copy" plugin defines its own interface, contract, and definitions that are somewhat different from the standard java "java.lang.Cloneable" contract. The entry point generated in the source code is called `createCopy`, there are optionally also copy constructors.
-
-### Function
-The `copy` plugin generates a deep clone method for each of the generated classes, based on the following assumptions:
-
-* Instances of any other classes implementing the `com.kscs.util.jaxb.Copyable` interface are copyable by the same semantics as "this".
-* Objects implementing `java.lang.Cloneable` and not throwing "CloneNotSupportedException" are also reliably cloneable by their "clone" Method.
-* Objects not implementing `java.lang.Cloneable` or primitive types are assumed to be immutable, their references are copied over, they are not cloned.
-* Optionally, generates a "partial createCopy" method that takes a `PropertyTree` instance which represents a specification of the nodes in the object tree to copy. The PropertyTree is built up by an intuitive builder pattern:
-
-		final PropertyTree excludeEmployees = PropertyTree.builder().with("company").with("employees").build();
-
-* There is also a type-safe way to build a PropertyPath instance by using a generated classes' `Selector` sub structure. The following will generate the same selection as above:
-
-		final PropertyTree excludeEmployees = Business.Select.root().company().employees().build()
-
-Then, you would partially clone an object tree like this:
-
-		final BusinessPartner businessPartnerCopy = businessPartner.createCopy(excludeEmployees, PropertyTreeUse.EXCLUDE);
-
-Which is the same as
-
-		final BusinessPartner businessPartnerCopy = businessPartner.copyExcept(excludeEmployees);
-
-This way, the copy of the original `businessPartner` will have no employees attached to the contained `company`. It is also possible to copy only a specific subset of the original object tree, excluding everything else. The inverse result of the above would be generated by:
-
-		final BusinessPartner businessPartnerCopy = businessPartner.createCopy(excludeEmployees, PropertyTreeUse.INCLUDE);
-
-or
-
-		final BusinessPartner businessPartnerCopy = businessPartner.copyOnly(excludeEmployees);
-
-which will result in a businessPartnerCopy where every property is set to null, except the company property, and in the attached company object, every property is null except "employees".
-
-This works for single and multi-valued properties, where for multi-valued properties, the property tree applies to all elements of the list of values in the same way. As of yet, there is no way to make a tree apply only to specific indexes in generated lists.
-
-### Limitations
-* The `-narrow` option is a somewhat special use case and should be used carefully.
-
-### Usage
-#### -Xcopy
-
-#### Options
-
-##### -partial=`{y|n}` (y)
-Generates an additional 'createCopy'-method and copy-constructor (if constructors are to generated at all) that takes a PropertyTree instance to restrict the copy operation to selected nodes in the object tree.
-
-
-##### -generateTools=`{y|n}` (y)
-Generate utility classes as source code. If you say "no" here, you will have to add the plugin JAR to the runtime classpath of the generated class domain.
-
-
-##### -constructor=`{y|n}` (y)
-Generates a copy constructor on each of the classes generated from the current XSD model.
-
-
-##### -narrow=`{y|n}` (n)
-Uses copy constructors for all child nodes in the object tree as long as they are available. This will cause the new instance to be as narrow as possible to the declared types.
-
-
-##### -selectorClassName=`<string>` (Selector)
-Name of the generated nested "Selector" builder class, used to build up a property tree for partial copy functionality. This setting will also affect the "fluent-builder" plugin if it is active and set to "copy-partial=y".
-
-
-##### -rootSelectorClassName=`<string>` (Select)
-Name of the generated nested static "Select" entry point class to be used by client code for the "partial copy" feature. This setting will also affect the "fluent-builder" plugin if it is active and set to "copy-partial=y".
-
-## constrained-properties
-### Motivation
-Many GUI applications use data binding to connect the data model to the view components. The JavaBeans standard defines a simple component model that also supports properties which send notifications whenever the are about to be changed, and there are even vetoable changes that allow a change listener to inhibit modification of a property. While the JAvaBeans standard is a bit dated, data binding and property change notification can come in handy in many situations, even for debugging or reverse-engineering existing code, because you can track any change made to the model instance.
-
-### Function
-constrained-properties generates additional code in the property setter methods of the POJOs generated by XJC that allow `PropertyChangeListener`s and `VetoableChangeListener`s to be attached to any instance of a XJC-generated class.
-
-Currently, **indexed properties** are NOT supported in the way specified by JavaBeans, but instead, if a property represents a collection, a collection proxy class is generated that supports its own set of collection-specific change notifications, vetoable and other. This decision has been made because by default XJC generates collection properties rather than indexed properties, and indexed properties as mandated by JavaBeans are generally considered "out of style".
-
-### Limitations
-* The JavaBeans standard is only loosely implemented in the generated classes.
-* Indexed Properties as defined in JavaBeans are not supported.
-* The CollectionChange behavior implemented by the classes is not yet documented and non-standard.
-
-### Usage
-#### -Xconstrained-properties
-
-#### Options
-
-##### -constrained=`{y|n}` (y)
-switch "constrained" property contract generation on/off. Default: yes
-
-
-##### -bound=`{y|n}` (y)
-switch "bound" property contract generation on/off. Default: yes
-
-
-##### -setterThrows=`{y|n}` (n)
-Declare setXXX methods to throw PropertyVetoException (yes), or rethrow as RuntimeException (no). Default: no
-
-
-##### -generateTools=`{y|n}` (y)
-Generate helper classes needed for collection change event detection. Turn off in modules that import other generated modules. Default: yes
-
 ## meta
 ### Motivation
 Sometimes, you need information about the properties of a class, or you wish to have a constant for the names of properties.
@@ -717,11 +717,11 @@ Generate names of constant meta fields like field names, instead of Java constan
 ##### -metaClassName=`<string>` (PropInfo)
 Name of the generated meta-information nested class.
 
-[1]: #fluent-builder
-[2]: #immutable
-[3]: #modifier
+[1]: #constrained-properties
+[2]: #clone
+[3]: #copy
 [4]: #group-contract
-[5]: #clone
-[6]: #copy
-[7]: #constrained-properties
+[5]: #immutable
+[6]: #modifier
+[7]: #fluent-builder
 [8]: #meta
