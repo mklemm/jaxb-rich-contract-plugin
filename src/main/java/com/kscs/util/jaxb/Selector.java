@@ -51,7 +51,7 @@ public class Selector<TRoot extends Selector<TRoot, ?>, TParent> {
 
 	/**
 	 * This is only used by builders and other implementational details
-	 * @return A map representing thze child nodes of this selector
+	 * @return A map representing the child nodes of this selector
 	 */
 	public Map<String, PropertyTree> buildChildren() {
 		return Collections.emptyMap();

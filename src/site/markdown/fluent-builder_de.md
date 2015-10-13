@@ -144,3 +144,11 @@ Name des generierten inneren Builder-Interfaces. Kann hier gesetzt werden, um Na
 ##### -copyAlways=`{y|n}` (n)
 Ist diese Option 'yes', werden alle withXXX-Methoden, die JAXB-generierte Objekte akzeptieren, so generiert, dass die übergebenen Objekte kopiert werden.
 
+
+##### -buildMethodName=`<string>` (build)
+Name der generierten "build"-Methode, die das gebaute Objekt zurÃ¼ckliefert.
+
+
+##### -endMethodName=`<string>` (end)
+Name der generierten "end"-Methode, die einen sub-Builder beendet.
+

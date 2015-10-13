@@ -83,8 +83,12 @@
 * **1.8.0**:
 	* Made behavior introduced in 1.7.0 switchable with command-line parameter, because it isn't desirable in many cases.
 	* Improved site and documentation generation
-	
-	
+* **1.9.0**:
+	* Refactored out common classes to jaxb-plugin-lib module
+	* Fixed override of choice expansion builder methods
+	* Fixed possible name clashes with choice expansion
+
+
 
 
 

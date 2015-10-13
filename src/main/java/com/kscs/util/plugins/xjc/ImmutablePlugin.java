@@ -24,8 +24,10 @@
 
 package com.kscs.util.plugins.xjc;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Iterator;
+import java.util.List;
 
 import org.xml.sax.ErrorHandler;
 import org.xml.sax.SAXException;
@@ -74,7 +76,7 @@ public class ImmutablePlugin extends AbstractPlugin {
 			final JDefinedClass definedClass = classOutline.implClass;
 			for (final FieldOutline fieldOutline : classOutline.getDeclaredFields()) {
 				final JFieldVar declaredField;
-				if (fieldOutline.getPropertyInfo().isCollection() && !((declaredField = PluginUtil.getDeclaredField(fieldOutline)).type().isArray())) {
+				if (fieldOutline.getPropertyInfo().isCollection() && !(declaredField = PluginUtil.getDeclaredField(fieldOutline)).type().isArray()) {
 					final JClass elementType = ((JClass) declaredField.type()).getTypeParameters().get(0);
 					final JMethod oldGetter = definedClass.getMethod("get" + fieldOutline.getPropertyInfo().getName(true), new JType[0]);
 					final JType getterType = this.overrideCollectionClass != null ? pluginContext.codeModel.ref(this.overrideCollectionClass).narrow(elementType) : oldGetter.type();
@@ -109,14 +111,20 @@ public class ImmutablePlugin extends AbstractPlugin {
 						constructor.javadoc().append(getMessage("comment.constructor"));
 						constructor.body().directStatement("// " + getMessage("comment.constructor"));
 					}
+					final List<JMethod> constructorsToChange = new ArrayList<>();
 					while (constructors.hasNext()) {
 						final JMethod constructor = constructors.next();
 						if (constructor.params().isEmpty() && (constructor.mods().getValue() & JMod.PUBLIC) == JMod.PUBLIC) {
-							if ("private".equals(this.constructorAccess.toLowerCase())) {
-								constructor.mods().setPrivate();
-							} else {
-								constructor.mods().setProtected();
-							}
+							constructorsToChange.add(constructor);
+						}
+					}
+
+					// use separate loop to avoid concurrentmodificationexception
+					for(final JMethod constructor:constructorsToChange) {
+						if ("private".equals(this.constructorAccess.toLowerCase())) {
+							constructor.mods().setPrivate();
+						} else {
+							constructor.mods().setProtected();
 						}
 					}
 				}

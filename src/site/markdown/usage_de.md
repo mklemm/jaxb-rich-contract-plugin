@@ -83,6 +83,8 @@ Dieses "cheat sheet" gibt alle verfügbaren Plugin-Optionen an und zeigt, wie di
                             <arg>-builderClassName=Builder</arg>
                             <arg>-builderInterfaceName=BuildSupport</arg>
                             <arg>-copyAlways=n</arg>
+                            <arg>-buildMethodName=build</arg>
+                            <arg>-endMethodName=end</arg>
                         <arg>-Xmeta</arg>
                             <arg>-generateTools=y</arg>
                             <arg>-extended=n</arg>

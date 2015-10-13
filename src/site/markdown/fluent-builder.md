@@ -144,3 +144,11 @@ Name of the generated nested builder interface. Can be set to handle naming conf
 ##### -copyAlways=`{y|n}` (n)
 If true, generate code of fluent-builder "withXXX" methods so that all objects passed to the builder are inherently deep-copied.
 
+
+##### -buildMethodName=`<string>` (build)
+Name of the generated "build" method that concludes building and returns the product. Can be set here to handle naming conflicts.
+
+
+##### -endMethodName=`<string>` (end)
+Name of the generated "end" method that concludes a nested builder and returns to the outer builder. Can be set here to handle naming conflicts.
+

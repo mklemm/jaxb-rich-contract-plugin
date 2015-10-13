@@ -79,6 +79,8 @@ You should add "maven-jaxb2-plugin" to your `<build>` configuration. Then add "j
                             <arg>-builderClassName=Builder</arg>
                             <arg>-builderInterfaceName=BuildSupport</arg>
                             <arg>-copyAlways=n</arg>
+                            <arg>-buildMethodName=build</arg>
+                            <arg>-endMethodName=end</arg>
                         <arg>-Xmeta</arg>
                             <arg>-generateTools=y</arg>
                             <arg>-extended=n</arg>
@@ -89,7 +91,7 @@ You should add "maven-jaxb2-plugin" to your `<build>` configuration. Then add "j
                         <plugin>
                             <groupId>net.codesup.util</groupId>
                             <artifactId>jaxb2-rich-contract-plugin</artifactId>
-                            <version>1.8.0</version>
+                            <version>1.9.0</version>
                         </plugin>
                     </plugins>
                     <dependencies>

@@ -75,6 +75,10 @@ public class FluentBuilderPlugin extends AbstractPlugin {
 	private String builderInterfaceName = PluginContext.BUILDER_INTERFACE_NAME;
 	@Opt
 	private boolean copyAlways = false;
+	@Opt
+	private String buildMethodName = PluginContext.BUILD_METHOD_NAME;
+	@Opt
+	private String endMethodName = "end";
 
 	@Override
 	public String getOptionName() {
@@ -122,6 +126,6 @@ public class FluentBuilderPlugin extends AbstractPlugin {
 	public BuilderGeneratorSettings getSettings() {
 		return new BuilderGeneratorSettings(this.copyPartial, this.narrow, this.newBuilderMethodName, this.newCopyBuilderMethodName, this.builderFieldSuffix,
 				new ClassName(this.builderInterfaceName, this.builderClassName), this.copyToMethodName,
-				this.copyAlways);
+				this.copyAlways, this.buildMethodName, this.endMethodName);
 	}
 }
