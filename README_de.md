@@ -137,21 +137,25 @@ Get it with Maven (Now hosted on maven central):
 
 
 
-###  Usage
+###  Benutzung
 
-####  General
+####  Allgemein
 
-jaxb2-rich-contract-plugin is a plugin to the XJC "XML to Java compiler" shipped with the reference implementation of JAXB, included in all JDKs since 1.6. It is targeted on version 2.2 of the JAXB API. In order to make it work, you need to:
+jaxb2-rich-contract-plugin ist ein Plugin für den XJC "XML to Java compiler" der JAXB API, die in allen Java SE-Versionen seit 1.6 enthalten ist.
+Um das Plugin zu aktivieren, sind folgende Schritte erforderlich:
 
-* Add the jar file to the classpath of XJC
-* Add the JAXB 2.2 XJC API to the classpath of XJC, if your environment is running by default under JAXB 2.1 or lower.
-* Add the corresponding activating command-line option to XJC's invocation, see below for details of each of the plugins
-* Each of the plugins, except "-Ximmutable", has one or more sub-options to fine-control its behavior. These sub-option must be given after the corresponding main "-X..." activation option, to avoid naming conflicts. Names of sub-options can be given dash-separated or in camelCase.
-* The "immutable" and "constrained-properties" plugins are mutually exclusive. An object cannot be both immutable and send change notifications.
+* JAR des Plugins zum Klassenpfad des XJC-Compilers hinzufügen.
+* Falls die Standard-JAXB-Version der Compiler-Umgebung kleiner als 2.2 ist, müssen die JAXB-Bibliotheken in Version 2.2 ebenfalls zum Klassenpfad hinzugefügt werden.
+* Kommandozeilenoption zur Aktivierung des gewüschten Plugins zur XJC-Kommandozeile hinzufügen.
+* Die meisten Plugins haben außerdem noch eigene Kommandozeilenoptionen. Diese müssen direkt nach der Aktivierungsoption ("-X...") angegeben werden, um Namenskonflikte zwischen Optionen verschiedener Plugins zu vermeiden.
+* Die Plugins  "immutable" und "constrained-properties" schließen sich gegenseitig aus und können nicht beide in einer einzigen Kommandozeile aktiviert werden.
+  Ein Objekt kann nicht gleichzeitig unveränderlich sein und Änderungsnachrichten schicken.
 
-####  From Maven
+####  Benutzung mit Apache Maven
 
-You should add "maven-jaxb2-plugin" to your `<build>` configuration. Then add "jaxb2-rich-contract-plugin" as an XJC plugin ("plugin for plugin") to the maven plugin declaration. The following cheat sheet shows all possible options reflecting their default values:
+Das "maven-jaxb2-plugin" der `<build>` -Konfiguration hinzufügen. In dessen Konfigurationsabschnitt müssen dann die einzelnen Plugins aktiviert werden. Ebenso wird hier der Klassenpfad so gesetzt, dass bei der Ausführung von XJC das Plugin-JAR `jaxb2-rich-contract-plugin` im Klassenpfad ist.
+
+Dieses "cheat sheet" gibt alle verfügbaren Plugin-Optionen an und zeigt, wie die Abhängigkeit zum Plugin-JAR in den XJC-Klassenpfad konfiguriert wird:
 
 ``` xml
     <build>
@@ -230,7 +234,7 @@ You should add "maven-jaxb2-plugin" to your `<build>` configuration. Then add "j
                         <plugin>
                             <groupId>net.codesup.util</groupId>
                             <artifactId>jaxb2-rich-contract-plugin</artifactId>
-                            <version>1.9.0</version>
+                            <version>1.8.0</version>
                         </plugin>
                     </plugins>
                     <dependencies>
@@ -257,9 +261,10 @@ You should add "maven-jaxb2-plugin" to your `<build>` configuration. Then add "j
         </plugins>
     </build>
 ```
-Note: the `<extension/>` flag must be set to "true" in order to make XJC accept any extensions at all.
+Hinweis: Das Flag `<extension/>` muss auf "true" gesetzt sein, damit XJC überhaupt plugins akzeptiert.
 
-Note: jaxb2-rich-contract-plugin implements JAXB and XJC APIs version 2.2. You most likely will have to add the dependencies to these libraries to your classpath effective at XJC runtime. See the `<dependencies>` element above on how to do this.
+Hinweis: jaxb2-rich-contract-plugin implementiert JAXB und XJC APIs in der Version 2.2. Falls Sie mit einem älteren JDK arbeiten, müssen sie diese Bibliotheken ebenfalls zum Klassenpfad hinzufügen.
+Wie dies gemacht wird, ist im `<dependencies>`-Element oben zu sehen.
 
 
 ## constrained-properties
@@ -276,25 +281,26 @@ Currently, **indexed properties** are NOT supported in the way specified by Java
 * Indexed Properties as defined in JavaBeans are not supported.
 * The CollectionChange behavior implemented by the classes is not yet documented and non-standard.
 
-### Usage
+### Aktivierung
 #### -Xconstrained-properties
 
-#### Options
+#### Optionen
 
 ##### -constrained=`{y|n}` (y)
-switch "constrained" property contract generation on/off. Default: yes
+Erzeuge "constrained properties", die durch das Werfen einer  Exception eine Änderung ihres Zustandes unterbinden können.
 
 
 ##### -bound=`{y|n}` (y)
-switch "bound" property contract generation on/off. Default: yes
+Erzeuge "bound properties", die die Änderung ihres Zustandes als Event weitermelden.
 
 
 ##### -setterThrows=`{y|n}` (n)
-Declare setXXX methods to throw PropertyVetoException (yes), or rethrow as RuntimeException (no). Default: no
+Wenn Constrained Properties verwendet werden, soll eine PropertyVetoException bei unerlaubter Zustandsänderung geworfen werden.
+Wenn dies auf "no" gesetzt ist, wird stattdessen eine "RuntimeException" erzeugt.
 
 
 ##### -generateTools=`{y|n}` (y)
-Generate helper classes needed for collection change event detection. Turn off in modules that import other generated modules. Default: yes
+Generiere die Hilfsklassen, die zur Realisierung der nicht-standardkonformen "Collection Changed" events gebraucht werden, als Quelltext.
 
 ## clone
 ### Motivation
@@ -312,14 +318,13 @@ The `-cloneThrows` option should in fact never have existed.
 ### Limitations
 There is currently no way for the plugin to determine whether an object in the object graph that isn't cloneable actually is immutable so its reference can be copied. So, there is no guarantee that cloned object graphs are really independent of each other, as mandated by the `java.lang.Cloneable` contract.
 
-### Usage
+### Aktivierung
 #### -Xclone
 
-#### Options
+#### Optionen
 
 ##### -cloneThrows=`{y|n}` (y)
-Declare CloneNotSupportedException to be thrown by 'clone()' (yes), or suppress throws clause and wrap all `CloneNotSupportedException`s as `RuntimeException` (no).
-If you set this to `no`, the resulting code will violate the `java.lang.Cloneable` contract, since it is stated that an object that cannot be cloned should throw CloneNotSupportedException, and nothing else. This option has been added, however, to support legacy code that doesn't catch CloneNotSupportedExceptions.
+'CloneNotSupportedException' in der Methodensignatur von 'clone()' deklarieren (yes), oder 'throws' weglassen und evtl. Exception intern ignorieren (no).
 
 ## copy
 ### Motivation
@@ -362,33 +367,33 @@ This works for single and multi-valued properties, where for multi-valued proper
 ### Limitations
 * The `-narrow` option is a somewhat special use case and should be used carefully.
 
-### Usage
+### Aktivierung
 #### -Xcopy
 
-#### Options
+#### Optionen
 
 ##### -partial=`{y|n}` (y)
-Generates an additional 'createCopy'-method and copy-constructor (if constructors are to generated at all) that takes a PropertyTree instance to restrict the copy operation to selected nodes in the object tree.
+Generiert zusätzlich eine 'createCopy()'-Methode und einen Konstruktor (wenn "-constructor=yes"), mit dem sich Objekte partiell kopieren lassen. Dabei wird ein PropertyPath-Objekt mitgegeben, welches die zu kopierenden Knoten des Objektbaumes angibt.
 
 
 ##### -generateTools=`{y|n}` (y)
-Generate utility classes as source code. If you say "no" here, you will have to add the plugin JAR to the runtime classpath of the generated class domain.
+Generiere Hilfsklassen als Quelltext (y). Wenn dies ausgeschaltet ist, muss sich das Plugin-JAR zur Laufzeit im Klassenpfad der generierten Klassendefinitionen befinden.
 
 
 ##### -constructor=`{y|n}` (y)
-Generates a copy constructor on each of the classes generated from the current XSD model.
+Erzeugt einen Copy-Konstruktor für jede generierte Klasse des XSD-Modells.
 
 
 ##### -narrow=`{y|n}` (n)
-Uses copy constructors for all child nodes in the object tree as long as they are available. This will cause the new instance to be as narrow as possible to the declared types.
+Für untergeordnete Knoten im zu kopierenden Objektbaum werden ebenfalls die Copy-Konstruktoren der deklarierten Typen verwendet, soweit diese vorhanden sind und die Typen der entsprechenden Instanzen ebenfalls aus dem XSD-Model generierte Klassen sind. Dies erzeugt eine möglichst "schmale" Kopie des Ausgangsobjekts, was in bestimmten Fällen nützlich sein kann. Ein Unterknoten, dessen Typ nicht im aktuellen XSD-Modell deklariert ist, wird immer wie bei der 'createCopy()'-Methode kopiert. Ist diese Option "no", gilt dies auch für generierte Typen.
 
 
 ##### -selectorClassName=`<string>` (Selector)
-Name of the generated nested "Selector" builder class, used to build up a property tree for partial copy functionality. This setting will also affect the "fluent-builder" plugin if it is active and set to "copy-partial=y".
+Name der generierten inneren "Selector" Builder-Klasse, die intern zum Aufbau des Property-Baums für das partielle Kopieren benutzt wird. Diese Einstellung gilt auch für das "Fluent Builder"-Plugin, wenn dieses zusätzlich aktiv ist und dort "copy-partial=y" eingestellt ist.
 
 
 ##### -rootSelectorClassName=`<string>` (Select)
-Name of the generated nested static "Select" entry point class to be used by client code for the "partial copy" feature. This setting will also affect the "fluent-builder" plugin if it is active and set to "copy-partial=y".
+Name der generierten inneren "Select" -Klasse, die vom aufrufenden Code als Einstieg in den Aufbau eines Property-Baumes für das partielle Kopieren verwendet werden kann. Diese Einstellung gilt auch für das "Fluent Builder"-Plugin, wenn dieses zusätzlich aktiv ist und dort "-copy-partial=y" eingestellt ist.
 
 ## group-contract
 ### Motivation
@@ -461,29 +466,32 @@ name that should be generated for use by other modules.
 
 
 
-### Usage
+### Bugs
+Currently none known
+
+### Aktivierung
 #### -Xgroup-contract
 
-#### Options
+#### Optionen
 
 ##### -declareSetters=`{y|n}` (y)
-Also generate property setter methods in interface declarations.
+Auch die Setter-Methoden in den generierten Interfaces deklarieren. Wenn nein, werden nur Getter deklariert.
 
 
 ##### -declareBuilderInterface=`{y|n}` (y)
-If the "fluent builder plugin" (-Xfluent-builder) is also active, generate interface for the internal builder classes as well.
+Wenn das "fluent builder plugin" (-Xfluent-builder) ebenfalls aktive ist, generiere auch Interfaces für die inneren Builder-Klassen.
 
 
 ##### -supportInterfaceNameSuffix=`<string>` (Lifecycle)
-If this is set, methods that could cause type conflicts when two generated interfaces are used together as type parameter bounds, will be put in another interface named the same as the original interface, but with the suffix specified here.
+Methoden, die zu Typkonflikten führen können, wenn zwei oder mehr interfaces aus diesem Generat gleichzeitig(mit "&") als Grenzen generischer Typparameter verwendet werden, werden in ein eigenes Interface ausgelagert, dessen Name dann mit dem angegebenen Wortbestandteil endet.
 
 
 ##### -upstreamEpisodeFile=`<string>` (/META-INF/jaxb-interfaces.episode)
-Use the given resource file to obtain information about interfaces defined in an upstream module (refer to "-episode" option of XJC).
+Suche die angegebene "episode"-Datei (Resource-Pfad), um Informationen über interfaces zu erhalten, die in Modulen definiert wurden, von denen dieses hier abhängig ist (siehe "-episode"-Mechanismus in der XJC-Dokumentation).
 
 
 ##### -downstreamEpisodeFile=`<string>` (/META-INF/jaxb-interfaces.episode)
-Generate "episode" file for downstream modules in the given resource location.
+Generiere "episode"-Datei für abhängige Module an der angegebene Stelle (Resource-Pfad).
 
 ## immutable
 ### Motivation
@@ -496,13 +504,13 @@ This plugin simply makes all "setXXX" methods "protected", thus preventing API c
 * Access level "protected" may not be strict enough to prevent state changes.
 * If you activate plugins like "fluent-api" or the like, these plugins may circumvent the protection provided by the `immutable` plugin.
 
-### Usage
+### Aktivierung
 #### -Ximmutable
 
-#### Options
+#### Optionen
 
 ##### -fake=`{y|n}` (n)
-Do not actually make anything immutable. For test and debug purpose only.
+Nur für Test und Debug: Es wird nichts wirklich unveränderlich gemacht, aber das Plugin bleibt aktiv.
 
 
 ##### -overrideCollectionClass=`<string>` (null)
@@ -510,42 +518,43 @@ Modify collection getters to be declared to return a custom type implementing ja
 
 
 ##### -constructorAccess=`<string>` (public)
-Generate constructors of an immutable class with the specified access level ("public", "private", "protected", "default"). By specification, JAXB needs a public no-arg constructor for marshalling and unmarshalling objects to an from XML. It turns out, however, that many implementations support protected constructors as well.
-This option has been included since it doesn't make sense to construct an empty object which then cannot be modified, But anyway, use with caution.
+Setzt die Sichtbarkeit des von JAXB geforderten argumentlosen Konstruktors auf den angegebenen Wert ("public", "private", "protected", "default"). Die JAXB-Spezifikation fordert eigentlich, dass der Konstruktor "public" sein soll, aber in vielen Implementierungen funktioniert auch "protected". Diese Option wurde eingeführt, da es normalerweise wenig sinnvoll ist, ein leeres Objekt zu erzeugen, das danach nicht mehr verändert werden kann. Dennoch ist dies nicht standardkonform und daher mit Vorsicht zu benutzen.
 
 ## modifier
 ### Motivation
-In general, you may wish to implement application logic in a way so that objects are initialized once
-and then are immutable.
-For traditional programming languages, like Java, for example, this is not always feasible in practice,
-because legacy code and libraries have to be used.
+Generell ist es vorteilhaft, Anwendungslogik so zu implementieren, dass Objekte in der Regel nach der
+Initialisierung in ihrem Zustand unveränderlich sind. In traditionellen Programmiersprachen wie z.B.
+Java bleibt dies jedoch oftmals ein akademischer Ansatz, da oft auf bestehendem Code und bestehenden Bibliotheken
+aufgesetzt werden muss, die ein derartiges Programmiermodell nicht oder nur unzulänglich unterstützen.
 
-With the `modifier` plugin, you can make the public interface of your classes immutable via the `immutable`
-plugin, but at the same time provide a handle to modify the state of your objects anyway vi a reference that
-needs to be queried explicitly.
+Das `modifier`-Plugin schafft eine Möglichkeit, einerseits (z.B. durch das `immutable`-Plugin) die allgemeine
+Schnittstelle einer Klasse so zu definieren, dass darüber keine Zustandsänderungen am Objekt möglich sind,
+aber gleichzeitig für bestimmte Szenarien eine explizit abzurufende Referenz bereit zu stellen, über die das
+Objekt dennoch einfach verändert werden kann.
 
-This plugin is intended for use while refactoring existing code to a more "functional" and thread-friendly
-code base. Eventually, your code should work so this plugin can be deactivated in your XJC configuration.
+Der Einsatz dieses Plugins ist hauptsächlich für eine Übergangszeit während der Refaktorierung von existierendem
+Code vorgesehen, sodass zur Compilezeit die Stellen im Code deutlich werden, die zustandsveränderliche
+Objekte voraussetzen. Ziel sollte es dann sein, dieses Plugin irgendwann im eigenen Projekt abschalten zu können.
 
 
 ### Function
-This plugin creates an inner class with public setXXX methods, and getXXX methods for collection properties that
-return a writable version of the collection the property is implemented by.
+Es wird eine innere Klasse generiert, die öffentliche setXXX-Methoden und getXXX-Methoden für Collections enthält, wobei
+schreibbare Collection-Instanzen zurückgegeben werden.
 
-If the `group-contract` plugin is also activated, these constructs will also be generated into the interfaces.
+Wenn das `group-contract`-Plugin ebenfalls aktiviert ist, werden diese Konstrukte auch in den Interfaces erzeugt.
 
 
-### Usage
+### Aktivierung
 #### -Xmodifier
 
-#### Options
+#### Optionen
 
 ##### -modifierClassName=`<string>` (Modifier)
-Name of the generated inner class that allows to modify the state of generated objects.
+Name der generierten Mutator-Klasse
 
 
 ##### -modifierMethodName=`<string>` (modifier)
-Name of the generated method that allows to instantiate the modifier class.
+Name der generierten methode zum Abruf einer Instanz der Mutator-Klasse
 
 ## fluent-builder
 ### Motivation
@@ -640,66 +649,66 @@ Of course, this plugin is most useful if `immutable` is also activated.
 * It generates a large amount of code.
 * Note: Shared builder instances are NOT thread-safe by themselves.
 
-### Usage
+### Aktivierung
 #### -Xfluent-builder
 
-#### Options
+#### Optionen
 
 ##### -rootSelectorClassName=`<string>` (Select)
-Name of the generated nested static "Select" entry point class to be used by client code for the "partial copy" feature. This setting will only have an effect if the "deep-copy-plugin" isn't also active. If it is, the "copy" plugin's settings will take precedence.
+Name der generierten inneren "Select" -Klasse, die vom aufrufenden Code als Einstieg in den Aufbau eines Property-Baumes für das partielle Kopieren verwendet werden kann. Diese Einstellung wird nur dann berücksichtigt, wenn das "Deep Copy"-Plugin nicht aktiv ist, und "copy-partial=y" ist. Ansonsten gilt die Einstellung des "Deep Copy"-Plugins.
 
 
 ##### -newBuilderMethodName=`<string>` (builder)
-Name of the generated static method to instantiate a new fluent builder. Can be set to handle naming conflicts.
+Name der generierten statischen Methode zum Erzeugen eines neuen Builders. Kann hier gesetzt werden, um Namenskonflikte zu lösen.
 
 
 ##### -newCopyBuilderMethodName=`<string>` (newCopyBuilder)
-Name of the generated instance method to instantiate a new fluent builder intitialized with a copy of the current instance.
+Name der generierten Instanzmethode zum Erzeugen eines neuen Builders, der mit dem von dieser Instanz kopierten Zustand initialisiert ist.
 
 
 ##### -copyToMethodName=`<string>` (copyTo)
-Name of the generated "copyTo" method.
+Name der generierten Methode zum kopieren des internen Zustands dieses Builders auf einen anderen Builder.
 
 
 ##### -builderFieldSuffix=`<string>` (_Builder)
-Suffix to append to the field holding the builder, change to  prevent name clashes.
+Suffix, das an den Namen der generierten Sub-Builder Instanzvariablen angefügt wird.
 
 
 ##### -generateTools=`{y|n}` (y)
-Generate utility classes as static source code artifacts. If no, the plugin JAR must be in compile- and runtime classpath.
+Generiere Hilfsklassen als Quelltext. Wenn dies ausgeschaltet ist, muss sich das Plugin-JAR zur Laufzeit im Klassenpfad der generierten Klassendefinitionen befinden.
 
 
 ##### -narrow=`{y|n}` (n)
-Uses copy constructors for all child nodes in the object tree as long as they are available. This will cause the new instance to be as narrow as possible to the declared types.
-Abstract types and types not generated from this XSD-model will always be copied by their "clone()"-method.
+Für untergeordnete Knoten im zu kopierenden Objektbaum werden ebenfalls die Copy-Konstruktoren der deklarierten Typen verwendet, soweit diese vorhanden sind und die Typen der entsprechenden Instanzen ebenfalls aus dem XSD-Model generierte Klassen sind. Dies erzeugt eine möglichst "schmale" Kopie des Ausgangsobjekts, was in bestimmten Fällen nützlich sein kann.
+Ein Unterknoten, dessen Typ nicht im aktuellen XSD-Modell deklariert ist, wird immer wie bei der 'clone()'-Methode kopiert. Ist diese Option "no", gilt dies auch für generierte Typen.
 
 
 ##### -copyPartial=`{y|n}` (y)
-Generates an additional 'copyOf'-method  that takes a PropertyTree instance to restrict the copy operation to selected nodes in the object tree.
+Generiert zusätzlich eine 'copyOf()'-Methode mit der sich Objekte partiell kopieren lassen. Dabei wird ein PropertyTree-Objekt mitgegeben, welches die zu kopierenden Knoten des Objektbaumes angibt.
 
 
 ##### -selectorClassName=`<string>` (Selector)
-Name of the generated nested "Selector" builder class, used to build up a property tree for partial copy functionality. This setting will only have an effect if the "deep-copy-plugin" isn't also active. If it is, the "copy" plugin's settings will take precedence.
+Name der generierten inneren "Selector" Builder-Klasse, die intern zum Aufbau des Property-Baums für das partielle Kopieren benutzt wird. Diese Einstellung wird nur dann berücksichtigt, wenn das "Deep Copy"-Plugin nicht aktiv ist, und "copy-partial=y" ist. Ansonsten gilt die Einstellung des "Deep Copy"-Plugins.
 
 
 ##### -builderClassName=`<string>` (Builder)
-Name of the generated nested builder class. Can be set to handle naming conflicts.
+Name der generierten inneren Builder-Klasse. Kann hier gesetzt werden, um Namenskonflikte zu lösen.
 
 
 ##### -builderInterfaceName=`<string>` (BuildSupport)
-Name of the generated nested builder interface. Can be set to handle naming conflicts.
+Name des generierten inneren Builder-Interfaces. Kann hier gesetzt werden, um Namenskonflikte zu lösen.
 
 
 ##### -copyAlways=`{y|n}` (n)
-If true, generate code of fluent-builder "withXXX" methods so that all objects passed to the builder are inherently deep-copied.
+Ist diese Option 'yes', werden alle withXXX-Methoden, die JAXB-generierte Objekte akzeptieren, so generiert, dass die übergebenen Objekte kopiert werden.
 
 
 ##### -buildMethodName=`<string>` (build)
-Name of the generated "build" method that concludes building and returns the product. Can be set here to handle naming conflicts.
+Name der generierten "build"-Methode, die das gebaute Objekt zurÃ¼ckliefert.
 
 
 ##### -endMethodName=`<string>` (end)
-Name of the generated "end" method that concludes a nested builder and returns to the outer builder. Can be set here to handle naming conflicts.
+Name der generierten "end"-Methode, die einen sub-Builder beendet.
 
 ## meta
 ### Motivation
@@ -710,26 +719,26 @@ field for each property. If the `-extended=y` command-line option is specified, 
 Without `-extended`, the constants are simply string constants holding the property names.
 
 
-### Usage
+### Aktivierung
 #### -Xmeta
 
-#### Options
+#### Optionen
 
 ##### -generateTools=`{y|n}` (y)
-Generate helper class used to represent extended metadata as source code.
-If this is set to "n" and "-extended=y", the plugin JAR will have to be in the runtime classpath of the client application.
+Generiere die Hilfsklasse zur Darstellung der erweiterten Metadaten als Quelltext.
+Wenn hier "n" angegeben wird und "extended=y", so muss das plugin JAR zur Laufzeit im Klassenpfad der client-Anwendung sein.
 
 
 ##### -extended=`{y|n}` (n)
-Generate extended meta data for each property: Name, type, multiplicity, default value.
+Generiere erweiterte Metadaten für jedes Property: Name, Typ, Multiplizität, Standardwert
 
 
 ##### -camelCase=`{y|n}` (n)
-Generate names of constant meta fields like field names, instead of Java constant name convention.
+Namen der Konstanten wie Feldnamen generieren, nicht nach Java-Konstanten-Konvention.
 
 
 ##### -metaClassName=`<string>` (PropInfo)
-Name of the generated meta-information nested class.
+Name der generierten inneren Metainfoklasse.
 
 [1]: #constrained-properties
 [2]: #clone
