@@ -87,8 +87,9 @@
 	* Refactored out common classes to jaxb-plugin-lib module
 	* Fixed override of choice expansion builder methods
 	* Fixed possible name clashes with choice expansion
-
-
+* **1.10.0**:
+	* Added visitor pattern to meta plugin
+	* Added property access via meta plugin
 
 
 
