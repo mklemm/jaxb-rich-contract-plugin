@@ -28,6 +28,7 @@ package com.kscs.util.jaxb;
  * @author Mirko Klemm 2015-10-15
  */
 public interface PropertyVisitor {
+	void visit(final Object value);
 	boolean visit(final ItemProperty<?, ?> property);
 	boolean visit(final SingleProperty<? ,?> property);
 	boolean visit(final CollectionProperty<?, ?> property);

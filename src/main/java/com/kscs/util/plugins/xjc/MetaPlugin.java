@@ -504,6 +504,8 @@ public class MetaPlugin extends AbstractPlugin {
 		final JVar visitorParam = visitMethod.param(JMod.FINAL, visitorType, "_visitor_");
 		if(classOutline.getSuperClass() != null) {
 			visitMethod.body().add(JExpr._super().invoke(this.visitMethodName).arg(visitorParam));
+		} else {
+			visitMethod.body().add(visitorParam.invoke("visit").arg(JExpr._this()));
 		}
 		return visitMethod;
 	}

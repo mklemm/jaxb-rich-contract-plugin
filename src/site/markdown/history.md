@@ -96,6 +96,8 @@
 	* Fixed bug in constant name generation
 * **1.11.1**:
 	* Fixed regression bug in builder where non-copied objects were not saved
+* **1.12.0**
+	* Enable visitor to visit root object
 
 
 
