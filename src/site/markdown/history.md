@@ -92,6 +92,8 @@
 	* Added property access via meta plugin
 * **1.11.0**:
 	* Made "visit" method return "this" for easier chaining.
+* **1.11.1**:
+	* Fixed bug in constant name generation
 
 
 

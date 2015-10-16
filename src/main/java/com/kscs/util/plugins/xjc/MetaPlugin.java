@@ -319,18 +319,18 @@ public class MetaPlugin extends AbstractPlugin {
 
 	private void generateNameOnlyMetaField(final PluginContext pluginContext, final JDefinedClass metaClass, final FieldOutline fieldOutline) {
 		final PropertyOutline propertyOutline = new DefinedPropertyOutline(fieldOutline);
-		final boolean fixed = isFixedProperty(fieldOutline);
+		final String constantName = getConstantName(fieldOutline);
 		final Outline outline = pluginContext.outline;
-		final String propertyName = fixed ? outline.getModel().getNameConverter().toConstantName(propertyOutline.getFieldName()) : propertyOutline.getFieldName();
+		final String propertyName = constantName != null ? constantName : propertyOutline.getFieldName();
 		final String metaFieldName = this.camelCase ? propertyName : fieldOutline.parent().parent().getModel().getNameConverter().toConstantName(propertyName);
 		metaClass.field(JMod.PUBLIC | JMod.STATIC | JMod.FINAL | JMod.TRANSIENT, String.class, metaFieldName, JExpr.lit(propertyName));
 	}
 
 	private void generateExtendedMetaField(final PluginContext pluginContext, final JDefinedClass metaClass, final JMethod visitMethod, final FieldOutline fieldOutline) {
 		final PropertyOutline propertyOutline = new DefinedPropertyOutline(fieldOutline);
-		final boolean fixed = isFixedProperty(fieldOutline);
+		final String constantName = getConstantName(fieldOutline);
 		final Outline outline = pluginContext.outline;
-		final String propertyName = fixed ? outline.getModel().getNameConverter().toConstantName(propertyOutline.getFieldName()) : propertyOutline.getFieldName();
+		final String propertyName = constantName != null ? constantName	: propertyOutline.getFieldName();
 		final String metaFieldName = this.camelCase ? propertyName : outline.getModel().getNameConverter().toConstantName(propertyName);
 		final JType rawType = propertyOutline.getElementType();
 		final Class<? extends PropertyInfo> infoClass;
@@ -459,7 +459,7 @@ public class MetaPlugin extends AbstractPlugin {
 	}
 
 	private void generateAccessors(final FieldOutline fieldOutline, final String propertyName, final JType returnType, final JDefinedClass declaringClass, final F1<JExpression, JVar> getMaker, final F3<JExpression, JBlock, JVar, JVar> setMaker) {
-		final boolean fixed = isFixedProperty(fieldOutline);
+		final String constantName = getConstantName(fieldOutline);
 		final JMethod getMethod = declaringClass.method(JMod.PUBLIC, returnType, "get");
 		getMethod.annotate(Override.class);
 		final JVar instanceParam = getMethod.param(JMod.FINAL, fieldOutline.parent().implClass, "_instance_");
@@ -468,7 +468,7 @@ public class MetaPlugin extends AbstractPlugin {
 		setMethod.annotate(Override.class);
 		final JVar setInstanceParam = setMethod.param(JMod.FINAL, fieldOutline.parent().implClass, "_instance_");
 		final JVar valueParam = setMethod.param(JMod.FINAL, returnType, "_value_");
-		if (!fixed) {
+		if (constantName == null) {
 			final JConditional ifNotNull = setMethod.body()._if(setInstanceParam.ne(JExpr._null()));
 			setMaker.f(ifNotNull._then(), setInstanceParam, valueParam);
 		}
@@ -486,13 +486,13 @@ public class MetaPlugin extends AbstractPlugin {
 		}
 	}
 
-	private boolean isFixedProperty(final FieldOutline fieldOutline) {
+	private String getConstantName(final FieldOutline fieldOutline) {
 		final XSComponent schemaComponent = fieldOutline.getPropertyInfo().getSchemaComponent();
-		if (!this.fixedAttributeAsConstantProperty) return false;
+		if (!this.fixedAttributeAsConstantProperty) return null;
 		if (schemaComponent instanceof XSAttributeDecl) {
-			return ((XSAttributeDecl)schemaComponent).getFixedValue() != null;
+			return ((XSAttributeDecl)schemaComponent).getFixedValue() != null ? fieldOutline.parent().parent().getModel().getNameConverter().toConstantName(((XSAttributeDecl)schemaComponent).getName()) : null;
 		} else {
-			return schemaComponent instanceof XSAttributeUse && ((XSAttributeUse)schemaComponent).getFixedValue() != null;
+			return schemaComponent instanceof XSAttributeUse && ((XSAttributeUse)schemaComponent).getFixedValue() != null ? fieldOutline.parent().parent().getModel().getNameConverter().toConstantName(((XSAttributeUse)schemaComponent).getDecl().getName()) : null;
 		}
 	}
 
