@@ -28,17 +28,17 @@ import javax.xml.namespace.QName;
 /**
  * @author mirko 2014-05-28
  */
-public class PropertyInfo<TInstance, TProperty> {
+public abstract class PropertyInfo<I, P> {
 	public final String propertyName;
-	public final Class<TProperty> declaredType;
-	public final Class<TInstance> declaringClass;
+	public final Class<P> declaredType;
+	public final Class<I> declaringClass;
 	public final boolean collection;
-	public final TProperty defaultValue;
+	public final P defaultValue;
 	public final QName schemaType;
 	public final boolean attribute;
 	public final QName schemaName;
 
-	public PropertyInfo(final String propertyName, final Class<TInstance> declaringClass, final Class<TProperty> declaredType, final boolean collection, final TProperty defaultValue, final QName schemaName, final QName schemaType, final boolean attribute) {
+	protected PropertyInfo(final String propertyName, final Class<I> declaringClass, final Class<P> declaredType, final boolean collection, final P defaultValue, final QName schemaName, final QName schemaType, final boolean attribute) {
 		this.propertyName = propertyName;
 		this.declaredType = declaredType;
 		this.declaringClass = declaringClass;
@@ -49,4 +49,21 @@ public class PropertyInfo<TInstance, TProperty> {
 		this.schemaName = schemaName;
 	}
 
+	public abstract Object get(final I instance);
+
+	@Override
+	public boolean equals(final Object o) {
+		if (this == o) return true;
+		if (!(o instanceof PropertyInfo)) return false;
+		final PropertyInfo<?, ?> that = (PropertyInfo<?, ?>)o;
+		if (!this.propertyName.equals(that.propertyName)) return false;
+		return declaringClass.equals(that.declaringClass);
+	}
+
+	@Override
+	public int hashCode() {
+		int result = this.propertyName.hashCode();
+		result = 31 * result + this.declaringClass.hashCode();
+		return result;
+	}
 }

@@ -86,6 +86,8 @@ You should add "maven-jaxb2-plugin" to your `<build>` configuration. Then add "j
                             <arg>-extended=n</arg>
                             <arg>-camelCase=n</arg>
                             <arg>-metaClassName=PropInfo</arg>
+                            <arg>-allowSet=y</arg>
+                            <arg>-visitMethodName=visit</arg>
                     </args>
                     <plugins>
                         <plugin>

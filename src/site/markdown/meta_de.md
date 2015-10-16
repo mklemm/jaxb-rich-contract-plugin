@@ -28,3 +28,11 @@ Namen der Konstanten wie Feldnamen generieren, nicht nach Java-Konstanten-Konven
 ##### -metaClassName=`<string>` (PropInfo)
 Name der generierten inneren Metainfoklasse.
 
+
+##### -allowSet=`{y|n}` (y)
+Generiere eine Möglichkeit, den Wert eines Propertys über die Metadaten zu ändern.
+
+
+##### -visitMethodName=`<string>` (visit)
+Name der Methode, mit der ein Visitor durch das Objekt geschickt werden kann.
+

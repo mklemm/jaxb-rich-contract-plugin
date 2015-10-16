@@ -28,3 +28,11 @@ Generate names of constant meta fields like field names, instead of Java constan
 ##### -metaClassName=`<string>` (PropInfo)
 Name of the generated meta-information nested class.
 
+
+##### -allowSet=`{y|n}` (y)
+Allow property values to be set via property meta information.
+
+
+##### -visitMethodName=`<string>` (visit)
+Name of the method to apply a visitor.
+
