@@ -311,6 +311,7 @@ public class MetaPlugin extends AbstractPlugin {
 					generateNameOnlyMetaField(pluginContext, metaClass, fieldOutline);
 				}
 			}
+			visitMethod.body()._return(JExpr._this());
 		} catch (final JClassAlreadyExistsException e) {
 			errorHandler.error(new SAXParseException(getMessage("error.metaClassExists", classOutline.implClass.name(), this.metaClassName), classOutline.target.getLocator()));
 		}
@@ -497,7 +498,7 @@ public class MetaPlugin extends AbstractPlugin {
 
 	private JMethod generateVisitMethod(final ClassOutline classOutline) {
 		final JDefinedClass definedClass = classOutline.implClass;
-		final JMethod visitMethod = definedClass.method(JMod.PUBLIC, void.class, this.visitMethodName);
+		final JMethod visitMethod = definedClass.method(JMod.PUBLIC, definedClass, this.visitMethodName);
 		final JCodeModel codeModel = definedClass.owner();
 		final JClass visitorType = codeModel.ref(PropertyVisitor.class);
 		final JVar visitorParam = visitMethod.param(JMod.FINAL, visitorType, "_visitor_");

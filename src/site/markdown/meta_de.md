@@ -6,6 +6,8 @@ field for each property. If the `-extended=y` command-line option is specified, 
 `PropertyInfo` class, on which the name, type, multiplicity (collection or not) and default value (from XSD) are exposed.
 Without `-extended`, the constants are simply string constants holding the property names.
 
+In Version 1.10 wurde neu ein "Visitor"-Muster eingeführt, über das sich der gesamte Objektgraph durchlaufen lässt.
+
 
 ### Aktivierung
 #### -Xmeta

@@ -90,6 +90,8 @@
 * **1.10.0**:
 	* Added visitor pattern to meta plugin
 	* Added property access via meta plugin
+* **1.11.0**:
+	* Made "visit" method return "this" for easier chaining.
 
 
 
