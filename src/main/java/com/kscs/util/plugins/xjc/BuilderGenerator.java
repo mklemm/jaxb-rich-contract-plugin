@@ -579,7 +579,7 @@ class BuilderGenerator {
 		} else {
 			constructor.body().assign(JExpr._this().ref(this.parentBuilderField), parentBuilderParam);
 		}
-		final JConditional ifNullStmt = constructor.body()._if(otherParam.ne(JExpr._null()).cand(copyParam));
+		final JConditional ifNullStmt = constructor.body()._if(otherParam.ne(JExpr._null()));
 		final JBlock body;
 		if (!this.settings.isCopyAlways() && this.typeOutline.getSuperClass() == null) {
 			final JConditional ifCopyStmt = ifNullStmt._then()._if(copyParam);

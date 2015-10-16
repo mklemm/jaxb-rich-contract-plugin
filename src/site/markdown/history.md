@@ -94,6 +94,8 @@
 	* Made "visit" method return "this" for easier chaining.
 * **1.11.1**:
 	* Fixed bug in constant name generation
+* **1.11.1**:
+	* Fixed regression bug in builder where non-copied objects were not saved
 
 
 
