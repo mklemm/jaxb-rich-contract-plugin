@@ -33,6 +33,8 @@ import org.xml.sax.ErrorHandler;
 import org.xml.sax.SAXException;
 import org.xml.sax.SAXParseException;
 
+import com.kscs.util.jaxb.AnonymousIndirectCollectionProperty;
+import com.kscs.util.jaxb.AnonymousIndirectCollectionPropertyInfo;
 import com.kscs.util.jaxb.CollectionProperty;
 import com.kscs.util.jaxb.CollectionPropertyInfo;
 import com.kscs.util.jaxb.IndirectCollectionProperty;
@@ -266,7 +268,6 @@ public class MetaPlugin extends AbstractPlugin {
 	private boolean allowSet = true;
 	@Opt
 	private String visitMethodName = "visit";
-
 	private boolean fixedAttributeAsConstantProperty;
 
 	@Override
@@ -287,11 +288,13 @@ public class MetaPlugin extends AbstractPlugin {
 			pluginContext.writeSourceFile(SinglePropertyInfo.class);
 			pluginContext.writeSourceFile(CollectionPropertyInfo.class);
 			pluginContext.writeSourceFile(IndirectCollectionPropertyInfo.class);
+			pluginContext.writeSourceFile(AnonymousIndirectCollectionPropertyInfo.class);
 			pluginContext.writeSourceFile(PropertyVisitor.class);
 			pluginContext.writeSourceFile(Property.class);
 			pluginContext.writeSourceFile(SingleProperty.class);
 			pluginContext.writeSourceFile(CollectionProperty.class);
 			pluginContext.writeSourceFile(IndirectCollectionProperty.class);
+			pluginContext.writeSourceFile(AnonymousIndirectCollectionProperty.class);
 			pluginContext.writeSourceFile(ItemProperty.class);
 		}
 		for (final ClassOutline classOutline : outline.getClasses()) {
@@ -330,7 +333,7 @@ public class MetaPlugin extends AbstractPlugin {
 		final PropertyOutline propertyOutline = new DefinedPropertyOutline(fieldOutline);
 		final String constantName = getConstantName(fieldOutline);
 		final Outline outline = pluginContext.outline;
-		final String propertyName = constantName != null ? constantName	: propertyOutline.getFieldName();
+		final String propertyName = constantName != null ? constantName : propertyOutline.getFieldName();
 		final String metaFieldName = this.camelCase ? propertyName : outline.getModel().getNameConverter().toConstantName(propertyName);
 		final JType rawType = propertyOutline.getElementType();
 		final Class<? extends PropertyInfo> infoClass;
@@ -342,23 +345,43 @@ public class MetaPlugin extends AbstractPlugin {
 		if (outline.getCodeModel().ref(JAXBElement.class).fullName().equals(rawType.erasure().fullName())) {
 			final JClass propertyType = ((JClass)rawType).getTypeParameters().get(0);
 			if (propertyOutline.isCollection() && !rawType.isArray()) {
-				getMaker = new F1<JExpression, JVar>() {
-					@Override
-					public JExpression f(final JVar param) {
-						return param.ref(propertyName);
-					}
-				};
-				setMaker = new F3<JExpression, JBlock, JVar, JVar>() {
-					@Override
-					public JExpression f(final JBlock block, final JVar instanceParam, final JVar valueParam) {
-						block.assign(instanceParam.ref(propertyName), valueParam);
-						return null;
-					}
-				};
-				infoClass = IndirectCollectionPropertyInfo.class;
-				typeArg = propertyType;
-				propertyWrapperClass = IndirectCollectionProperty.class;
-				fieldType = outline.getCodeModel().ref(List.class).narrow(outline.getCodeModel().ref(JAXBElement.class).narrow(propertyType));
+				if (propertyType.name().equals("?") || propertyType.name().equals("? extends Object")) {
+					getMaker = new F1<JExpression, JVar>() {
+						@Override
+						public JExpression f(final JVar param) {
+							return param.ref(propertyName);
+						}
+					};
+					setMaker = new F3<JExpression, JBlock, JVar, JVar>() {
+						@Override
+						public JExpression f(final JBlock block, final JVar instanceParam, final JVar valueParam) {
+							block.assign(instanceParam.ref(propertyName), valueParam);
+							return null;
+						}
+					};
+					infoClass = AnonymousIndirectCollectionPropertyInfo.class;
+					typeArg = null;
+					propertyWrapperClass = AnonymousIndirectCollectionProperty.class;
+					fieldType = outline.getCodeModel().ref(List.class).narrow(outline.getCodeModel().ref(JAXBElement.class).narrow(propertyType));
+				} else {
+					getMaker = new F1<JExpression, JVar>() {
+						@Override
+						public JExpression f(final JVar param) {
+							return param.ref(propertyName);
+						}
+					};
+					setMaker = new F3<JExpression, JBlock, JVar, JVar>() {
+						@Override
+						public JExpression f(final JBlock block, final JVar instanceParam, final JVar valueParam) {
+							block.assign(instanceParam.ref(propertyName), valueParam);
+							return null;
+						}
+					};
+					infoClass = IndirectCollectionPropertyInfo.class;
+					typeArg = propertyType;
+					propertyWrapperClass = IndirectCollectionProperty.class;
+					fieldType = outline.getCodeModel().ref(List.class).narrow(outline.getCodeModel().ref(JAXBElement.class).narrow(propertyType));
+				}
 			} else {
 				getMaker = new F1<JExpression, JVar>() {
 					@Override
@@ -380,10 +403,15 @@ public class MetaPlugin extends AbstractPlugin {
 				typeArg = propertyType;
 			}
 		} else {
-			getMaker = new F1<JExpression, JVar>() {
+			getMaker = constantName == null ? new F1<JExpression, JVar>() {
 				@Override
 				public JExpression f(final JVar param) {
 					return param.ref(propertyName);
+				}
+			} : new F1<JExpression, JVar>() {
+				@Override
+				public JExpression f(final JVar param) {
+					return ((JClass)param.type()).staticRef(propertyName);
 				}
 			};
 			setMaker = new F3<JExpression, JBlock, JVar, JVar>() {
@@ -405,7 +433,7 @@ public class MetaPlugin extends AbstractPlugin {
 				propertyWrapperClass = SingleProperty.class;
 			}
 		}
-		final JClass metaFieldType = outline.getCodeModel().ref(infoClass).narrow(fieldOutline.parent().implClass, typeArg);
+		final JClass metaFieldType = typeArg == null ? outline.getCodeModel().ref(infoClass).narrow(fieldOutline.parent().implClass) : outline.getCodeModel().ref(infoClass).narrow(fieldOutline.parent().implClass, typeArg);
 		final JDefinedClass anonymousMetaFieldType = outline.getCodeModel().anonymousClass(metaFieldType);
 		generateAccessors(fieldOutline, propertyName, fieldType, anonymousMetaFieldType, getMaker, setMaker);
 		final XSComponent schemaComponent = fieldOutline.getPropertyInfo().getSchemaComponent();
@@ -418,7 +446,7 @@ public class MetaPlugin extends AbstractPlugin {
 		final JFieldVar staticField = metaClass.field(JMod.PUBLIC | JMod.STATIC | JMod.FINAL | JMod.TRANSIENT, metaFieldType, metaFieldName, JExpr._new(anonymousMetaFieldType)
 				.arg(propertyName)
 				.arg(fieldOutline.parent().implClass.dotclass())
-				.arg(dotClass(typeArg))
+				.arg(dotClass(typeArg == null ? pluginContext.codeModel.ref(Object.class) : typeArg))
 				.arg(JExpr.lit(propertyOutline.isCollection()))
 				.arg(defaultValue == null ? JExpr._null() : defaultValue.compute(outline))
 				.arg(schemaNameExpr)
@@ -426,13 +454,13 @@ public class MetaPlugin extends AbstractPlugin {
 				.arg(JExpr.lit(attribute)));
 		final JVar visitorParam = visitMethod.params().get(0);
 		final JBlock block = visitMethod.body();
-		final JClass propertyCategory = pluginContext.codeModel.ref(propertyWrapperClass).narrow(fieldOutline.parent().implClass, typeArg);
-		final boolean generatedClass = isVisitable(pluginContext, typeArg);
+		final JClass propertyCategory = typeArg == null ? pluginContext.codeModel.ref(propertyWrapperClass).narrow(fieldOutline.parent().implClass) : pluginContext.codeModel.ref(propertyWrapperClass).narrow(fieldOutline.parent().implClass, typeArg);
+		final boolean generatedClass = typeArg != null && isVisitable(pluginContext, typeArg);
 		final JInvocation call = visitorParam.invoke("visit").arg(JExpr._new(propertyCategory).arg(metaClass.staticRef(staticField)).arg(JExpr._this()));
-		if(generatedClass) {
+		if (generatedClass) {
 			final JFieldRef field = JExpr._this().ref(staticField.name());
 			final JConditional ifContinue = block._if(call.cand(field.ne(JExpr._null())));
-			if(propertyOutline.isCollection() && !rawType.isArray()) {
+			if (propertyOutline.isCollection() && !rawType.isArray()) {
 				final JForEach forEach = ifContinue._then().forEach(rawType, "_item_", field);
 				final JConditional ifNotNull = forEach.body()._if(forEach.var().ne(JExpr._null()));
 				ifNotNull._then().add(forEach.var().invoke(this.visitMethodName).arg(visitorParam));
@@ -453,7 +481,7 @@ public class MetaPlugin extends AbstractPlugin {
 			final Class<?> foundClass = Class.forName(typeArg.binaryName());
 			final Method visitMethod = foundClass.getMethod("visit", PropertyVisitor.class);
 			return visitMethod != null;
-		} catch(final Exception cfne) {
+		} catch (final Exception cfne) {
 			return false;
 		}
 	}
@@ -502,7 +530,7 @@ public class MetaPlugin extends AbstractPlugin {
 		final JCodeModel codeModel = definedClass.owner();
 		final JClass visitorType = codeModel.ref(PropertyVisitor.class);
 		final JVar visitorParam = visitMethod.param(JMod.FINAL, visitorType, "_visitor_");
-		if(classOutline.getSuperClass() != null) {
+		if (classOutline.getSuperClass() != null) {
 			visitMethod.body().add(JExpr._super().invoke(this.visitMethodName).arg(visitorParam));
 		} else {
 			visitMethod.body().add(visitorParam.invoke("visit").arg(JExpr._this()));

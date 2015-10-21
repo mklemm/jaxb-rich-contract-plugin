@@ -61,6 +61,9 @@ import com.sun.codemodel.JTypeVar;
 import com.sun.codemodel.JVar;
 import com.sun.tools.xjc.model.Aspect;
 import com.sun.tools.xjc.model.CClassInfo;
+import com.sun.tools.xjc.model.nav.NClass;
+import com.sun.tools.xjc.model.nav.NType;
+import com.sun.xml.bind.v2.model.core.TypeInfo;
 
 import static com.kscs.util.plugins.xjc.base.PluginUtil.nullSafe;
 
@@ -180,15 +183,16 @@ class BuilderGenerator {
 
 	private void generateCollectionChoiceProperty(final PropertyOutline propertyOutline) {
 		for (final PropertyOutline.TagRef tagRef : propertyOutline.getChoiceProperties()) {
-			final CClassInfo classInfo = (CClassInfo)tagRef.getTypeInfo();
+			final TypeInfo<NType,NClass> typeInfo = tagRef.getTypeInfo();
 			final QName elementName = tagRef.getTagName();
-			final JClass elementType = classInfo.toType(this.pluginContext.outline, Aspect.EXPOSED);
+			final JType elementType = typeInfo.getType().toType(this.pluginContext.outline, Aspect.EXPOSED);
 			generateAddMethods(propertyOutline, elementName, elementType);
 		}
 	}
 
 	private void generateAddMethods(final PropertyOutline propertyOutline,
-	                                final QName elementName, final JClass elementType) {
+	                                final QName elementName, final JType jType) {
+		final JClass elementType = jType.boxify();
 		final JClass iterableType = this.pluginContext.iterableClass.narrow(elementType.wildcard());
 		final String fieldName = this.pluginContext.outline.getModel().getNameConverter().toVariableName(elementName.getLocalPart());
 		final String propertyName = this.pluginContext.outline.getModel().getNameConverter().toPropertyName(elementName.getLocalPart());
@@ -214,18 +218,17 @@ class BuilderGenerator {
 			final JClass builderArrayListClass = this.pluginContext.arrayListClass.narrow(builderFieldElementType);
 			final JFieldVar builderField = this.builderClass.raw.fields().get(propertyOutline.getFieldName());
 			addVarargsMethod.body()._return(JExpr.invoke(addIterableMethod).arg(this.pluginContext.asList(addVarargsParam)));
-			final JConditional addIterableIfParamNull = addIterableMethod.body()._if(addIterableParam.ne(JExpr._null()));
-			final JConditional addIterableIfNull = addIterableIfParamNull._then()._if(JExpr._this().ref(builderField).eq(JExpr._null()));
-			addIterableIfNull._then().assign(JExpr._this().ref(builderField), JExpr._new(builderArrayListClass));
-			final JForEach addIterableForEach = addIterableIfParamNull._then().forEach(elementType, BuilderGenerator.ITEM_VAR_NAME, addIterableParam);
-			final JExpression builderCreationExpression = childBuilderOutline == null
-					? JExpr._new(this.pluginContext.buildableClass).arg(addIterableForEach.var())
-					: JExpr._new(childBuilderType).arg(JExpr._this()).arg(addIterableForEach.var()).arg(this.settings.isCopyAlways() ? JExpr.TRUE : JExpr.FALSE);
-			addIterableForEach.body().add(JExpr._this().ref(builderField).invoke("add").arg(builderCreationExpression));
-			addIterableMethod.body()._return(JExpr._this());
 			if (addMethod == null) {
 				addIterableMethod.body()._return(JExpr.invoke(PluginContext.ADD_METHOD_PREFIX + propertyOutline.getBaseName()).arg(addIterableParam));
 			} else {
+				final JConditional addIterableIfParamNull = addIterableMethod.body()._if(addIterableParam.ne(JExpr._null()));
+				final JConditional addIterableIfNull = addIterableIfParamNull._then()._if(JExpr._this().ref(builderField).eq(JExpr._null()));
+				addIterableIfNull._then().assign(JExpr._this().ref(builderField), JExpr._new(builderArrayListClass));
+				final JForEach addIterableForEach = addIterableIfParamNull._then().forEach(elementType, BuilderGenerator.ITEM_VAR_NAME, addIterableParam);
+				final JExpression builderCreationExpression = JExpr._new(childBuilderType).arg(JExpr._this()).arg(addIterableForEach.var()).arg(this.settings.isCopyAlways() ? JExpr.TRUE : JExpr.FALSE);
+				addIterableForEach.body().add(JExpr._this().ref(builderField).invoke("add").arg(builderCreationExpression));
+				addIterableMethod.body()._return(JExpr._this());
+
 				final JConditional addIfNull = addMethod.body()._if(JExpr._this().ref(builderField).eq(JExpr._null()));
 				addIfNull._then().assign(JExpr._this().ref(builderField), JExpr._new(builderArrayListClass));
 				final JVar childBuilderVar = addMethod.body().decl(JMod.FINAL, childBuilderType, fieldName + this.settings.getBuilderFieldSuffix(), JExpr._new(childBuilderType).arg(JExpr._this()).arg(JExpr._null()).arg(JExpr.FALSE));

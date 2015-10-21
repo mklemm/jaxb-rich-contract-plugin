@@ -98,6 +98,9 @@
 	* Fixed regression bug in builder where non-copied objects were not saved
 * **1.12.0**
 	* Enable visitor to visit root object
+* **1.13.0**
+	* Fixed instance access to static field generation in meta plugin
+	* Fixed choice expansion to work with collections not only of complexTypes, but of simpleTypes as well
 
 
 
