@@ -103,6 +103,8 @@
 	* Fixed choice expansion to work with collections not only of complexTypes, but of simpleTypes as well
 * **1.14.0**
 	* Added "visit" Method to generated interfaces.
+* **1.15.0**
+	* Moved "visit" Method to "Lifecycle" interfaces.
 
 
 

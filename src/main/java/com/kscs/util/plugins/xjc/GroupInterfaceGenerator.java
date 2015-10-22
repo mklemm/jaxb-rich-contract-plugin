@@ -503,7 +503,8 @@ class GroupInterfaceGenerator {
 		}
 
 		if(this.declareVisitMethod) {
-			groupInterface.method(JMod.NONE, groupInterface, this.pluginContext.findPlugin(MetaPlugin.class).getVisitMethodName()).param(JMod.FINAL, PropertyVisitor.class, "visitor_");
+			final JDefinedClass target = supportInterface != null ? supportInterface : groupInterface;
+			target.method(JMod.NONE, target, this.pluginContext.findPlugin(MetaPlugin.class).getVisitMethodName()).param(JMod.FINAL, PropertyVisitor.class, "visitor_");
 		}
 
 		return interfaceDecl;
