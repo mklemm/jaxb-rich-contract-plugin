@@ -280,6 +280,10 @@ public class MetaPlugin extends AbstractPlugin {
 		this.fixedAttributeAsConstantProperty = Ring.get(BGMBuilder.class).getGlobalBinding().getDefaultProperty().isConstantProperty();
 	}
 
+	public boolean isExtended() {
+		return this.extended;
+	}
+
 	@Override
 	public boolean run(final Outline outline, final Options opt, final ErrorHandler errorHandler) throws SAXException {
 		final PluginContext pluginContext = PluginContext.get(outline, opt, errorHandler);
@@ -536,6 +540,10 @@ public class MetaPlugin extends AbstractPlugin {
 			visitMethod.body().add(visitorParam.invoke("visit").arg(JExpr._this()));
 		}
 		return visitMethod;
+	}
+
+	public String getVisitMethodName() {
+		return this.visitMethodName;
 	}
 
 	private interface F1<R, A> {

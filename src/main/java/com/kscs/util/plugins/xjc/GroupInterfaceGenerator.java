@@ -47,6 +47,7 @@ import javax.xml.transform.stream.StreamSource;
 import org.xml.sax.SAXException;
 import org.xml.sax.SAXParseException;
 
+import com.kscs.util.jaxb.PropertyVisitor;
 import com.kscs.util.jaxb._interface.Interface;
 import com.kscs.util.jaxb._interface.Interfaces;
 import com.kscs.util.plugins.xjc.base.AbstractXSFunction;
@@ -112,6 +113,7 @@ class GroupInterfaceGenerator {
 	private final boolean declareBuilderInterface;
 	private final boolean declareModifierInterface;
 	private final JClass overrideCollectionClass;
+	private final boolean declareVisitMethod;
 	private final PluginContext pluginContext;
 	private final XSFunction<String> nameFunc = new AbstractXSFunction<String>() {
 
@@ -170,6 +172,8 @@ class GroupInterfaceGenerator {
 		final DeepCopyPlugin deepCopyPlugin = this.pluginContext.findPlugin(DeepCopyPlugin.class);
 		this.declareBuilderInterface = settings.isDeclareBuilderInterface() && settings.getBuilderGeneratorSettings() != null;
 		this.declareModifierInterface = pluginContext.hasPlugin(ModifierPlugin.class);
+		final MetaPlugin metaPlugin = pluginContext.findPlugin(MetaPlugin.class);
+		this.declareVisitMethod = metaPlugin != null && metaPlugin.isExtended();
 		this.needsCloneMethod = deepClonePlugin != null;
 		this.cloneMethodThrows = this.needsCloneMethod && deepClonePlugin.isCloneThrows();
 		this.needsCopyMethod = deepCopyPlugin != null;
@@ -388,6 +392,7 @@ class GroupInterfaceGenerator {
 				}
 			}
 		}
+
 	}
 
 	private void generateBuilderInterface(final Map<String, BuilderOutline> builderOutlines, final DefinedInterfaceOutline interfaceOutline) throws SAXException {
@@ -495,6 +500,10 @@ class GroupInterfaceGenerator {
 			if (field != null) {
 				generateProperty(interfaceDecl, field);
 			}
+		}
+
+		if(this.declareVisitMethod) {
+			groupInterface.method(JMod.NONE, groupInterface, this.pluginContext.findPlugin(MetaPlugin.class).getVisitMethodName()).param(JMod.FINAL, PropertyVisitor.class, "visitor_");
 		}
 
 		return interfaceDecl;

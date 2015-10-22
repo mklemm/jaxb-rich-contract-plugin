@@ -101,6 +101,8 @@
 * **1.13.0**
 	* Fixed instance access to static field generation in meta plugin
 	* Fixed choice expansion to work with collections not only of complexTypes, but of simpleTypes as well
+* **1.14.0**
+	* Added "visit" Method to generated interfaces.
 
 
 
