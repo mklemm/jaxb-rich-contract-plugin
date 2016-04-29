@@ -4,7 +4,7 @@ There already is the widely used "fluent-api" plugin for XJC. That, however isn'
 
 fluent-builder now creates a real "Builder" pattern, implemented as an inner class to the generated classes.
 
-### Limitations
+### Enschränkungen
 * It generates a large amount of code.
 * Note: Shared builder instances are NOT thread-safe by themselves.
 

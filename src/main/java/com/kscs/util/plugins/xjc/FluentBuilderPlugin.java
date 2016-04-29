@@ -62,23 +62,23 @@ public class FluentBuilderPlugin extends AbstractPlugin {
 	@Opt
 	protected String builderFieldSuffix = "_Builder";
 	@Opt
-	private boolean generateTools = true;
+	protected boolean generateTools = true;
 	@Opt
-	private boolean narrow = false;
+	protected boolean narrow = false;
 	@Opt
-	private boolean copyPartial = true;
+	protected boolean copyPartial = true;
 	@Opt
-	private String selectorClassName = "Selector";
+	protected String selectorClassName = "Selector";
 	@Opt
-	private String builderClassName = PluginContext.BUILDER_CLASS_NAME;
+	protected String builderClassName = PluginContext.BUILDER_CLASS_NAME;
 	@Opt
-	private String builderInterfaceName = PluginContext.BUILDER_INTERFACE_NAME;
+	protected String builderInterfaceName = PluginContext.BUILDER_INTERFACE_NAME;
 	@Opt
-	private boolean copyAlways = false;
+	protected boolean copyAlways = false;
 	@Opt
-	private String buildMethodName = PluginContext.BUILD_METHOD_NAME;
+	protected String buildMethodName = PluginContext.BUILD_METHOD_NAME;
 	@Opt
-	private String endMethodName = "end";
+	protected String endMethodName = "end";
 
 	@Override
 	public String getOptionName() {

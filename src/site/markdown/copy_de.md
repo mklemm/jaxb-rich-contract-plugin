@@ -2,7 +2,7 @@
 ### Motivation
 Sometimes it is necessary to create a deep copy of an object. There are various approaches to this. The "copy" plugin defines its own interface, contract, and definitions that are somewhat different from the standard java "java.lang.Cloneable" contract. The entry point generated in the source code is called `createCopy`, there are optionally also copy constructors.
 
-### Function
+### Funktion
 The `copy` plugin generates a deep clone method for each of the generated classes, based on the following assumptions:
 
 * Instances of any other classes implementing the `com.kscs.util.jaxb.Copyable` interface are copyable by the same semantics as "this".
@@ -36,7 +36,7 @@ which will result in a businessPartnerCopy where every property is set to null, 
 
 This works for single and multi-valued properties, where for multi-valued properties, the property tree applies to all elements of the list of values in the same way. As of yet, there is no way to make a tree apply only to specific indexes in generated lists.
 
-### Limitations
+### Enschränkungen
 * The `-narrow` option is a somewhat special use case and should be used carefully.
 
 ### Aktivierung
