@@ -57,7 +57,7 @@ You should add "maven-jaxb2-plugin" to your `<build>` configuration. Then add "j
                             <arg>-declareSetters=y</arg>
                             <arg>-declareBuilderInterface=y</arg>
                             <arg>-supportInterfaceNameSuffix=Lifecycle</arg>
-                            <arg>-upstreamEpisodeFile=/META-INF/jaxb-interfaces.episode</arg>
+                            <arg>-upstreamEpisodeFile=META-INF/jaxb-interfaces.episode</arg>
                             <arg>-downstreamEpisodeFile=/META-INF/jaxb-interfaces.episode</arg>
                         <arg>-Ximmutable</arg>
                             <arg>-fake=n</arg>

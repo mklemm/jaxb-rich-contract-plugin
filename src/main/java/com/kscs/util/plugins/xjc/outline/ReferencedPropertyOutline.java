@@ -71,7 +71,7 @@ public class ReferencedPropertyOutline implements PropertyOutline {
 		if(isCollection() && !this.field.getType().isArray()) {
 			return this.codeModel.ref(this.field.getType()).narrow(getElementType());
 		} else {
-			return this.codeModel.ref(this.field.getType());
+			return this.codeModel._ref(this.field.getType());
 		}
 	}
 
@@ -88,7 +88,7 @@ public class ReferencedPropertyOutline implements PropertyOutline {
 			} else {
 				type = declaredType;
 			}
-			this.rawType = this.codeModel.ref(type);
+			this.rawType = this.codeModel._ref(type);
 		}
 	}
 

@@ -36,6 +36,7 @@ import java.net.URI;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -58,14 +59,6 @@ import javax.xml.xpath.XPathExpression;
 import javax.xml.xpath.XPathExpressionException;
 import javax.xml.xpath.XPathFactory;
 
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
-import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
-import org.xml.sax.ErrorHandler;
-import org.xml.sax.InputSource;
-import org.xml.sax.SAXException;
-
 import com.kscs.util.jaxb.bindings.Interface;
 import com.kscs.util.plugins.xjc.base.AbstractPlugin;
 import com.kscs.util.plugins.xjc.base.MappingNamespaceContext;
@@ -76,6 +69,13 @@ import com.kscs.util.plugins.xjc.outline.TypeOutline;
 import com.sun.tools.xjc.BadCommandLineException;
 import com.sun.tools.xjc.Options;
 import com.sun.tools.xjc.outline.Outline;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
+import org.xml.sax.ErrorHandler;
+import org.xml.sax.InputSource;
+import org.xml.sax.SAXException;
 
 /**
  * Generates interface declarations from &lt;group&gt; and &lt;attributeGroup&gt;
@@ -91,7 +91,7 @@ public class GroupInterfacePlugin extends AbstractPlugin {
 	@Opt
 	private String supportInterfaceNameSuffix = "Lifecycle";
 	@Opt
-	private String upstreamEpisodeFile = "/META-INF/jaxb-interfaces.episode";
+	private String upstreamEpisodeFile = "META-INF/jaxb-interfaces.episode";
 	@Opt
 	private String downstreamEpisodeFile = "/META-INF/jaxb-interfaces.episode";
 	private GroupInterfaceGenerator generator = null;
@@ -139,11 +139,15 @@ public class GroupInterfacePlugin extends AbstractPlugin {
 
 	private void generate(final PluginContext pluginContext) throws SAXException {
 		if (this.generator == null) {
-			final URL interfaceEpisodeURL = getClass().getResource(this.upstreamEpisodeFile);
-			final EpisodeBuilder episodeBuilder = new EpisodeBuilder(pluginContext, this.downstreamEpisodeFile);
-			this.generator = new GroupInterfaceGenerator(pluginContext, interfaceEpisodeURL, episodeBuilder, getSettings(pluginContext));
-			this.generator.generateGroupInterfaceModel();
-			episodeBuilder.build();
+			try {
+				final Enumeration<URL> interfaceEpisodeURLs = getClass().getClassLoader().getResources(this.upstreamEpisodeFile);
+				final EpisodeBuilder episodeBuilder = new EpisodeBuilder(pluginContext, this.downstreamEpisodeFile);
+				this.generator = new GroupInterfaceGenerator(pluginContext, interfaceEpisodeURLs, episodeBuilder, getSettings(pluginContext));
+				this.generator.generateGroupInterfaceModel();
+				episodeBuilder.build();
+			} catch(final IOException iox) {
+				throw new SAXException(iox);
+			}
 		}
 	}
 

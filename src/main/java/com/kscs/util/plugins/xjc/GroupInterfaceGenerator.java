@@ -30,6 +30,7 @@ import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
@@ -43,9 +44,6 @@ import javax.xml.transform.Transformer;
 import javax.xml.transform.dom.DOMResult;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamSource;
-
-import org.xml.sax.SAXException;
-import org.xml.sax.SAXParseException;
 
 import com.kscs.util.jaxb.PropertyVisitor;
 import com.kscs.util.jaxb._interface.Interface;
@@ -84,6 +82,8 @@ import com.sun.xml.xsom.XSParticle;
 import com.sun.xml.xsom.XSTerm;
 import com.sun.xml.xsom.impl.util.SchemaWriter;
 import com.sun.xml.xsom.visitor.XSFunction;
+import org.xml.sax.SAXException;
+import org.xml.sax.SAXParseException;
 
 import static com.kscs.util.plugins.xjc.PluginContext.coalesce;
 
@@ -155,12 +155,12 @@ class GroupInterfaceGenerator {
 	private final boolean needsCopyMethod;
 	private final Map<String, List<TypeOutline>> interfacesByClass = new HashMap<>();
 	private final EpisodeBuilder episodeBuilder;
-	private final URL upstreamEpisode;
+	private final Enumeration<URL> upstreamEpisodes;
 	private final GroupInterfaceGeneratorSettings settings;
 
 	private Map<QName, ReferencedInterfaceOutline> referencedInterfaces = null;
 
-	public GroupInterfaceGenerator(final PluginContext pluginContext, final URL upstreamEpisode, final EpisodeBuilder episodeBuilder, final GroupInterfaceGeneratorSettings settings) {
+	public GroupInterfaceGenerator(final PluginContext pluginContext, final Enumeration<URL> upstreamEpisodes, final EpisodeBuilder episodeBuilder, final GroupInterfaceGeneratorSettings settings) {
 		this.pluginContext = pluginContext;
 		this.settings = settings;
 		final ImmutablePlugin immutablePlugin = this.pluginContext.findPlugin(ImmutablePlugin.class);
@@ -177,7 +177,7 @@ class GroupInterfaceGenerator {
 		this.needsCloneMethod = deepClonePlugin != null;
 		this.cloneMethodThrows = this.needsCloneMethod && deepClonePlugin.isCloneThrows();
 		this.needsCopyMethod = deepCopyPlugin != null;
-		this.upstreamEpisode = upstreamEpisode;
+		this.upstreamEpisodes = upstreamEpisodes;
 		this.episodeBuilder = episodeBuilder;
 	}
 
@@ -224,16 +224,26 @@ class GroupInterfaceGenerator {
 		}
 	}
 
-	private Map<QName, ReferencedInterfaceOutline> loadInterfaceEpisode(final PluginContext pluginContext, final URL resource) {
+	private Map<QName, ReferencedInterfaceOutline> loadInterfaceEpisodes() {
 		try {
 			final Transformer transformer = GroupInterfacePlugin.TRANSFORMER_FACTORY.newTransformer(new StreamSource(GroupInterfaceGenerator.class.getResource("interface-bindings.xsl").toString()));
-			final StreamSource episodeInput = new StreamSource(resource.toString());
-			final DOMResult domResult = new DOMResult();
-			transformer.transform(episodeInput, domResult);
-			final Interfaces interfaces = JAXB.unmarshal(new DOMSource(domResult.getNode()), Interfaces.class);
 			final Map<QName, ReferencedInterfaceOutline> interfaceMappings = new HashMap<>();
-			for (final Interface iface : interfaces.getInterface()) {
-				interfaceMappings.put(new QName(iface.getSchemaComponent().getNamespace(), iface.getSchemaComponent().getName()), new ReferencedInterfaceOutline(pluginContext.codeModel.ref(iface.getName()), this.settings.getSupportInterfaceNameSuffix()));
+			while(this.upstreamEpisodes.hasMoreElements()) {
+				final Map<QName, ReferencedInterfaceOutline> result;
+				try {
+					final StreamSource episodeInput = new StreamSource(this.upstreamEpisodes.nextElement().toString());
+					final DOMResult domResult = new DOMResult();
+					transformer.transform(episodeInput, domResult);
+					final Interfaces interfaces = JAXB.unmarshal(new DOMSource(domResult.getNode()), Interfaces.class);
+					final Map<QName, ReferencedInterfaceOutline> interfaceMappings1 = new HashMap<>();
+					for (final Interface iface : interfaces.getInterface()) {
+						interfaceMappings1.put(new QName(iface.getSchemaComponent().getNamespace(), iface.getSchemaComponent().getName()), new ReferencedInterfaceOutline(this.pluginContext.codeModel.ref(iface.getName()), this.settings.getSupportInterfaceNameSuffix()));
+					}
+					result = interfaceMappings1;
+				} catch (final Exception e) {
+					throw new RuntimeException(e);
+				}
+				interfaceMappings.putAll(result);
 			}
 			return interfaceMappings;
 		} catch (final Exception e) {
@@ -555,8 +565,8 @@ class GroupInterfaceGenerator {
 
 	Map<QName, ReferencedInterfaceOutline> getReferencedInterfaces() {
 		if (this.referencedInterfaces == null) {
-			if (this.upstreamEpisode != null) {
-				this.referencedInterfaces = loadInterfaceEpisode(this.pluginContext, this.upstreamEpisode);
+			if (this.upstreamEpisodes != null) {
+				this.referencedInterfaces = loadInterfaceEpisodes();
 			} else {
 				this.referencedInterfaces = Collections.emptyMap();
 			}
