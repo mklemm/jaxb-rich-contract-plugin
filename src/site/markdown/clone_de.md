@@ -11,7 +11,7 @@ The `clone` plugin generates a deep clone method for each of the generated class
 ### Bugs
 The `-cloneThrows` option should in fact never have existed.
 
-### Enschr‰nkungen
+### Enschr√§nkungen
 There is currently no way for the plugin to determine whether an object in the object graph that isn't cloneable actually is immutable so its reference can be copied. So, there is no guarantee that cloned object graphs are really independent of each other, as mandated by the `java.lang.Cloneable` contract.
 
 ### Aktivierung

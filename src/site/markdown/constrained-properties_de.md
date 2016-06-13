@@ -7,7 +7,7 @@ constrained-properties generates additional code in the property setter methods 
 
 Currently, **indexed properties** are NOT supported in the way specified by JavaBeans, but instead, if a property represents a collection, a collection proxy class is generated that supports its own set of collection-specific change notifications, vetoable and other. This decision has been made because by default XJC generates collection properties rather than indexed properties, and indexed properties as mandated by JavaBeans are generally considered "out of style".
 
-### Enschränkungen
+### EnschrÃ¤nkungen
 * The JavaBeans standard is only loosely implemented in the generated classes.
 * Indexed Properties as defined in JavaBeans are not supported.
 * The CollectionChange behavior implemented by the classes is not yet documented and non-standard.
@@ -18,15 +18,15 @@ Currently, **indexed properties** are NOT supported in the way specified by Java
 #### Optionen
 
 ##### -constrained=`{y|n}` (y)
-Erzeuge "constrained properties", die durch das Werfen einer  Exception eine Änderung ihres Zustandes unterbinden können.
+Erzeuge "constrained properties", die durch das Werfen einer  Exception eine Ã„nderung ihres Zustandes unterbinden kÃ¶nnen.
 
 
 ##### -bound=`{y|n}` (y)
-Erzeuge "bound properties", die die Änderung ihres Zustandes als Event weitermelden.
+Erzeuge "bound properties", die die Ã„nderung ihres Zustandes als Event weitermelden.
 
 
 ##### -setterThrows=`{y|n}` (n)
-Wenn Constrained Properties verwendet werden, soll eine PropertyVetoException bei unerlaubter Zustandsänderung geworfen werden.
+Wenn Constrained Properties verwendet werden, soll eine PropertyVetoException bei unerlaubter ZustandsÃ¤nderung geworfen werden.
 Wenn dies auf "no" gesetzt ist, wird stattdessen eine "RuntimeException" erzeugt.
 
 

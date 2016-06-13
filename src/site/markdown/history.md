@@ -105,6 +105,10 @@
 	* Added "visit" Method to generated interfaces.
 * **1.15.0**
 	* Moved "visit" Method to "Lifecycle" interfaces.
+* **1.16.0**
+	* Minor bugfixes
+* **1.17.0**
+    * Fixed issues with modular compilation ("episode") when more than one upstream modules were referenced via the episode mechanism.
 
 
 
