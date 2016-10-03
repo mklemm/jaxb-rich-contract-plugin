@@ -139,8 +139,8 @@ class BuilderGenerator {
 		} else {
 			generateSingularProperty(initBody, productParam, propertyOutline);
 			if (propertyOutline.getChoiceProperties().size() > 1) {
-				throw new UnsupportedOperationException("Singular Properties with multiple references not currently supported.");
-				//generateSingularChoiceProperty(propertyOutline);
+				//throw new UnsupportedOperationException("Singular Properties with multiple references not currently supported.");
+				generateSingularChoiceProperty(propertyOutline);
 			}
 		}
 	}

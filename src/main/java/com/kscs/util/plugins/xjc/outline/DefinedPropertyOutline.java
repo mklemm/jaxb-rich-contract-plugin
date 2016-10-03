@@ -28,6 +28,8 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import javax.xml.bind.JAXBElement;
+
 import com.sun.codemodel.JClass;
 import com.sun.codemodel.JFieldVar;
 import com.sun.codemodel.JMethod;
@@ -48,10 +50,12 @@ public class DefinedPropertyOutline implements PropertyOutline {
 	private final FieldOutline fieldOutline;
 	private final PropertyInfo<NType,NClass> propertyInfo;
 	private final List<TagRef> referencedItems;
+	private final JClass jaxbElementClass;
 
 	public DefinedPropertyOutline(final FieldOutline fieldOutline) {
 		this.fieldOutline = fieldOutline;
 		this.propertyInfo = fieldOutline.getPropertyInfo();
+		this.jaxbElementClass = fieldOutline.getRawType().owner().ref(JAXBElement.class);
 		if(this.propertyInfo instanceof ElementPropertyInfo) {
 			final ElementPropertyInfo<NType, NClass> elementPropertyInfo = (ElementPropertyInfo<NType, NClass>)this.propertyInfo;
 			this.referencedItems = new ArrayList<>(elementPropertyInfo.getTypes().size());
@@ -91,6 +95,11 @@ public class DefinedPropertyOutline implements PropertyOutline {
 		} else {
 			return getRawType();
 		}
+	}
+
+	@Override
+	public boolean isIndirect() {
+		return this.jaxbElementClass.fullName().equals(getElementType().erasure().fullName());
 	}
 
 	@Override

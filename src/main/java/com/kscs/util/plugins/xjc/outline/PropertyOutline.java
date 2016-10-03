@@ -45,6 +45,7 @@ public interface PropertyOutline {
 	JFieldVar getFieldVar();
 	boolean hasGetter();
 	boolean isCollection();
+	boolean isIndirect();
 	List<TagRef> getChoiceProperties();
 
 	class TagRef {

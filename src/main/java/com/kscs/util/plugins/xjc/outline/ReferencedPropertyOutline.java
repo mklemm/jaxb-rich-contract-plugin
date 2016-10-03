@@ -31,6 +31,8 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
+import javax.xml.bind.JAXBElement;
+
 import com.sun.codemodel.JCodeModel;
 import com.sun.codemodel.JFieldVar;
 import com.sun.codemodel.JType;
@@ -115,6 +117,11 @@ public class ReferencedPropertyOutline implements PropertyOutline {
 	public boolean isCollection() {
 		initRawType();
 		return this.collection;
+	}
+
+	@Override
+	public boolean isIndirect() {
+		return getElementType().erasure().fullName().equals(this.codeModel.ref(JAXBElement.class).fullName());
 	}
 
 	@Override

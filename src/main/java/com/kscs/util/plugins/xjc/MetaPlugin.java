@@ -39,6 +39,8 @@ import com.kscs.util.jaxb.CollectionProperty;
 import com.kscs.util.jaxb.CollectionPropertyInfo;
 import com.kscs.util.jaxb.IndirectCollectionProperty;
 import com.kscs.util.jaxb.IndirectCollectionPropertyInfo;
+import com.kscs.util.jaxb.IndirectPrimitiveCollectionProperty;
+import com.kscs.util.jaxb.IndirectPrimitiveCollectionPropertyInfo;
 import com.kscs.util.jaxb.ItemProperty;
 import com.kscs.util.jaxb.Property;
 import com.kscs.util.jaxb.PropertyInfo;
@@ -292,12 +294,14 @@ public class MetaPlugin extends AbstractPlugin {
 			pluginContext.writeSourceFile(SinglePropertyInfo.class);
 			pluginContext.writeSourceFile(CollectionPropertyInfo.class);
 			pluginContext.writeSourceFile(IndirectCollectionPropertyInfo.class);
+			pluginContext.writeSourceFile(IndirectPrimitiveCollectionPropertyInfo.class);
 			pluginContext.writeSourceFile(AnonymousIndirectCollectionPropertyInfo.class);
 			pluginContext.writeSourceFile(PropertyVisitor.class);
 			pluginContext.writeSourceFile(Property.class);
 			pluginContext.writeSourceFile(SingleProperty.class);
 			pluginContext.writeSourceFile(CollectionProperty.class);
 			pluginContext.writeSourceFile(IndirectCollectionProperty.class);
+			pluginContext.writeSourceFile(IndirectPrimitiveCollectionProperty.class);
 			pluginContext.writeSourceFile(AnonymousIndirectCollectionProperty.class);
 			pluginContext.writeSourceFile(ItemProperty.class);
 		}
@@ -346,7 +350,8 @@ public class MetaPlugin extends AbstractPlugin {
 		final Class<? extends Property> propertyWrapperClass;
 		final F1<JExpression, JVar> getMaker;
 		final F3<JExpression, JBlock, JVar, JVar> setMaker;
-		if (outline.getCodeModel().ref(JAXBElement.class).fullName().equals(rawType.erasure().fullName())) {
+		final JClass jaxbElementClass = outline.getCodeModel().ref(JAXBElement.class);
+		if (propertyOutline.isIndirect()) {
 			final JClass propertyType = ((JClass)rawType).getTypeParameters().get(0);
 			if (propertyOutline.isCollection() && !rawType.isArray()) {
 				if (propertyType.name().equals("?") || propertyType.name().equals("? extends Object")) {
@@ -366,7 +371,7 @@ public class MetaPlugin extends AbstractPlugin {
 					infoClass = AnonymousIndirectCollectionPropertyInfo.class;
 					typeArg = null;
 					propertyWrapperClass = AnonymousIndirectCollectionProperty.class;
-					fieldType = outline.getCodeModel().ref(List.class).narrow(outline.getCodeModel().ref(JAXBElement.class).narrow(propertyType));
+					fieldType = outline.getCodeModel().ref(List.class).narrow(jaxbElementClass.narrow(propertyType));
 				} else {
 					getMaker = new F1<JExpression, JVar>() {
 						@Override
@@ -381,10 +386,10 @@ public class MetaPlugin extends AbstractPlugin {
 							return null;
 						}
 					};
-					infoClass = IndirectCollectionPropertyInfo.class;
-					typeArg = propertyType;
-					propertyWrapperClass = IndirectCollectionProperty.class;
-					fieldType = outline.getCodeModel().ref(List.class).narrow(outline.getCodeModel().ref(JAXBElement.class).narrow(propertyType));
+					infoClass = propertyType.name().startsWith("?") ? IndirectCollectionPropertyInfo.class : IndirectPrimitiveCollectionPropertyInfo.class;
+					typeArg = propertyType.name().startsWith("?") ? propertyType._extends() : propertyType;
+					propertyWrapperClass = propertyType.name().startsWith("?") ? IndirectCollectionProperty.class : IndirectPrimitiveCollectionProperty.class;
+					fieldType = outline.getCodeModel().ref(List.class).narrow(jaxbElementClass.narrow(propertyType));
 				}
 			} else {
 				getMaker = new F1<JExpression, JVar>() {
@@ -396,15 +401,13 @@ public class MetaPlugin extends AbstractPlugin {
 				setMaker = new F3<JExpression, JBlock, JVar, JVar>() {
 					@Override
 					public JExpression f(final JBlock block, final JVar instanceParam, final JVar valueParam) {
-						final JConditional ifNotNull = block._if(instanceParam.ref(propertyName).ne(JExpr._null()));
-						ifNotNull._then().add(instanceParam.ref(propertyName).invoke("setValue").arg(valueParam));
-						return null;
+						return JExpr.assign(instanceParam.ref(propertyName), JExpr._new(jaxbElementClass).arg(JExpr._this().ref("schemaName")).arg(propertyType._extends().dotclass()).arg(valueParam));
 					}
 				};
 				infoClass = SinglePropertyInfo.class;
 				propertyWrapperClass = SingleProperty.class;
-				fieldType = propertyType;
-				typeArg = propertyType;
+				fieldType = propertyType._extends();
+				typeArg = propertyType._extends();
 			}
 		} else {
 			getMaker = constantName == null ? new F1<JExpression, JVar>() {
@@ -462,14 +465,14 @@ public class MetaPlugin extends AbstractPlugin {
 		final boolean generatedClass = typeArg != null && isVisitable(pluginContext, typeArg);
 		final JInvocation call = visitorParam.invoke("visit").arg(JExpr._new(propertyCategory).arg(metaClass.staticRef(staticField)).arg(JExpr._this()));
 		if (generatedClass) {
-			final JFieldRef field = JExpr._this().ref(staticField.name());
+			final JFieldRef field = JExpr._this().ref(fieldOutline.getPropertyInfo().getName(false));
 			final JConditional ifContinue = block._if(call.cand(field.ne(JExpr._null())));
 			if (propertyOutline.isCollection() && !rawType.isArray()) {
 				final JForEach forEach = ifContinue._then().forEach(rawType, "_item_", field);
 				final JConditional ifNotNull = forEach.body()._if(forEach.var().ne(JExpr._null()));
-				ifNotNull._then().add(forEach.var().invoke(this.visitMethodName).arg(visitorParam));
+				ifNotNull._then().add((propertyOutline.isIndirect() ? forEach.var().invoke("getValue") : forEach.var()).invoke(this.visitMethodName).arg(visitorParam));
 			} else {
-				ifContinue._then().add(field.invoke(this.visitMethodName).arg(visitorParam));
+				ifContinue._then().add((propertyOutline.isIndirect() ? field.invoke("getValue") : field).invoke(this.visitMethodName).arg(visitorParam));
 			}
 		} else {
 			block.add(call);

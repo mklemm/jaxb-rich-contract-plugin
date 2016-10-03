@@ -38,7 +38,7 @@ public abstract class IndirectCollectionPropertyInfo<I,P> extends PropertyInfo<I
 	}
 
 	@Override
-	public abstract List<JAXBElement<P>> get(final I i) ;
+	public abstract List<JAXBElement<? extends P>> get(final I i) ;
 
-	public abstract void set(final I instance, final List<JAXBElement<P>> values);
+	public abstract void set(final I instance, final List<JAXBElement<? extends P>> values);
 }

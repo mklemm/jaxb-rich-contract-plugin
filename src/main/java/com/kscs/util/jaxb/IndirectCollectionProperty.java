@@ -42,11 +42,11 @@ public class IndirectCollectionProperty<I,P> extends Property<I,P> {
 	}
 
 	@Override
-	public List<JAXBElement<P>> get() {
+	public List<JAXBElement<? extends P>> get() {
 		return getInfo().get(getOwner());
 	}
 
-	public void set(final List<JAXBElement<P>> values) {
+	public void set(final List<JAXBElement<? extends P>> values) {
 		getInfo().set(getOwner(), values);
 	}
 }
