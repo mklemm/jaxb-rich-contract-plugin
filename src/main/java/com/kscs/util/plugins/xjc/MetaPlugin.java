@@ -33,8 +33,6 @@ import org.xml.sax.ErrorHandler;
 import org.xml.sax.SAXException;
 import org.xml.sax.SAXParseException;
 
-import com.kscs.util.jaxb.AnonymousIndirectCollectionProperty;
-import com.kscs.util.jaxb.AnonymousIndirectCollectionPropertyInfo;
 import com.kscs.util.jaxb.CollectionProperty;
 import com.kscs.util.jaxb.CollectionPropertyInfo;
 import com.kscs.util.jaxb.IndirectCollectionProperty;
@@ -295,14 +293,12 @@ public class MetaPlugin extends AbstractPlugin {
 			pluginContext.writeSourceFile(CollectionPropertyInfo.class);
 			pluginContext.writeSourceFile(IndirectCollectionPropertyInfo.class);
 			pluginContext.writeSourceFile(IndirectPrimitiveCollectionPropertyInfo.class);
-			pluginContext.writeSourceFile(AnonymousIndirectCollectionPropertyInfo.class);
 			pluginContext.writeSourceFile(PropertyVisitor.class);
 			pluginContext.writeSourceFile(Property.class);
 			pluginContext.writeSourceFile(SingleProperty.class);
 			pluginContext.writeSourceFile(CollectionProperty.class);
 			pluginContext.writeSourceFile(IndirectCollectionProperty.class);
 			pluginContext.writeSourceFile(IndirectPrimitiveCollectionProperty.class);
-			pluginContext.writeSourceFile(AnonymousIndirectCollectionProperty.class);
 			pluginContext.writeSourceFile(ItemProperty.class);
 		}
 		for (final ClassOutline classOutline : outline.getClasses()) {
@@ -354,43 +350,23 @@ public class MetaPlugin extends AbstractPlugin {
 		if (propertyOutline.isIndirect()) {
 			final JClass propertyType = ((JClass)rawType).getTypeParameters().get(0);
 			if (propertyOutline.isCollection() && !rawType.isArray()) {
-				if (propertyType.name().equals("?") || propertyType.name().equals("? extends Object")) {
-					getMaker = new F1<JExpression, JVar>() {
-						@Override
-						public JExpression f(final JVar param) {
-							return param.ref(propertyName);
-						}
-					};
-					setMaker = new F3<JExpression, JBlock, JVar, JVar>() {
-						@Override
-						public JExpression f(final JBlock block, final JVar instanceParam, final JVar valueParam) {
-							block.assign(instanceParam.ref(propertyName), valueParam);
-							return null;
-						}
-					};
-					infoClass = AnonymousIndirectCollectionPropertyInfo.class;
-					typeArg = null;
-					propertyWrapperClass = AnonymousIndirectCollectionProperty.class;
-					fieldType = outline.getCodeModel().ref(List.class).narrow(jaxbElementClass.narrow(propertyType));
-				} else {
-					getMaker = new F1<JExpression, JVar>() {
-						@Override
-						public JExpression f(final JVar param) {
-							return param.ref(propertyName);
-						}
-					};
-					setMaker = new F3<JExpression, JBlock, JVar, JVar>() {
-						@Override
-						public JExpression f(final JBlock block, final JVar instanceParam, final JVar valueParam) {
-							block.assign(instanceParam.ref(propertyName), valueParam);
-							return null;
-						}
-					};
-					infoClass = propertyType.name().startsWith("?") ? IndirectCollectionPropertyInfo.class : IndirectPrimitiveCollectionPropertyInfo.class;
-					typeArg = propertyType.name().startsWith("?") ? propertyType._extends() : propertyType;
-					propertyWrapperClass = propertyType.name().startsWith("?") ? IndirectCollectionProperty.class : IndirectPrimitiveCollectionProperty.class;
-					fieldType = outline.getCodeModel().ref(List.class).narrow(jaxbElementClass.narrow(propertyType));
-				}
+				getMaker = new F1<JExpression, JVar>() {
+					@Override
+					public JExpression f(final JVar param) {
+						return param.ref(propertyName);
+					}
+				};
+				setMaker = new F3<JExpression, JBlock, JVar, JVar>() {
+					@Override
+					public JExpression f(final JBlock block, final JVar instanceParam, final JVar valueParam) {
+						block.assign(instanceParam.ref(propertyName), valueParam);
+						return null;
+					}
+				};
+				infoClass = propertyType.name().startsWith("?") ? IndirectCollectionPropertyInfo.class : IndirectPrimitiveCollectionPropertyInfo.class;
+				typeArg = propertyType.name().startsWith("?") ? propertyType._extends() : propertyType;
+				propertyWrapperClass = propertyType.name().startsWith("?") ? IndirectCollectionProperty.class : IndirectPrimitiveCollectionProperty.class;
+				fieldType = outline.getCodeModel().ref(List.class).narrow(jaxbElementClass.narrow(propertyType));
 			} else {
 				getMaker = new F1<JExpression, JVar>() {
 					@Override
