@@ -109,6 +109,9 @@
 	* Minor bugfixes
 * **1.17.0**
     * Fixed issues with modular compilation ("episode") when more than one upstream modules were referenced via the episode mechanism.
+* **1.18.0**
+    * Fixed issues when generating expanded &lt;choice&gt; builder methods.
+    * Fixed issues with visitor pattern for primitive collection properties.
 
 
 

@@ -33,4 +33,5 @@ public interface PropertyVisitor {
 	boolean visit(final SingleProperty<? ,?> property);
 	boolean visit(final CollectionProperty<?, ?> property);
 	boolean visit(final IndirectCollectionProperty<? ,?> property);
+	boolean visit(final IndirectPrimitiveCollectionProperty<? ,?> property);
 }

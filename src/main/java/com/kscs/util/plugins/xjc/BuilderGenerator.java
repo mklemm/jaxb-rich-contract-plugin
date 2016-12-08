@@ -32,6 +32,7 @@ import java.util.ResourceBundle;
 import javax.xml.namespace.QName;
 
 import org.xml.sax.SAXException;
+import org.xml.sax.SAXParseException;
 
 import com.kscs.util.jaxb.Buildable;
 import com.kscs.util.jaxb.PropertyTree;
@@ -61,6 +62,7 @@ import com.sun.codemodel.JTypeVar;
 import com.sun.codemodel.JVar;
 import com.sun.tools.xjc.model.Aspect;
 import com.sun.tools.xjc.model.CClassInfo;
+import com.sun.tools.xjc.model.CElementInfo;
 import com.sun.tools.xjc.model.nav.NClass;
 import com.sun.tools.xjc.model.nav.NType;
 import com.sun.xml.bind.v2.model.core.TypeInfo;
@@ -238,9 +240,10 @@ class BuilderGenerator {
 		}
 	}
 
+
 	private void overrideAddMethods(final PropertyOutline propertyOutline,
-	                                final QName elementName, final JClass elementType) {
-		final JClass iterableType = this.pluginContext.iterableClass.narrow(elementType.wildcard());
+	                                final QName elementName, final JType elementType) {
+		final JClass iterableType = this.pluginContext.iterableClass.narrow(elementType instanceof JClass ? ((JClass)elementType).wildcard() : elementType);
 		final String fieldName = this.pluginContext.outline.getModel().getNameConverter().toVariableName(elementName.getLocalPart());
 		final String propertyName = this.pluginContext.outline.getModel().getNameConverter().toPropertyName(elementName.getLocalPart());
 		final JMethod addIterableMethod = this.builderClass.raw.method(JMod.PUBLIC, this.builderClass.type, PluginContext.ADD_METHOD_PREFIX + propertyName);
@@ -373,17 +376,25 @@ class BuilderGenerator {
 		}
 	}
 
-	void generateBuilderMemberOverride(final PropertyOutline superPropertyOutline, final PropertyOutline propertyOutline, final String superPropertyName) {
+	void generateBuilderMemberOverride(final PropertyOutline superPropertyOutline, final PropertyOutline propertyOutline, final String superPropertyName) throws SAXException {
 		final JType fieldType = propertyOutline.getRawType();
 		final String fieldName = propertyOutline.getFieldName();
 		if (superPropertyOutline.isCollection()) {
 			if (!fieldType.isArray()) {
 				if (superPropertyOutline.getChoiceProperties().size() > 1) {
 					for (final PropertyOutline.TagRef tagRef : propertyOutline.getChoiceProperties()) {
-						final CClassInfo classInfo = (CClassInfo)tagRef.getTypeInfo();
 						final QName elementName = tagRef.getTagName();
-						final JClass elementType = classInfo.toType(this.pluginContext.outline, Aspect.EXPOSED);
-						overrideAddMethods(superPropertyOutline, elementName, elementType);
+						final JType elementType;
+						if(tagRef.getTypeInfo() instanceof CClassInfo) {
+							final CClassInfo classInfo = (CClassInfo)tagRef.getTypeInfo();
+							elementType = classInfo.toType(this.pluginContext.outline, Aspect.EXPOSED);
+							overrideAddMethods(superPropertyOutline, elementName, elementType);
+						} else if(tagRef.getTypeInfo() instanceof CElementInfo) {
+							elementType = ((CElementInfo)tagRef.getTypeInfo()).toType(this.pluginContext.outline, Aspect.EXPOSED);
+							overrideAddMethods(superPropertyOutline, elementName, elementType);
+						} else {
+							pluginContext.errorHandler.warning(new SAXParseException("Encountered unsupported child type \""+tagRef.getTypeInfo()+"\" in choice children collection. Unable to generate choice expansion.", this.pluginContext.outline.getModel().getLocator()));
+						}
 					}
 				}
 				final JClass elementType = ((JClass)fieldType).getTypeParameters().get(0);
@@ -707,7 +718,7 @@ class BuilderGenerator {
 		}
 	}
 
-	private void generateBuilderMemberOverrides(final TypeOutline superClass) {
+	private void generateBuilderMemberOverrides(final TypeOutline superClass) throws SAXException {
 		if (superClass.getDeclaredFields() != null) {
 			for (final PropertyOutline superFieldOutline : superClass.getDeclaredFields()) {
 				if (superFieldOutline.hasGetter()) {
