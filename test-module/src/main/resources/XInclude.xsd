@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema targetNamespace="http://www.w3.org/2001/XInclude" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:xi="http://www.w3.org/2001/XInclude" finalDefault="extension">
+	<xs:annotation>
+		<xs:documentation>
+	The XInclude definition is at http://www.w3.org/TR/xinclude/. This now has a namespace reference to
+	http://www.w3.org/2001/XInclude and the http://www.w3.org/2003/XInclude reference is deprecated.
+	The only real addition to or difference from the 2001 definition is the accept-charset attribute of element include.
+	However, for immediate ease of use the 2003 namespace is retained in version 0.2 of the
+	WMO19115 Community Core Profile - this physical instance document. It is referenced as ./XInclude.xsd in the
+	version 0.2 WMO file list.
+	</xs:documentation>
+	</xs:annotation>
+	<xs:element name="include" type="xi:includeType"/>
+	<xs:complexType name="includeType" mixed="true">
+		<xs:choice minOccurs="0" maxOccurs="unbounded">
+			<xs:element ref="xi:fallback"/>
+			<xs:any namespace="##other" processContents="lax"/>
+			<xs:any namespace="##local" processContents="lax"/>
+		</xs:choice>
+		<xs:attribute name="href" type="xs:anyURI" use="optional"/>
+		<xs:attribute name="parse" type="xi:parseType" use="optional" default="xml"/>
+		<xs:attribute name="xpointer" type="xs:string" use="optional"/>
+		<xs:attribute name="encoding" type="xs:string" use="optional"/>
+		<xs:attribute name="accept" type="xs:string" use="optional"/>
+		<xs:attribute name="accept-language" type="xs:string" use="optional"/>
+		<xs:attribute name="accept-charset" type="xs:string" use="optional"/>
+		<xs:anyAttribute namespace="##other" processContents="lax"/>
+	</xs:complexType>
+	<xs:simpleType name="parseType">
+		<xs:restriction base="xs:token">
+			<xs:enumeration value="xml"/>
+			<xs:enumeration value="text"/>
+		</xs:restriction>
+	</xs:simpleType>
+	<xs:element name="fallback" type="xi:fallbackType"/>
+	<xs:complexType name="fallbackType" mixed="true">
+		<xs:choice minOccurs="0" maxOccurs="unbounded">
+			<xs:element ref="xi:include"/>
+			<xs:any namespace="##other" processContents="lax"/>
+			<xs:any namespace="##local" processContents="lax"/>
+		</xs:choice>
+		<xs:anyAttribute namespace="##other" processContents="lax"/>
+	</xs:complexType>
+</xs:schema>
