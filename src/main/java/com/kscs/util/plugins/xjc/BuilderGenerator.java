@@ -388,6 +388,7 @@ class BuilderGenerator {
 				withValueMethod.body().assign(JExpr._this().ref(builderField), nullSafe(param, JExpr._new(builderFieldElementType).arg(JExpr._this()).arg(param).arg(this.settings.isCopyAlways() ? JExpr.TRUE : JExpr.FALSE)));
 				withValueMethod.body()._return(JExpr._this());
 				if (withBuilderMethod != null) {
+					withBuilderMethod.body()._if(JExpr._this().ref(builderField).ne(JExpr._null()))._then()._return(JExpr._this().ref(builderField));
 					withBuilderMethod.body()._return(JExpr._this().ref(builderField).assign(JExpr._new(builderFieldElementType).arg(JExpr._this()).arg(JExpr._null()).arg(JExpr.FALSE)));
 				}
 				initBody.assign(productParam.ref(fieldName), nullSafe(JExpr._this().ref(builderField), JExpr._this().ref(builderField).invoke(this.settings.getBuildMethodName())));
@@ -597,6 +598,20 @@ class BuilderGenerator {
 		return conveniencePartialCopyMethod;
 	}
 
+	final void generateCopyOfBuilderMethods() {
+		if (this.implement) {
+			final JMethod builderCopyOfValueMethod = this.builderClass.raw.method(JMod.PUBLIC, this.builderClass.type, PluginContext.BUILD_COPY_METHOD_NAME);
+			JVar paramOtherValue = builderCopyOfValueMethod.param(JMod.FINAL, this.definedClass, BuilderGenerator.OTHER_PARAM_NAME);
+			builderCopyOfValueMethod.body()
+				.add(JExpr.invoke(paramOtherValue, PluginContext.COPY_TO_METHOD_NAME).arg(JExpr._this()))
+				._return(JExpr._this());
+
+			final JMethod builderCopyOfBuilderMethod = this.builderClass.raw.method(JMod.PUBLIC, this.builderClass.type, PluginContext.BUILD_COPY_METHOD_NAME);
+			JVar paramOtherBuilder = builderCopyOfBuilderMethod.param(JMod.FINAL, this.builderClass.raw, BuilderGenerator.OTHER_PARAM_NAME);
+			builderCopyOfBuilderMethod.body()._return(JExpr.invoke(builderCopyOfValueMethod).arg(JExpr.invoke(paramOtherBuilder, PluginContext.BUILD_METHOD_NAME)));
+		}
+	}
+
 	final void generateCopyToMethod(final boolean partial) {
 		if (this.implement) {
 			final JDefinedClass typeDefinition = this.typeOutline.isInterface() && ((DefinedInterfaceOutline)this.typeOutline).getSupportInterface() != null ? ((DefinedInterfaceOutline)this.typeOutline).getSupportInterface() : this.definedClass;
@@ -750,6 +765,7 @@ class BuilderGenerator {
 				generateConveniencePartialCopyMethod(this.typeOutline, partialCopyOfMethod, this.pluginContext.copyOnlyMethodName, this.pluginContext.includeConst);
 			}
 		}
+		generateCopyOfBuilderMethods();
 	}
 
 	private void generateBuilderMemberOverrides(final TypeOutline superClass) throws SAXException {
