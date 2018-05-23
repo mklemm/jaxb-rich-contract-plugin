@@ -30,7 +30,8 @@ import javax.xml.bind.JAXBElement;
 import javax.xml.namespace.QName;
 
 /**
- * @author Mirko Klemm 2015-10-16
+ * Represents a multi-value property of a JAXB-generated java class where the individual values are wrapped in
+ * a {@link JAXBElement} instance.
  */
 public abstract class IndirectCollectionPropertyInfo<I,P> extends PropertyInfo<I,P> {
 	protected IndirectCollectionPropertyInfo(final String propertyName, final Class<I> declaringClass, final Class<P> declaredType, final boolean collection, final P defaultValue, final QName schemaName, final QName schemaType, final boolean attribute) {

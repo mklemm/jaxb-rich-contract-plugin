@@ -25,13 +25,50 @@
 package com.kscs.util.jaxb;
 
 /**
- * @author Mirko Klemm 2015-10-15
+ * Interface to be implemented by a property visitor
  */
 public interface PropertyVisitor {
+	/**
+	 * Called upon visiting a top-level object
+	 * @param value The Object to be visited
+	 */
 	void visit(final Object value);
+
+	/**
+	 * Called upon visitng a collection element
+	 * @param property The property being visited
+	 * @return true if visiting shall continue, false if visiting should be finished
+	 */
 	boolean visit(final ItemProperty<?, ?> property);
+
+	/**
+	 * Called upon visitng a single-value property
+	 * @param property The property being visited
+	 * @return true if visiting shall continue, false if visiting should be finished
+	 */
 	boolean visit(final SingleProperty<? ,?> property);
+
+	/**
+	 * Called upon visiting a collection property
+	 * @param property The property being visited
+	 * @return true if visiting shall continue, false if visiting should be finished
+	 */
 	boolean visit(final CollectionProperty<?, ?> property);
+
+
+	/**
+	 * Called upon visiting a collection property, where the collection items are wrapped in a
+	 * {@link javax.xml.bind.JAXBElement} instance.
+	 * @param property The property being visited
+	 * @return true if visiting shall continue, false if visiting should be finished
+	 */
 	boolean visit(final IndirectCollectionProperty<? ,?> property);
+
+	/**
+	 * Called upon visiting a collection property, where the collection items are wrapped in a
+	 * {@link javax.xml.bind.JAXBElement} instance and are of a java primitive type
+	 * @param property The property being visited
+	 * @return true if visiting shall continue, false if visiting should be finished
+	 */
 	boolean visit(final IndirectPrimitiveCollectionProperty<? ,?> property);
 }

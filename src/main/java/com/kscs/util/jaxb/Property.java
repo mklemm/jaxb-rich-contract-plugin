@@ -25,7 +25,7 @@
 package com.kscs.util.jaxb;
 
 /**
- * @author Mirko Klemm 2015-10-16
+ * Abstract base class for all property instances of a JAXB-generated class's instances.
  */
 public abstract class Property<I,P> {
 	private final PropertyInfo<I,P> info;

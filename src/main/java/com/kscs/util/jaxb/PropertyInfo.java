@@ -26,7 +26,9 @@ package com.kscs.util.jaxb;
 import javax.xml.namespace.QName;
 
 /**
- * @author mirko 2014-05-28
+ * Represents a property of a JAXB-generated class.
+ * @param <I> The type declaring the property
+ * @param <P> The type of the property
  */
 public abstract class PropertyInfo<I, P> {
 	public final String propertyName;

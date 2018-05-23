@@ -5,7 +5,8 @@ import java.util.List;
 import javax.xml.bind.JAXBElement;
 
 /**
- * @author Mirko Klemm 2016-10-03
+ * Represents the instance of a {@link IndirectPrimitiveCollectionPropertyInfo}, i.e. represents the
+ * property meta information along with its value, and enables to get an d set the value
  */
 public class IndirectPrimitiveCollectionProperty<I,P> extends Property<I,P> {
 	public IndirectPrimitiveCollectionProperty(final PropertyInfo<I, P> info, final I owner) {

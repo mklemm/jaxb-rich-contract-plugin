@@ -27,7 +27,8 @@ package com.kscs.util.jaxb;
 import java.util.List;
 
 /**
- * @author Mirko Klemm 2015-10-16
+ * Represents the instance of a {@link CollectionPropertyInfo}, i.e. represents the
+ * property meta information along with its value, and enables to get and set the value
  */
 public class CollectionProperty<I,P> extends Property<I,P> {
 	public CollectionProperty(final CollectionPropertyInfo<I, P> info, final I owner) {

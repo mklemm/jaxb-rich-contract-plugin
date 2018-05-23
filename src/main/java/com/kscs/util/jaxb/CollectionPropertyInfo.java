@@ -29,7 +29,7 @@ import java.util.List;
 import javax.xml.namespace.QName;
 
 /**
- * @author Mirko Klemm 2015-10-15
+ * Represents a multi-value property of a JAXB-generated java class.
  */
 public abstract class CollectionPropertyInfo<I,P> extends PropertyInfo<I,P> {
 	protected CollectionPropertyInfo(final String propertyName, final Class<I> declaringClass, final Class<P> declaredType, final boolean collection, final P defaultValue, final QName schemaName, final QName schemaType, final boolean attribute) {

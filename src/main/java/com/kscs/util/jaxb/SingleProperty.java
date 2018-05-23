@@ -25,7 +25,8 @@
 package com.kscs.util.jaxb;
 
 /**
- * @author Mirko Klemm 2015-10-16
+ * Represents the instance of a {@link SinglePropertyInfo}, i.e. represents the
+ * property meta information along with its value, and enables to get an d set the value
  */
 public class SingleProperty<I,P> extends Property<I,P> {
 

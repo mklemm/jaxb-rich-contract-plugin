@@ -29,7 +29,8 @@ import java.util.List;
 import javax.xml.bind.JAXBElement;
 
 /**
- * @author Mirko Klemm 2015-10-16
+ * Represents the instance of a {@link IndirectCollectionPropertyInfo}, i.e. represents the
+ * property meta information along with its value, and enables to get an d set the value
  */
 public class IndirectCollectionProperty<I,P> extends Property<I,P> {
 	public IndirectCollectionProperty(final PropertyInfo<I, P> info, final I owner) {

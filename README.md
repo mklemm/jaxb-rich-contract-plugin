@@ -19,7 +19,9 @@ These plugins are intended to add support for additional contracts to the classe
 4. **[clone][4]**: Will generate a simple deep "clone" method for the generated classes based on the heuristic that it only makes sense to traverse further down in the cloned object tree for members of types that are actually cloenable themselves.
 5. **[copy][5]**: Similar to "clone", will generate a simple deep "createCopy" method. The java API contract for the `java.lang.Cloneable` interface and the rules for overriding `Object.clone()` are defective by design. So the "copy" plugin uses its own API to realize the desired behavior. Also can generate a "partial createCopy" method, that takes a `PropertyTree` object which represents an include/exclude rule for nodes in the object tree to clone. Excluded nodes will not be cloned and left alone. Optionally, corresponding copy constructors can also be generated.
 6. **[constrained-properties][6]**: Will generate a complexTypes element members as bound and/or constrained properties as per the JavaBeans spec.
-7. **[meta][7]**: Generates a nested class representing a static metamodel of the generated classes. In the "enhanced" version, this contains information about the type and the XSD element from which the property was generated, in "simple" mode, there are only constants for the property names.
+7. **[modifier][7]**: Will generate a `modifier()` method to deliberately work around immutability through a single well-defined interface in an object generated with the immutable plugin.
+8. **[meta][8]**: Generates a nested class representing a static metamodel of the generated classes. In the "enhanced" version, this contains information about the type and the XSD element from which the property was generated, in "simple" mode, there are only constants for the property names.
+9. **[visitor][9]**: Generates a visitor pattern to enumerate through the properties of an object.
 
 
 
@@ -156,8 +158,10 @@ Get it with Maven (Now hosted on maven central):
 * **1.18.0**
     * Fixed issues when generating expanded &lt;choice&gt; builder methods.
     * Fixed issues with visitor pattern for primitive collection properties.
-
-
+* **2.0.0**
+	* Now requires Java 8
+	* Separated visitor functionality from the meta plugin into a new plugin "visitor"
+	
 
 
 ###  Usage
@@ -249,7 +253,9 @@ You should add "maven-jaxb2-plugin" to your `<build>` configuration. Then add "j
                             <arg>-camelCase=n</arg>
                             <arg>-metaClassName=PropInfo</arg>
                             <arg>-allowSet=y</arg>
+                        <arg>-Xvisitor</arg>
                             <arg>-visitMethodName=visit</arg>
+                            <arg>-generateTools=y</arg>
                     </args>
                     <plugins>
                         <plugin>
@@ -546,7 +552,7 @@ For traditional programming languages, like Java, for example, this is not alway
 because legacy code and libraries have to be used.
 
 With the `modifier` plugin, you can make the public interface of your classes immutable via the `immutable`
-plugin, but at the same time provide a handle to modify the state of your objects anyway vi a reference that
+plugin, but at the same time provide a handle to modify the state of your objects anyway via a reference that
 needs to be queried explicitly.
 
 This plugin is intended for use while refactoring existing code to a more "functional" and thread-friendly
@@ -767,11 +773,34 @@ Allow property values to be set via property meta information.
 ##### -visitMethodName=`<string>` (visit)
 Name of the method to apply a visitor.
 
-[1]: #constrained-properties
-[2]: #clone
-[3]: #copy
-[4]: #group-contract
-[5]: #immutable
-[6]: #modifier
-[7]: #fluent-builder
+## visitor
+### Motivation
+A visitor pattern, one of the GOF "Design Patterns", will allow you to traverse an object graph by applying a "visitor" 
+function/object to every property in the object graph.
+The visitor function wil then return a value determining whether the traversal should be continued or stopped after
+having visited a specific property.
+If "generateTools" is set to "true", a Java interface "com.kscs.util.jaxb.PropertyVisitor" will be generated in the
+source code, You will have to implement this interface in order to implement a visitor.
+See the generated source JavaDoc for more information on how to implement PropertyVisitor.
+
+### Usage
+#### -Xvisitor
+
+#### Options
+
+##### -visitMethodName=`<string>` (visit)
+Name of the method to apply a visitor.
+
+##### -generateTools=`{y|n}` (y)
+Generate a helper interface enabling the implementation of a visitor object.
+If this is set to "n", the plugin JAR will have to be in the runtime classpath of the client application.
+
+[1]: #fluent-builder
+[2]: #immutable
+[3]: #group-contract
+[4]: #clone
+[5]: #copy
+[6]: #constrained-properties
+[7]: #modifier
 [8]: #meta
+[9]: #visitor
