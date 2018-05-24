@@ -112,6 +112,9 @@
 * **1.18.0**
     * Fixed issues when generating expanded &lt;choice&gt; builder methods.
     * Fixed issues with visitor pattern for primitive collection properties.
+* **2.0.0**
+    * Requires Java 8 now
+    * Splitting meta and visitor plugins
 
 
 
