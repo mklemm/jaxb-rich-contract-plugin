@@ -400,7 +400,7 @@ public class PluginContext extends Plugin {
 	public void writeSourceFile(final Class<?> classToBeWritten) {
 		final String resourcePath = "/" + classToBeWritten.getName().replace('.', '/') + ".java";
 		final JPackage jPackage = this.outline.getCodeModel()._package(classToBeWritten.getPackage().getName());
-		final JStaticJavaFile javaFile = new JStaticJavaFile(jPackage, classToBeWritten.getSimpleName(), PluginContext.class.getResource(resourcePath), null);
+		final JStaticJavaFile javaFile = new JStaticJavaFile(jPackage, classToBeWritten.getSimpleName(), classToBeWritten, null);
 		jPackage.addResourceFile(javaFile);
 	}
 
