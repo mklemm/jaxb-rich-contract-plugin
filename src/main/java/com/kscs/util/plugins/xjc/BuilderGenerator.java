@@ -28,12 +28,8 @@ import java.text.MessageFormat;
 import java.util.List;
 import java.util.Map;
 import java.util.ResourceBundle;
-
 import javax.xml.bind.JAXBElement;
 import javax.xml.namespace.QName;
-
-import org.xml.sax.SAXException;
-import org.xml.sax.SAXParseException;
 
 import com.kscs.util.jaxb.Buildable;
 import com.kscs.util.jaxb.PropertyTree;
@@ -67,6 +63,8 @@ import com.sun.tools.xjc.model.nav.NClass;
 import com.sun.tools.xjc.model.nav.NType;
 import com.sun.tools.xjc.outline.Aspect;
 import com.sun.xml.bind.v2.model.core.TypeInfo;
+import org.xml.sax.SAXException;
+import org.xml.sax.SAXParseException;
 
 import static com.kscs.util.plugins.xjc.base.PluginUtil.nullSafe;
 
@@ -348,11 +346,14 @@ class BuilderGenerator {
 			final JMethod withMethod = this.builderClass.raw.method(JMod.PUBLIC, this.builderClass.type, PluginContext.WITH_METHOD_PREFIX + propertyName);
 			final JVar param = withMethod.param(JMod.FINAL, fieldType, fieldName);
 			generateWithMethodJavadoc(withMethod, param);
-			final JFieldVar builderField = this.builderClass.raw.field(JMod.PRIVATE, fieldType, fieldName);
+			final JFieldVar builderField;
 			if (this.implement) {
+				builderField = this.builderClass.raw.field(JMod.PRIVATE, fieldType, fieldName);
 				withMethod.body().assign(JExpr._this().ref(builderField), param);
 				withMethod.body()._return(JExpr._this());
 				initBody.assign(productParam.ref(fieldName), JExpr._this().ref(builderField));
+			} else {
+				builderField = null;
 			}
 
 			// If field is a JaxbElement wrapped object, extract wrapped type and instantiate using ObjectMapper

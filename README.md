@@ -19,9 +19,7 @@ These plugins are intended to add support for additional contracts to the classe
 4. **[clone][4]**: Will generate a simple deep "clone" method for the generated classes based on the heuristic that it only makes sense to traverse further down in the cloned object tree for members of types that are actually cloenable themselves.
 5. **[copy][5]**: Similar to "clone", will generate a simple deep "createCopy" method. The java API contract for the `java.lang.Cloneable` interface and the rules for overriding `Object.clone()` are defective by design. So the "copy" plugin uses its own API to realize the desired behavior. Also can generate a "partial createCopy" method, that takes a `PropertyTree` object which represents an include/exclude rule for nodes in the object tree to clone. Excluded nodes will not be cloned and left alone. Optionally, corresponding copy constructors can also be generated.
 6. **[constrained-properties][6]**: Will generate a complexTypes element members as bound and/or constrained properties as per the JavaBeans spec.
-7. **[modifier][7]**: Will generate a `modifier()` method to deliberately work around immutability through a single well-defined interface in an object generated with the immutable plugin.
-8. **[meta][8]**: Generates a nested class representing a static metamodel of the generated classes. In the "enhanced" version, this contains information about the type and the XSD element from which the property was generated, in "simple" mode, there are only constants for the property names.
-9. **[visitor][9]**: Generates a visitor pattern to enumerate through the properties of an object.
+7. **[meta][7]**: Generates a nested class representing a static metamodel of the generated classes. In the "enhanced" version, this contains information about the type and the XSD element from which the property was generated, in "simple" mode, there are only constants for the property names.
 
 
 
@@ -159,9 +157,10 @@ Get it with Maven (Now hosted on maven central):
     * Fixed issues when generating expanded &lt;choice&gt; builder methods.
     * Fixed issues with visitor pattern for primitive collection properties.
 * **2.0.0**
-	* Now requires Java 8
-	* Separated visitor functionality from the meta plugin into a new plugin "visitor"
-	
+    * Requires Java 8 now
+    * Splitting meta and visitor plugins
+
+
 
 
 ###  Usage
@@ -253,9 +252,7 @@ You should add "maven-jaxb2-plugin" to your `<build>` configuration. Then add "j
                             <arg>-camelCase=n</arg>
                             <arg>-metaClassName=PropInfo</arg>
                             <arg>-allowSet=y</arg>
-                        <arg>-Xvisitor</arg>
                             <arg>-visitMethodName=visit</arg>
-                            <arg>-generateTools=y</arg>
                     </args>
                     <plugins>
                         <plugin>
@@ -422,76 +419,6 @@ Name of the generated nested "Selector" builder class, used to build up a proper
 Name of the generated nested static "Select" entry point class to be used by client code for the "partial copy" feature. This setting will also affect the "fluent-builder" plugin if it is active and set to "copy-partial=y".
 
 ## group-contract
-### Motivation
-In most object-oriented programming languages, there are constructs to define a "contract", that concrete implementations of complex
-types will implement. In Java, for example, there is the `interface`, in Scala there are "traits", and so on.
-The XML Schema Definition Language (XSD) in contrast, has no explicit construct to ensure a complex type meets a
-pre-defined contract. There are, however, the `group` and `attributeGroup` elements, that could be considered
-a way to achieve just that: A complexType that uses a `<group>` or an `<attributeGroup>` will expose the
-properties defined in these group definitions. Looking at it that way, you could say that the `complexType`
-"implements" the contract defined by the `group` or `attributeGroup`.
-
-
-
-### Function
-The group-contract plugin now tries to model that case in the generated source code. For every `group`and `attributeGroup`
-definition in the XSD model (or in any upstream XSD model that is included via the "episode" mechanism, for that matter),
-it generates an `interface` definition with all the getter, and optionally setter, methods of the properties defined via
-the `group` or `attributeGroup` definition.
-
-Then, it declares every class that was generated from a `complexType` that uses the `group` or `attributeGroup` as implementing
-just that interface. This way, all classes generated from XSD complexTypes that use the same group definitions, will
-share a common contract and can be treated in a common way by client code.
-
-If the "fluent-builder" plugin is also activated, the interface definition can optionally include the declarations of the "with..."
-and "add..." methods of the generated builder class as a nested interface declaration, so you can even rely on a common
-"builder" contract for classes using the same `group` and `attributeGroup` definitions.
-
-For example, you may wish to add "XLink" functionality to your generated classes. If the group-contract plugin is
-activated, you can define a complexType in XSD that supports the "simple" attributes by adding to its XSD definition:
-
-``` xml
-<complexType name="some-type">
-	.... (model group of the type...)
-	<attributeGroup ref="xlink:simpleAttrs"/>
-</complexType>
-```
-
-Which will generate a class something like:
-
-``` java
-public class SomeType implements SimpleAttrs {
-...
-```
-
-And an interface definition like:
-
-``` java
-public interface SimpleAttrs {
-	String getHref();
-	void setHref(final String value);
-	// ... more properties ...
-
-	// this part is generated only if fluent-builder is also active
-	interface BuildSupport<TParentBuilder >{
-            public SimpleAttrs.BuildSupport<TParentBuilder> withHref(final String href);
-            //... more properties ...
-	}
-}
-```
-
-Similar effects could be achieved by subclassing complexTypes, but since there is no multiple inheritance, inheritance
-hierarchies can get overly complex this way, and inheritance is less flexible than interface implementations.
-
-**Note:** The group-contract plugin supports JAXB modular compilation, i.e. the "episode" mechanism implemented
-in the JAXB reference impplementation.
-However, due to the lack of extensibility of the current default episode data structures and processing, this plugin
-has to manage its own "episode" file. There are two command line options to control the  names of the "upstream" episode
-file, i.e. the file name the plugin should look for when using other modules, and the "downstream" file, i.e. the file
-name that should be generated for use by other modules.
-
-
-
 ### Usage
 #### -Xgroup-contract
 
@@ -545,27 +472,6 @@ Generate constructors of an immutable class with the specified access level ("pu
 This option has been included since it doesn't make sense to construct an empty object which then cannot be modified, But anyway, use with caution.
 
 ## modifier
-### Motivation
-In general, you may wish to implement application logic in a way so that objects are initialized once
-and then are immutable.
-For traditional programming languages, like Java, for example, this is not always feasible in practice,
-because legacy code and libraries have to be used.
-
-With the `modifier` plugin, you can make the public interface of your classes immutable via the `immutable`
-plugin, but at the same time provide a handle to modify the state of your objects anyway via a reference that
-needs to be queried explicitly.
-
-This plugin is intended for use while refactoring existing code to a more "functional" and thread-friendly
-code base. Eventually, your code should work so this plugin can be deactivated in your XJC configuration.
-
-
-### Function
-This plugin creates an inner class with public setXXX methods, and getXXX methods for collection properties that
-return a writable version of the collection the property is implemented by.
-
-If the `group-contract` plugin is also activated, these constructs will also be generated into the interfaces.
-
-
 ### Usage
 #### -Xmodifier
 
@@ -583,89 +489,6 @@ Name of the generated method that allows to instantiate the modifier class.
 There already is the widely used "fluent-api" plugin for XJC. That, however isn't a real builder pattern since there is no distinction between initialization and state change in fluent-api.
 
 fluent-builder now creates a real "Builder" pattern, implemented as an inner class to the generated classes.
-
-### Function
-fluent-builder creates a builder class with a "[fluent interface](https://en.wikipedia.org/wiki/Fluent_interface)", and a number of methods to create builder instances.
-The builder class is generated as a static inner class to all of the value object classes generated with XJC.
-It supports the "episode" mechanism to generate builder code seamlessly across multiple compilation schema modules.
-
-Example use in code:
-
-        MyElement newElement = MyElement.builder().withPropertyA(...).withPropertyB(...).addCollectionPropertyA(...).build();
-
-#### Additional Features
-
-##### "Choice Expansion"
-In standard JAXB, if you define a `<choice>` group in an XSD complexType definition with cardinality "many", the generated code will only contain a generic collection of "java.lang.Object" type, named something like "AorBorC...".
-
-However, fluent-builder will determine exactly which types are actually possible in this collection, and will generate individual "addXXX" methods for each of them.
-
-So, imagine you have generated code from the XHTML 1.0 schema, and you wish to use fluent-builder to generate an XHTML document programmatically.
-Now, again imagine you have already created the "html" and "head" elements, and you are about to populate the "body" eith a table.
-
-Without fluent-builder, you would do something like:
-
-``` java
-Body body = new Body();
-Table table = new Table();
-body.getPorH2orH2().add(table);
-Tr tr = new Tr();
-table.getTheadOrTrOrTdata().add(tr);
-Td td = new Td();
-tr.getTd().add(td);
-td.setContent("Hello World");
-```
-
-With fluent-builder, you can achieve the same more intuitively:
-
-```java
-Body.builder().addTable().addTr().addTd().withContent("Hello World").end().end().end().build();
-```
-
-
-##### Object Deep-Copy strategies and Behaviors
-In addition, new instances can be created as copies of existing instances using the builder, with an optional modification by other builder methods:
-
-###### Static Deep Copy
-        MyElement newElement = MyElement.copyOf(oldElement).withPropertyA(...).withPropertyB(...).build();
-
-Or, similar to the java `clone()` method, creating a runtime copy of a reference:
-
-###### Polymorphic Deep Copy
-		MyObj myObj = oldObj.newCopyBuilder().with... .build();
-
-
-###### Partial Copy (Static and Polymorphic)
-The "partial" copy introduced in the "copy" plugin will work here as well, with both static (`copyOf()`) as well as polymorphic (`newCopyBuilder()`) behaviors:
-
-        PropertyTree selection = MyElement.Select.root().propertyA().propertyAB().build();
-        MyElement newElement = MyElement.copyExcept(oldElement, selection).withPropertyA(...).withPropertyB(...).build();
-		MyObj myObj = oldObj.newCopyBuilder(selection, PropertyTreeUse.EXCLUDE).with.... .build();
-
-
-###### Static vs. Polymorphic Deep Copy
-
-The difference between `copyOf()` and `newCopyBuilder()` is their respective polymorphic behavior.
-`newCopyBuilder()` always returns a builder instance that corresponds to the current runtime type of the object upon which the `newCopyBuilder()` method was invoked.
-I.e., using `newCopyBuilder()`, you always get an object of exactly the same type as before as soon as you call `build()`.
-
-In contrast, `MyClass.copyOf()`, being a static method, always returns an object of the class on which it is called, `MyClass` in this case.
-You can pass an object of any base type (from the same XSD model or one referenced via "episode") or any derived type of `MyClass` to `copyOf()`, and you still get an instance of `MyClass` as
-soon as you call `build()`.
-If you pass an instance of a more general class than `MyClass` to `MyClass.copyOf()`, the generated code will only copy the fields that exist in the argument object, and will leave all additional fields uninitialized.
-You should then initialize them with the other builder methods.
-
-##### Chained Builder Support
-Often, properties of generated classes represent containment or references to generated classes in the same model.
-The fluent-builder plugin lets you initialise properties of such a type (and of types declared in upstream modules
-via the "episode" feature) - if it isn't an abstract type - by using sub-builders ("chained" builders) in the following
-way, given that both A and B are types defined in the XSD model, and A has a property of type B, and B has three
-properties of type String, x,y, and z:
-
-        A newA = A.builder().withB().withX("x").withY("y").withZ("z").end().build();
-
-Of course, this plugin is most useful if `immutable` is also activated.
-
 
 ### Limitations
 * It generates a large amount of code.
@@ -733,17 +556,6 @@ Name of the generated "build" method that concludes building and returns the pro
 Name of the generated "end" method that concludes a nested builder and returns to the outer builder. Can be set here to handle naming conflicts.
 
 ## meta
-### Motivation
-Sometimes, you need information about the properties of a class, or you wish to have a constant for the names of properties.
-The "meta" plugin creates an inner class (the name of which can be controlled by a command-line option), and adds a constant
-field for each property. If the `-extended=y` command-line option is specified, these constants will hold instances of the
-`PropertyInfo` class, on which the name, type, multiplicity (collection or not) and default value (from XSD) are exposed.
-Without `-extended`, the constants are simply string constants holding the property names.
-
-As a new feature in version 1.10, a visitor pattern has been added that allows to visit all properties of
-an object graph.
-
-
 ### Usage
 #### -Xmeta
 
@@ -773,34 +585,11 @@ Allow property values to be set via property meta information.
 ##### -visitMethodName=`<string>` (visit)
 Name of the method to apply a visitor.
 
-## visitor
-### Motivation
-A visitor pattern, one of the GOF "Design Patterns", will allow you to traverse an object graph by applying a "visitor" 
-function/object to every property in the object graph.
-The visitor function wil then return a value determining whether the traversal should be continued or stopped after
-having visited a specific property.
-If "generateTools" is set to "true", a Java interface "com.kscs.util.jaxb.PropertyVisitor" will be generated in the
-source code, You will have to implement this interface in order to implement a visitor.
-See the generated source JavaDoc for more information on how to implement PropertyVisitor.
-
-### Usage
-#### -Xvisitor
-
-#### Options
-
-##### -visitMethodName=`<string>` (visit)
-Name of the method to apply a visitor.
-
-##### -generateTools=`{y|n}` (y)
-Generate a helper interface enabling the implementation of a visitor object.
-If this is set to "n", the plugin JAR will have to be in the runtime classpath of the client application.
-
-[1]: #fluent-builder
-[2]: #immutable
-[3]: #group-contract
-[4]: #clone
-[5]: #copy
-[6]: #constrained-properties
-[7]: #modifier
+[1]: #constrained-properties
+[2]: #clone
+[3]: #copy
+[4]: #group-contract
+[5]: #immutable
+[6]: #modifier
+[7]: #fluent-builder
 [8]: #meta
-[9]: #visitor
