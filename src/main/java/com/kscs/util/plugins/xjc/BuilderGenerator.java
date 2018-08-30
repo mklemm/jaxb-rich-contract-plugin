@@ -28,8 +28,12 @@ import java.text.MessageFormat;
 import java.util.List;
 import java.util.Map;
 import java.util.ResourceBundle;
+
 import javax.xml.bind.JAXBElement;
 import javax.xml.namespace.QName;
+
+import org.xml.sax.SAXException;
+import org.xml.sax.SAXParseException;
 
 import com.kscs.util.jaxb.Buildable;
 import com.kscs.util.jaxb.PropertyTree;
@@ -63,8 +67,6 @@ import com.sun.tools.xjc.model.nav.NClass;
 import com.sun.tools.xjc.model.nav.NType;
 import com.sun.tools.xjc.outline.Aspect;
 import com.sun.xml.bind.v2.model.core.TypeInfo;
-import org.xml.sax.SAXException;
-import org.xml.sax.SAXParseException;
 
 import static com.kscs.util.plugins.xjc.base.PluginUtil.nullSafe;
 
