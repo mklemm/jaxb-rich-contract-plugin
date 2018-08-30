@@ -71,7 +71,7 @@
 * **1.6.8**:
 	* Integrated a fix from JulianPaoloThiry
 	* Improved fluent builder to support building of sub-objects defined in a `choice`. All possible have a buidler method now,
-	so, for example, in XHTML, instead of doing somethoin like `htmlBuilder.withPorH1orH2(H1.builder().withContent("bla").build())....` you can do
+	so, for example, in XHTML, instead of doing something like `htmlBuilder.withPorH1orH2(H1.builder().withContent("bla").build())....` you can do
 	`htmlBuilder.withH1().withContent("bla").end()....`.
 * **1.6.9**:
 	* Fixed errors in release workflow
@@ -115,6 +115,7 @@
 * **2.0.0**
     * Requires Java 8 now
     * Splitting meta and visitor plugins
+	* Requires JAXB 2.3 now
 
 
 

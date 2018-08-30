@@ -29,6 +29,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.ResourceBundle;
 
+import javax.xml.bind.JAXBElement;
 import javax.xml.namespace.QName;
 
 import org.xml.sax.SAXException;
@@ -60,15 +61,14 @@ import com.sun.codemodel.JMod;
 import com.sun.codemodel.JType;
 import com.sun.codemodel.JTypeVar;
 import com.sun.codemodel.JVar;
-import com.sun.tools.xjc.model.Aspect;
 import com.sun.tools.xjc.model.CClassInfo;
 import com.sun.tools.xjc.model.CElementInfo;
 import com.sun.tools.xjc.model.nav.NClass;
 import com.sun.tools.xjc.model.nav.NType;
+import com.sun.tools.xjc.outline.Aspect;
 import com.sun.xml.bind.v2.model.core.TypeInfo;
 
 import static com.kscs.util.plugins.xjc.base.PluginUtil.nullSafe;
-import javax.xml.bind.JAXBElement;
 
 /**
  * Helper class to generate fluent builder classes in two steps
