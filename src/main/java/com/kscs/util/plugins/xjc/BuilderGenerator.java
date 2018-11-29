@@ -29,7 +29,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.ResourceBundle;
 
-import javax.xml.bind.JAXBElement;
 import javax.xml.namespace.QName;
 
 import org.xml.sax.SAXException;
@@ -354,8 +353,6 @@ class BuilderGenerator {
 				withMethod.body().assign(JExpr._this().ref(builderField), param);
 				withMethod.body()._return(JExpr._this());
 				initBody.assign(productParam.ref(fieldName), JExpr._this().ref(builderField));
-			} else {
-				builderField = null;
 			}
 		} else {
 			final JClass elementType = (JClass)fieldType;
