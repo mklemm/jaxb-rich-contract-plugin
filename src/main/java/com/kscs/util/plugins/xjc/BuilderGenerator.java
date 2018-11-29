@@ -357,24 +357,6 @@ class BuilderGenerator {
 			} else {
 				builderField = null;
 			}
-
-			// If field is a JaxbElement wrapped object, extract wrapped type and instantiate using ObjectMapper
-			if (fieldType instanceof JClass) {
-				final JClass fieldClass = (JClass) fieldType;
-				if (fieldClass.getTypeParameters().size() == 1 && fieldClass.erasure().fullName().equals(JAXBElement.class.getName())) {
-					final JClass innerType = fieldClass.getTypeParameters().get(0);
-					final JMethod withMethodInner = this.builderClass.raw.method(JMod.PUBLIC, this.builderClass.type, PluginContext.WITH_METHOD_PREFIX + propertyName);
-					final JVar paramInner = withMethodInner.param(JMod.FINAL, innerType, fieldName);
-					generateWithMethodJavadoc(withMethodInner, paramInner);
-					if (this.implement) {
-						final JType objectFactory = this.pluginContext.codeModel.ref("ObjectFactory");
-						final JInvocation val = JExpr._new(objectFactory).invoke("create" + this.definedClass.name() + propertyName).arg(param);
-						withMethodInner.body().assign(JExpr._this().ref(builderField), val);
-						withMethodInner.body()._return(JExpr._this());
-					}
-				}
-			}
-
 		} else {
 			final JClass elementType = (JClass)fieldType;
 			final JClass builderFieldElementType = childBuilderOutline.getBuilderClass().narrow(this.builderClass.type);
@@ -487,21 +469,6 @@ class BuilderGenerator {
 				generateBuilderMethodJavadoc(addMethod, "with", superPropertyOutline.getFieldName());
 				if (this.implement) {
 					addMethod.body()._return(JExpr.cast(builderFieldElementType, JExpr._super().invoke(addMethod)));
-				}
-			}
-
-			// If field is a JaxbElement wrapped object, chain with-method in the same was as standard impl above.
-			if (fieldType instanceof JClass) {
-				final JClass fieldClass = (JClass) fieldType;
-				if (fieldClass.getTypeParameters().size() == 1 && fieldClass.erasure().fullName().equals(JAXBElement.class.getName())) {
-					final JClass innerType = fieldClass.getTypeParameters().get(0);
-					final JMethod withMethodInner = this.builderClass.raw.method(JMod.PUBLIC, this.builderClass.type, PluginContext.WITH_METHOD_PREFIX + superPropertyName);
-					final JVar paramInner = withMethodInner.param(JMod.FINAL, innerType, fieldName);
-					generateWithMethodJavadoc(withMethodInner, paramInner);
-					if (this.implement) {
-						withMethodInner.body().invoke(JExpr._super(), PluginContext.WITH_METHOD_PREFIX + superPropertyName).arg(paramInner);
-						withMethodInner.body()._return(JExpr._this());
-					}
 				}
 			}
 		}
