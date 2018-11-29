@@ -116,6 +116,8 @@
     * Requires Java 8 now
     * Splitting meta and visitor plugins
 	* Requires JAXB 2.3 now
+* **2.0.1**
+    * Reverted JAXBElement handling because of ObjectFactory problems
 
 
 
