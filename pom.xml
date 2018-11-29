@@ -61,5 +61,17 @@
 		</plugins>
 	</build>
 
+	<profiles>
+		<profile>
+			<activation>
+				<activeByDefault>false</activeByDefault>
+			</activation>
+			<id>with-test</id>
+			<modules>
+				<module>test-module</module>
+			</modules>
+		</profile>
+	</profiles>
+
 
 </project>

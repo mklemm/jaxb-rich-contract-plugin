@@ -6,7 +6,7 @@
 
 	<groupId>net.codesup.util</groupId>
 	<artifactId>jaxb2-rich-contract-plugin-test</artifactId>
-	<version>1.0.0-SNAPSHOT</version>
+	<version>2.0.1-SNAPSHOT</version>
 
 	<name>Test Project for JAXB 2.2 extended contract generation plugin</name>
 	<packaging>jar</packaging>
@@ -25,14 +25,14 @@
 			<plugin>
 				<artifactId>maven-compiler-plugin</artifactId>
 				<configuration>
-					<source>1.7</source>
-					<target>1.7</target>
+					<source>1.8</source>
+					<target>1.8</target>
 				</configuration>
 			</plugin>
 			<plugin>
 				<groupId>org.jvnet.jaxb2.maven2</groupId>
 				<artifactId>maven-jaxb2-plugin</artifactId>
-				<version>0.11.0</version>
+				<version>0.14.0</version>
 				<executions>
 					<execution>
 						<id>xsd-generate</id>
@@ -43,6 +43,7 @@
 					</execution>
 				</executions>
 				<configuration>
+					<strict>false</strict>
 					<args>
 						<arg>-Ximmutable</arg>
                         <arg>-Xfluent-builder</arg>
@@ -53,27 +54,10 @@
 						<plugin>
 							<groupId>net.codesup.util</groupId>
 							<artifactId>jaxb2-rich-contract-plugin</artifactId>
-							<version>1.5.5-SNAPSHOT</version>
-						</plugin>
-						<plugin>
-							<groupId>net.java.dev.jaxb2-commons</groupId>
-							<artifactId>jaxb-fluent-api</artifactId>
-							<version>2.1.8</version>
+							<version>2.0.1-SNAPSHOT</version>
 						</plugin>
 					</plugins>
 				</configuration>
-				<dependencies>
-					<dependency>
-						<groupId>com.sun.xml.bind</groupId>
-						<artifactId>jaxb-xjc</artifactId>
-						<version>2.2.7</version>
-					</dependency>
-					<dependency>
-						<groupId>com.sun.xml.bind</groupId>
-						<artifactId>jaxb-impl</artifactId>
-						<version>2.2.7</version>
-					</dependency>
-				</dependencies>
 			</plugin>
 		</plugins>
 	</build>

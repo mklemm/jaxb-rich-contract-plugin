@@ -5,40 +5,6 @@
 	xmlns:xml="http://www.w3.org/XML/1998/namespace"
     xsi:schemaLocation="http://java.sun.com/xml/ns/jaxb http://java.sun.com/xml/ns/jaxb/bindingschema_2_1.xsd">
 
-	<!--
-	<jxb:bindings schemaLocation="xhtml1-strict.xsd" node="/xs:schema">
-		<jxb:bindings node="xs:complexType[@name='Inline']">
-			<jxb:class name="InlineType" />
-		</jxb:bindings>
-		<jxb:bindings node="xs:complexType[@name='Block']">
-			<jxb:class name="BlockType" />
-		</jxb:bindings>
-		<jxb:bindings node="xs:element[@name='select']">
-			<jxb:class name="SelectElement" />
-		</jxb:bindings>
-		<jxb:bindings node="xs:element[@name='p']">
-			<jxb:class name="Paragraph" />
-		</jxb:bindings>
-		<jxb:bindings node="xs:element[@name='object']">
-			<jxb:class name="HtmlObject" />
-		</jxb:bindings>
-		<jxb:bindings node="xs:element[@name='script']//xs:attribute[@ref='xml:space']">
-			<jxb:property name="xmlNSSpace"/>
-		</jxb:bindings>
-		<jxb:bindings node="xs:element[@name='style']//xs:attribute[@ref='xml:space']">
-			<jxb:property name="xmlNSSpace"/>
-		</jxb:bindings>
-		<jxb:bindings node="xs:element[@name='pre']//xs:attribute[@ref='xml:space']">
-			<jxb:property name="xmlNSSpace"/>
-		</jxb:bindings>
-		<jxb:bindings node="xs:element[@name='bdo']//xs:attribute[@ref='xml:lang']">
-			<jxb:property name="xmlNSLang"/>
-		</jxb:bindings>
-		<jxb:bindings node="xs:attributeGroup[@name='i18n']//xs:attribute[@ref='xml:lang']">
-			<jxb:property name="xmlNSLang"/>
-		</jxb:bindings>
-	</jxb:bindings> -->
-
 
 	<jxb:bindings schemaLocation="xhtml5.xsd" node="/xs:schema">
 		<jxb:bindings node="xs:element[@name='select']">
