@@ -709,7 +709,9 @@ class BuilderGenerator {
 			}
 		}
 		if (superClass != null) {
-			generateExtendsClause(getBuilderDeclaration(superClass.getImplClass()));
+			BuilderOutline superClassBuilder = getBuilderDeclaration(superClass.getImplClass());
+			if (superClassBuilder == null) throw new RuntimeException("Cannot find builder class name " + this.settings.getBuilderClassName().getClassName() + " of: " + superClass.getImplClass());
+			generateExtendsClause(superClassBuilder);
 			if (this.implement) initBody._return(JExpr._super().invoke(initMethod).arg(productParam));
 			generateBuilderMemberOverrides(superClass);
 		} else if (this.implement) {
