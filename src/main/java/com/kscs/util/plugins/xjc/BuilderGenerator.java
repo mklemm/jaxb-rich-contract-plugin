@@ -103,7 +103,7 @@ class BuilderGenerator {
 		this.builderClass = new GenerifiedClass(builderOutline.getDefinedBuilderClass(), BuilderGenerator.PARENT_BUILDER_TYPE_PARAMETER_NAME);
 		this.resources = ResourceBundle.getBundle(BuilderGenerator.class.getName());
 		this.implement = !this.builderClass.raw.isInterface();
-		if (builderOutline.getClassOutline().getSuperClass() == null) {
+		if (builderOutline.getClassOutline().getSuperClass() == null || !builderOutline.getClassOutline().getSuperClass().isLocal()) {
 			final JMethod endMethod = this.builderClass.raw.method(JMod.PUBLIC, this.builderClass.typeParam, this.settings.getEndMethodName());
 			if (this.implement) {
 				this.parentBuilderField = this.builderClass.raw.field(JMod.PROTECTED | JMod.FINAL, this.builderClass.typeParam, BuilderGenerator.PARENT_BUILDER_PARAM_NAME);
@@ -519,7 +519,7 @@ class BuilderGenerator {
 	}
 
 	JMethod generateCopyOfMethod(final TypeOutline paramType, final boolean partial) {
-		if (paramType.getSuperClass() != null) {
+		if (paramType.getSuperClass() != null && paramType.getSuperClass().isLocal()) {
 			generateCopyOfMethod(paramType.getSuperClass(), partial);
 		}
 		final JMethod copyOfMethod = this.definedClass.method(JMod.PUBLIC | JMod.STATIC, this.builderClass.raw.narrow(Void.class), this.pluginContext.buildCopyMethodName);
@@ -547,7 +547,7 @@ class BuilderGenerator {
 			copyBuilderMethod.body()._return(copyGenerator.generatePartialArgs(this.pluginContext._new((JClass)copyBuilderMethod.type()).arg(parentBuilderParam).arg(JExpr._this()).arg(JExpr.TRUE)));
 			copyBuilderConvenienceMethod.body()._return(copyConvenienceGenerator.generatePartialArgs(this.pluginContext.invoke(this.settings.getNewCopyBuilderMethodName()).arg(JExpr._null())));
 		}
-		if (this.typeOutline.getSuperClass() != null) {
+		if (this.typeOutline.getSuperClass() != null && this.typeOutline.getSuperClass().isLocal()) {
 			copyBuilderMethod.annotate(Override.class);
 			copyBuilderConvenienceMethod.annotate(Override.class);
 		}
@@ -555,7 +555,7 @@ class BuilderGenerator {
 	}
 
 	private JMethod generateConveniencePartialCopyMethod(final TypeOutline paramType, final JMethod partialCopyOfMethod, final String methodName, final JExpression propertyTreeUseArg) {
-		if (paramType.getSuperClass() != null) {
+		if (paramType.getSuperClass() != null && paramType.getSuperClass().isLocal()) {
 			generateConveniencePartialCopyMethod(paramType.getSuperClass(), partialCopyOfMethod, methodName, propertyTreeUseArg);
 		}
 		final JMethod conveniencePartialCopyMethod = this.definedClass.method(JMod.PUBLIC | JMod.STATIC, this.builderClass.raw.narrow(Void.class), methodName);
@@ -588,7 +588,7 @@ class BuilderGenerator {
 			final CopyGenerator cloneGenerator = this.pluginContext.createCopyGenerator(copyToMethod, partial);
 			final JBlock body = copyToMethod.body();
 			final JVar otherRef;
-			if (this.typeOutline.getSuperClass() != null) {
+			if (this.typeOutline.getSuperClass() != null && this.typeOutline.getSuperClass().isLocal()) {
 				body.add(cloneGenerator.generatePartialArgs(this.pluginContext.invoke(JExpr._super(), copyToMethod.name()).arg(otherParam)));
 			}
 			otherRef = otherParam;
@@ -604,14 +604,14 @@ class BuilderGenerator {
 		final JVar otherParam = constructor.param(JMod.FINAL, this.typeOutline.getImplClass(), BuilderGenerator.OTHER_PARAM_NAME);
 		final JVar copyParam = constructor.param(JMod.FINAL, this.pluginContext.codeModel.BOOLEAN, BuilderGenerator.COPY_FLAG_PARAM_NAME);
 		final CopyGenerator cloneGenerator = this.pluginContext.createCopyGenerator(constructor, partial);
-		if (this.typeOutline.getSuperClass() != null) {
+		if (this.typeOutline.getSuperClass() != null && this.typeOutline.getSuperClass().isLocal()) {
 			constructor.body().add(cloneGenerator.generatePartialArgs(this.pluginContext._super().arg(parentBuilderParam).arg(otherParam).arg(copyParam)));
 		} else {
 			constructor.body().assign(JExpr._this().ref(this.parentBuilderField), parentBuilderParam);
 		}
 		final JConditional ifNullStmt = constructor.body()._if(otherParam.ne(JExpr._null()));
 		final JBlock body;
-		if (!this.settings.isCopyAlways() && this.typeOutline.getSuperClass() == null) {
+		if (!this.settings.isCopyAlways() && (this.typeOutline.getSuperClass() == null || !this.typeOutline.getSuperClass().isLocal())) {
 			final JConditional ifCopyStmt = ifNullStmt._then()._if(copyParam);
 			ifCopyStmt._else().assign(this.storedValueField, otherParam);
 			ifNullStmt._else().assign(this.storedValueField, JExpr._null());
@@ -708,7 +708,7 @@ class BuilderGenerator {
 				}
 			}
 		}
-		if (superClass != null) {
+		if (superClass != null && superClass.isLocal()) {
 			BuilderOutline superClassBuilder = getBuilderDeclaration(superClass.getImplClass());
 			if (superClassBuilder == null) throw new RuntimeException("Cannot find builder class name " + this.settings.getBuilderClassName().getClassName() + " of: " + superClass.getImplClass());
 			generateExtendsClause(superClassBuilder);
