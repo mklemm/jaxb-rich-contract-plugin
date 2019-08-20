@@ -31,6 +31,7 @@ import java.util.ResourceBundle;
 
 import javax.xml.namespace.QName;
 
+import com.sun.tools.xjc.outline.Outline;
 import org.xml.sax.SAXException;
 import org.xml.sax.SAXParseException;
 
@@ -146,12 +147,25 @@ class BuilderGenerator {
 			}
 		}
 	}
+	private JType getTagRefType(final PropertyOutline.TagRef tagRef, final Outline outline, final Aspect aspect) {
+		final TypeInfo<NType, NClass> typeInfo = tagRef.getTypeInfo();
+		final JType type;
+		if (typeInfo instanceof CClassInfo) {
+			type = ((CClassInfo) typeInfo).toType(outline, aspect);
+		} else if (typeInfo instanceof CElementInfo) {
+			type = ((CElementInfo) typeInfo).toType(outline, aspect);
+		} else {
+			throw new RuntimeException(String.format("Unexpected type %s for tagRef %s",
+					typeInfo.getClass().getCanonicalName(),
+					tagRef.getTagName()));
+		}
+		return type;
+	}
 
 	private void generateSingularChoiceProperty(final PropertyOutline propertyOutline) {
 		for (final PropertyOutline.TagRef typeInfo : propertyOutline.getChoiceProperties()) {
-			final CClassInfo classInfo = (CClassInfo)typeInfo.getTypeInfo();
 			final QName elementName = typeInfo.getTagName();
-			final JClass elementType = classInfo.toType(this.pluginContext.outline, Aspect.EXPOSED);
+			final JType elementType = getTagRefType(typeInfo, this.pluginContext.outline, Aspect.EXPOSED);
 			final String fieldName = this.pluginContext.outline.getModel().getNameConverter().toVariableName(elementName.getLocalPart());
 			final String propertyName = this.pluginContext.outline.getModel().getNameConverter().toPropertyName(elementName.getLocalPart());
 			final BuilderOutline childBuilderOutline = getBuilderDeclaration(elementType);
@@ -387,15 +401,14 @@ class BuilderGenerator {
 					for (final PropertyOutline.TagRef tagRef : propertyOutline.getChoiceProperties()) {
 						final QName elementName = tagRef.getTagName();
 						final JType elementType;
-						if(tagRef.getTypeInfo() instanceof CClassInfo) {
-							final CClassInfo classInfo = (CClassInfo)tagRef.getTypeInfo();
-							elementType = classInfo.toType(this.pluginContext.outline, Aspect.EXPOSED);
+						try {
+							elementType = getTagRefType(tagRef, this.pluginContext.outline, Aspect.EXPOSED);
 							overrideAddMethods(superPropertyOutline, elementName, elementType);
-						} else if(tagRef.getTypeInfo() instanceof CElementInfo) {
-							elementType = ((CElementInfo)tagRef.getTypeInfo()).toType(this.pluginContext.outline, Aspect.EXPOSED);
-							overrideAddMethods(superPropertyOutline, elementName, elementType);
-						} else {
-							pluginContext.errorHandler.warning(new SAXParseException("Encountered unsupported child type \""+tagRef.getTypeInfo()+"\" in choice children collection. Unable to generate choice expansion.", this.pluginContext.outline.getModel().getLocator()));
+						} catch (Exception e) {
+							pluginContext.errorHandler.warning(
+							        new SAXParseException("Encountered unsupported child type \""+tagRef.getTypeInfo()+"\" in choice children collection. Unable to generate choice expansion.",
+											this.pluginContext.outline.getModel().getLocator(),
+											e));
 						}
 					}
 				}
