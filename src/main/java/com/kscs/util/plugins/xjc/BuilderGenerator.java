@@ -152,7 +152,7 @@ class BuilderGenerator {
 
 	private void generateSingularChoiceProperty(final JBlock initBody, final JVar productParam, final PropertyOutline propertyOutline) {
 		// First create the builder field, init and withXXX methods for the supertype of the choices
-	    JFieldVar superTypeBuilderField = generateSingularChoiceSupertypeProperty(initBody, productParam, propertyOutline)
+	    JFieldVar superTypeBuilderField = generateSingularChoiceSuperTypeProperty(initBody, productParam, propertyOutline)
 				.orElseThrow(() -> new RuntimeException(String.format(
 				        "Expecting to have a builderField for property %s", propertyOutline.getFieldName())));
 
@@ -408,7 +408,7 @@ class BuilderGenerator {
 		}
 	}
 
-	private Optional<JFieldVar> generateSingularChoiceSupertypeProperty(final JBlock initBody, final JVar productParam, final PropertyOutline propertyOutline) {
+	private Optional<JFieldVar> generateSingularChoiceSuperTypeProperty(final JBlock initBody, final JVar productParam, final PropertyOutline propertyOutline) {
 		final String propertyName = propertyOutline.getBaseName();
 		final String fieldName = propertyOutline.getFieldName();
 		final JType fieldType = propertyOutline.getRawType();
