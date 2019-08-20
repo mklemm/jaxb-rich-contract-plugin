@@ -27,10 +27,12 @@ import java.lang.reflect.Modifier;
 import java.text.MessageFormat;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.ResourceBundle;
 
 import javax.xml.namespace.QName;
 
+import com.sun.codemodel.JOp;
 import org.xml.sax.SAXException;
 import org.xml.sax.SAXParseException;
 
@@ -139,15 +141,22 @@ class BuilderGenerator {
 				}
 			}
 		} else {
-			generateSingularProperty(initBody, productParam, propertyOutline);
 			if (propertyOutline.getChoiceProperties().size() > 1) {
 				//throw new UnsupportedOperationException("Singular Properties with multiple references not currently supported.");
-				generateSingularChoiceProperty(propertyOutline);
+				generateSingularChoiceProperty(initBody, productParam, propertyOutline);
+			} else {
+				generateSingularProperty(initBody, productParam, propertyOutline);
 			}
 		}
 	}
 
-	private void generateSingularChoiceProperty(final PropertyOutline propertyOutline) {
+	private void generateSingularChoiceProperty(final JBlock initBody, final JVar productParam, final PropertyOutline propertyOutline) {
+		// First create the builder field, init and withXXX methods for the supertype of the choices
+	    JFieldVar superTypeBuilderField = generateSingularChoiceSupertypeProperty(initBody, productParam, propertyOutline)
+				.orElseThrow(() -> new RuntimeException(String.format(
+				        "Expecting to have a builderField for property %s", propertyOutline.getFieldName())));
+
+	    // Now create the withXXX methods for each choice type
 		for (final PropertyOutline.TagRef typeInfo : propertyOutline.getChoiceProperties()) {
 			final CClassInfo classInfo = (CClassInfo)typeInfo.getTypeInfo();
 			final QName elementName = typeInfo.getTagName();
@@ -157,14 +166,18 @@ class BuilderGenerator {
 			final BuilderOutline childBuilderOutline = getBuilderDeclaration(elementType);
 			final BuilderOutline choiceChildBuilderOutline = getBuilderDeclaration(propertyOutline.getElementType());
 			if (childBuilderOutline == null) {
-				final JMethod withMethod = this.builderClass.raw.method(JMod.PUBLIC, this.builderClass.type, PluginContext.WITH_METHOD_PREFIX + propertyName);
-				final JVar param = withMethod.param(JMod.FINAL, elementType, fieldName);
-				generateWithMethodJavadoc(withMethod, param);
-				if (this.implement) {
-					final JFieldVar builderField = this.builderClass.raw.field(JMod.PRIVATE, elementType, fieldName);
-					withMethod.body().assign(JExpr._this().ref(builderField), param);
-					withMethod.body()._return(JExpr._this());
-				}
+			    // TODO not sure when we will come in here so throw ex to highlight in testing
+				throw new RuntimeException(String.format(
+						"Don't think we should ever come in here, fieldName: %s", propertyOutline.getFieldName()));
+
+//				final JMethod withMethod = this.builderClass.raw.method(JMod.PUBLIC, this.builderClass.type, PluginContext.WITH_METHOD_PREFIX + propertyName);
+//				final JVar param = withMethod.param(JMod.FINAL, elementType, fieldName);
+//				generateWithMethodJavadoc(withMethod, param);
+//				if (this.implement) {
+//					final JFieldVar builderField = this.builderClass.raw.field(JMod.PRIVATE, elementType, fieldName);
+//					withMethod.body().assign(JExpr._this().ref(builderField), param);
+//					withMethod.body()._return(JExpr._this());
+//				}
 			} else {
 				final JClass builderFieldElementType = childBuilderOutline.getBuilderClass().narrow(this.builderClass.type);
 				final JClass builderWithMethodReturnType = childBuilderOutline.getBuilderClass().narrow(this.builderClass.type.wildcard());
@@ -174,10 +187,27 @@ class BuilderGenerator {
 				final JMethod withBuilderMethod = this.builderClass.raw.method(JMod.PUBLIC, builderWithMethodReturnType, PluginContext.WITH_METHOD_PREFIX + propertyName);
 				generateBuilderMethodJavadoc(withBuilderMethod, "with", fieldName);
 				if (this.implement) {
-					final JFieldVar builderField = this.builderClass.raw.field(JMod.PRIVATE, builderFieldElementType, fieldName);
-					withValueMethod.body().assign(JExpr._this().ref(builderField), nullSafe(param, JExpr._new(builderFieldElementType).arg(JExpr._this()).arg(param).arg(JExpr.FALSE)));
+//					final JFieldVar builderField = this.builderClass.raw.field(JMod.PRIVATE, builderFieldElementType, fieldName);
+
+					// Generate the withXXX method that takes a value and returns the parent builder
+					withValueMethod.body().assign(JExpr._this().ref(superTypeBuilderField), nullSafe(param, JExpr._new(builderFieldElementType).arg(JExpr._this()).arg(param).arg(JExpr.FALSE)));
 					withValueMethod.body()._return(JExpr._this());
-					withBuilderMethod.body()._return(JExpr._this().ref(builderField).assign(JExpr._new(builderFieldElementType).arg(JExpr._this()).arg(JExpr._null()).arg(JExpr.FALSE)));
+
+					// Generate the withXXX method that takes no args and returns a new child builder for that type
+
+					JVar childBuilder = withBuilderMethod.body().decl(
+					        JMod.FINAL,
+							builderWithMethodReturnType,
+							fieldName + this.settings.getBuilderFieldSuffix(),
+							JExpr._new(builderFieldElementType)
+									.arg(JExpr._this())
+									.arg(JExpr._null())
+									.arg(JExpr.FALSE));
+
+					withBuilderMethod.body().assign(
+							JExpr._this().ref(superTypeBuilderField),
+							childBuilder);
+					withBuilderMethod.body()._return(childBuilder);
 				}
 			}
 		}
@@ -376,6 +406,71 @@ class BuilderGenerator {
 				initBody.assign(productParam.ref(fieldName), nullSafe(JExpr._this().ref(builderField), JExpr._this().ref(builderField).invoke(this.settings.getBuildMethodName())));
 			}
 		}
+	}
+
+	private Optional<JFieldVar> generateSingularChoiceSupertypeProperty(final JBlock initBody, final JVar productParam, final PropertyOutline propertyOutline) {
+		final String propertyName = propertyOutline.getBaseName();
+		final String fieldName = propertyOutline.getFieldName();
+		final JType fieldType = propertyOutline.getRawType();
+		final BuilderOutline childBuilderOutline = getBuilderDeclaration(fieldType);
+		JFieldVar builderField = null;
+		if (childBuilderOutline == null) {
+			final JMethod withMethod = this.builderClass.raw.method(JMod.PUBLIC, this.builderClass.type, PluginContext.WITH_METHOD_PREFIX + propertyName);
+			final JVar param = withMethod.param(JMod.FINAL, fieldType, fieldName);
+			generateWithMethodJavadoc(withMethod, param);
+			if (this.implement) {
+
+				// TODO what do we do about a choice between multiple things of the same type, e.g. a choice
+				// of xs:string or a choice where all options are the same complex type
+
+				// We have a singular prop that represents a choice so it needs to be of type Buildable
+				builderField = this.builderClass.raw.field(JMod.PRIVATE, this.pluginContext.buildableInterface, fieldName);
+				// Produce a withXXX method for the supertype of the choices (or Object if it doesn't have one)
+				// The method will create a primitive builder, seeded with the passed choice item.
+				withMethod.body().assign(
+						JExpr._this().ref(builderField),
+						nullSafe(param, JExpr._new(this.pluginContext.buildableClass).arg(param)));
+				withMethod.body()._return(JExpr._this());
+
+				// In init(), call the build() method of the builder of the chosen choice
+				initBody.assign(
+						productParam.ref(fieldName),
+						nullSafe(
+								JExpr._this().ref(builderField),
+								JExpr._this().ref(builderField).invoke(this.settings.getBuildMethodName())));
+			}
+		} else {
+			// TODO not sure if we will get here for a singular choice prop as it should never have a child builder
+			// as it will either be Object or some interface.  Throw an exception for now to highlight it in testing
+			throw new RuntimeException(String.format(
+					"Don't think we should ever come in here, fieldName: %s", propertyOutline.getFieldName()));
+
+//			final JClass elementType = (JClass)fieldType;
+//			final JClass builderFieldElementType = childBuilderOutline.getBuilderClass().narrow(this.builderClass.type);
+//			final JClass builderWithMethodReturnType = childBuilderOutline.getBuilderClass().narrow(this.builderClass.type.wildcard());
+//			final JMethod withValueMethod = this.builderClass.raw.method(JMod.PUBLIC, this.builderClass.type, PluginContext.WITH_METHOD_PREFIX + propertyName);
+//			final JVar param = withValueMethod.param(JMod.FINAL, elementType, fieldName);
+//			generateWithMethodJavadoc(withValueMethod, param);
+//			final JMethod withBuilderMethod = childBuilderOutline.getClassOutline().getImplClass().isAbstract() ? null : this.builderClass.raw.method(JMod.PUBLIC, builderWithMethodReturnType, PluginContext.WITH_METHOD_PREFIX + propertyName);
+//			if (withBuilderMethod != null) {
+//				generateBuilderMethodJavadoc(withBuilderMethod, "with", fieldName);
+//			}
+//			if (this.implement) {
+//
+//
+//				// This is a singular choice so we don't want any builders for the concrete choices as we have
+//				// a generic Buildable field for the single chosen choice. We also need different withXXX method
+//				// bodies
+//				// Generate the withXXX method that takes a value and returns the parent builder
+//				builderField = this.builderClass.raw.field(JMod.PRIVATE, this.pluginContext.buildableInterface, fieldName);
+//				withValueMethod.body().assign(
+//						JExpr._this().ref(builderField),
+//						nullSafe(param, JExpr._new(builderFieldElementType).arg(JExpr._this()).arg(param).arg(this.settings.isCopyAlways() ? JExpr.TRUE : JExpr.FALSE)));
+//				withValueMethod.body()._return(JExpr._this());
+//				// As this is a choice we can't have a no-args withXXX method as we don't know what type is required
+//			}
+		}
+		return Optional.of(builderField);
 	}
 
 	void generateBuilderMemberOverride(final PropertyOutline superPropertyOutline, final PropertyOutline propertyOutline, final String superPropertyName) throws SAXException {
