@@ -436,7 +436,9 @@ class BuilderGenerator {
 						productParam.ref(fieldName),
 						nullSafe(
 								JExpr._this().ref(builderField),
-								JExpr._this().ref(builderField).invoke(this.settings.getBuildMethodName())));
+								this.pluginContext.castOnDemand(
+										fieldType,
+										JExpr._this().ref(builderField).invoke(this.settings.getBuildMethodName()))));
 			}
 		} else {
 			// TODO not sure if we will get here for a singular choice prop as it should never have a child builder
