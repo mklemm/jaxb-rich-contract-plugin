@@ -31,6 +31,7 @@ import java.util.ResourceBundle;
 
 import javax.xml.namespace.QName;
 
+import com.sun.tools.xjc.model.CNonElement;
 import com.sun.tools.xjc.outline.Outline;
 import org.xml.sax.SAXException;
 import org.xml.sax.SAXParseException;
@@ -153,7 +154,21 @@ class BuilderGenerator {
 		if (typeInfo instanceof CClassInfo) {
 			type = ((CClassInfo) typeInfo).toType(outline, aspect);
 		} else if (typeInfo instanceof CElementInfo) {
-			type = ((CElementInfo) typeInfo).toType(outline, aspect);
+			final List<CNonElement> refs = ((CElementInfo) typeInfo).getProperty().ref();
+			// This feels dirty but am not sure what we do if we get multiple refs
+			if (refs.size() == 1) {
+				try {
+					type = ((CClassInfo) refs.get(0)).toType(outline, aspect);
+				} catch (Exception e) {
+					throw new RuntimeException(String.format("Unexpected type %s for tagRef %s",
+							refs.get(0).getClass().getCanonicalName(),
+							tagRef.getTagName()));
+				}
+			} else {
+				throw new RuntimeException(String.format("Expecting one ref type for tagRef %s, found %s",
+						tagRef.getTagName(),
+						refs.size()));
+			}
 		} else {
 			throw new RuntimeException(String.format("Unexpected type %s for tagRef %s",
 					typeInfo.getClass().getCanonicalName(),
