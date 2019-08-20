@@ -32,7 +32,6 @@ import java.util.ResourceBundle;
 
 import javax.xml.namespace.QName;
 
-import com.sun.codemodel.JOp;
 import org.xml.sax.SAXException;
 import org.xml.sax.SAXParseException;
 
@@ -768,6 +767,16 @@ class BuilderGenerator {
 							} else if (this.pluginContext.cloneableInterface.isAssignableFrom(fieldClass)) {
 								final JBlock maybeTryBlock = this.pluginContext.catchCloneNotSupported(currentBlock, fieldClass);
 								maybeTryBlock.assign(targetField, nullSafe(sourceRef, this.pluginContext.castOnDemand(fieldType, sourceRef.invoke(this.pluginContext.cloneMethodName))));
+							} else if (this.pluginContext.buildableInterface.isAssignableFrom(fieldClass)) {
+								currentBlock.assign(
+										targetField,
+										nullSafe(sourceRef, JExpr._new(this.pluginContext.buildableClass).arg(sourceRef)));
+							} else if (fieldOutline.getChoiceProperties().size() > 1) {
+							    // TODO don't think this will work if choice items have no builder
+								// Handle single choice properties
+								currentBlock.assign(
+										targetField,
+										nullSafe(sourceRef, JExpr._new(this.pluginContext.buildableClass).arg(sourceRef)));
 							} else {
 								currentBlock.assign(targetField, sourceRef);
 							}
