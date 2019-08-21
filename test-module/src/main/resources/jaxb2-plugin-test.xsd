@@ -117,4 +117,35 @@
 			</extension>
 		</complexContent>
 	</complexType>
+
+	<element name="reserved-words-choice">
+		<complexType>
+			<choice>
+				<element name="import" type="tns:import"/>
+				<element name="class" type="tns:class"/>
+			</choice>
+		</complexType>
+	</element>
+
+	<element name="reserved-words-sequence">
+		<complexType>
+			<sequence>
+				<element name="import" type="tns:import"/>
+				<element name="class" type="tns:class"/>
+			</sequence>
+		</complexType>
+	</element>
+
+	<complexType name="import">
+		<sequence>
+			<element name="import" type="string"/>
+		</sequence>
+	</complexType>
+
+	<complexType name="class">
+		<sequence>
+			<element name="class" type="string"/>
+		</sequence>
+	</complexType>
+
 </schema>

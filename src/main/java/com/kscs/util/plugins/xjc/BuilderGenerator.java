@@ -189,8 +189,8 @@ class BuilderGenerator {
 		for (final PropertyOutline.TagRef typeInfo : propertyOutline.getChoiceProperties()) {
 			final QName elementName = typeInfo.getTagName();
 			final JType elementType = getTagRefType(typeInfo, this.pluginContext.outline, Aspect.EXPOSED);
-			final String fieldName = this.pluginContext.outline.getModel().getNameConverter().toVariableName(elementName.getLocalPart());
-			final String propertyName = this.pluginContext.outline.getModel().getNameConverter().toPropertyName(elementName.getLocalPart());
+			final String fieldName = this.pluginContext.toVariableName(elementName.getLocalPart());
+			final String propertyName = this.pluginContext.toPropertyName(elementName.getLocalPart());
 			final BuilderOutline childBuilderOutline = getBuilderDeclaration(elementType);
 			final BuilderOutline choiceChildBuilderOutline = getBuilderDeclaration(propertyOutline.getElementType());
 			if (childBuilderOutline == null) {
@@ -254,8 +254,8 @@ class BuilderGenerator {
 	                                final QName elementName, final JType jType) {
 		final JClass elementType = jType.boxify();
 		final JClass iterableType = this.pluginContext.iterableClass.narrow(elementType.wildcard());
-		final String fieldName = this.pluginContext.outline.getModel().getNameConverter().toVariableName(elementName.getLocalPart());
-		final String propertyName = this.pluginContext.outline.getModel().getNameConverter().toPropertyName(elementName.getLocalPart());
+		final String fieldName = this.pluginContext.toVariableName(elementName.getLocalPart());
+		final String propertyName = this.pluginContext.toPropertyName(elementName.getLocalPart());
 		final JMethod addIterableMethod = this.builderClass.raw.method(JMod.PUBLIC, this.builderClass.type, PluginContext.ADD_METHOD_PREFIX + propertyName);
 		final JVar addIterableParam = addIterableMethod.param(JMod.FINAL, iterableType, fieldName + "_");
 		generateAddMethodJavadoc(addIterableMethod, addIterableParam);
@@ -302,8 +302,8 @@ class BuilderGenerator {
 	private void overrideAddMethods(final PropertyOutline propertyOutline,
 	                                final QName elementName, final JType elementType) {
 		final JClass iterableType = this.pluginContext.iterableClass.narrow(elementType instanceof JClass ? ((JClass)elementType).wildcard() : elementType);
-		final String fieldName = this.pluginContext.outline.getModel().getNameConverter().toVariableName(elementName.getLocalPart());
-		final String propertyName = this.pluginContext.outline.getModel().getNameConverter().toPropertyName(elementName.getLocalPart());
+		final String fieldName = this.pluginContext.toVariableName(elementName.getLocalPart());
+		final String propertyName = this.pluginContext.toPropertyName(elementName.getLocalPart());
 		final JMethod addIterableMethod = this.builderClass.raw.method(JMod.PUBLIC, this.builderClass.type, PluginContext.ADD_METHOD_PREFIX + propertyName);
 		addIterableMethod.annotate(Override.class);
 		final JVar addIterableParam = addIterableMethod.param(JMod.FINAL, iterableType, fieldName + "_");
