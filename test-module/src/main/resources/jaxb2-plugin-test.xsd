@@ -118,9 +118,18 @@
 		</complexContent>
 	</complexType>
 
-	<element name="reserved-words-choice">
+	<element name="reserved-words-single-choice">
 		<complexType>
 			<choice>
+				<element name="import" type="tns:import"/>
+				<element name="class" type="tns:class"/>
+			</choice>
+		</complexType>
+	</element>
+
+	<element name="reserved-words-multi-choice">
+		<complexType>
+			<choice maxOccurs="unbounded">
 				<element name="import" type="tns:import"/>
 				<element name="class" type="tns:class"/>
 			</choice>

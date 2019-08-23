@@ -7,13 +7,10 @@
 			  xmlns:xjc="http://java.sun.com/xml/ns/jaxb/xjc"
 			  xsi:schemaLocation="http://java.sun.com/xml/ns/jaxb http://java.sun.com/xml/ns/jaxb/bindingschema_2_1.xsd"
 			  xmlns:jcb="http://java.sun.com/xml/ns/jaxb">
-              <!-- xmlns:inheritance="http://jaxb2-commons.dev.java.net/basic/inheritance"> -->
 
 
 	<jcb:globalBindings
-	    fixedAttributeAsConstantProperty="true"
-	    />
-        <!-- localScoping="toplevel" -->
+	    fixedAttributeAsConstantProperty="true" />
 
 	<jxb:bindings schemaLocation="jaxb2-plugin-test.xsd">
 		<jxb:bindings>
@@ -25,19 +22,10 @@
 			<jxb:property name="surname"/>
 		</jxb:bindings>
 		<!-- Use of java.rmi.Remote saves us having to create our own marker interface -->
-		<jxb:bindings node="//xs:element[@name='reserved-words-choice']/xs:complexType/xs:choice">
+		<jxb:bindings node="//xs:element[@name='reserved-words-single-choice']/xs:complexType/xs:choice">
             <jxb:property>
-                <!-- <jxb:baseType name="java.rmi.Remote" /> -->
                 <jxb:baseType name="java.lang.Object" />
             </jxb:property>
 		</jxb:bindings>
-		<!--
-		<jxb:bindings node="//xs:complexType[@name='import']">
-            <inheritance:implements>java.rmi.Remote</inheritance:implements>
-		</jxb:bindings>
-		<jxb:bindings node="//xs:complexType[@name='class']">
-            <inheritance:implements>java.rmi.Remote</inheritance:implements>
-		</jxb:bindings>
-		-->
 	</jxb:bindings>
 </jxb:bindings>
