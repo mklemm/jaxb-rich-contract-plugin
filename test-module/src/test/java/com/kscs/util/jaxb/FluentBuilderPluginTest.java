@@ -1,7 +1,5 @@
 package com.kscs.util.jaxb;
 
-import javax.xml.bind.JAXB;
-import java.io.File;
 import com.kscs.jaxb2.contract.test.CompanyMember;
 import com.kscs.jaxb2.contract.test.DerivedType;
 import com.kscs.jaxb2.contract.test.IdentifyingProperties;
@@ -9,6 +7,9 @@ import com.kscs.jaxb2.contract.test.Tourist;
 import com.kscs.jaxb2.contract.test.Worker;
 import org.junit.Assert;
 import org.junit.Test;
+
+import javax.xml.bind.JAXB;
+import java.io.File;
 
 /**
  * Test for the FluentBuilderPlugin
@@ -143,6 +144,7 @@ public class FluentBuilderPluginTest {
 		Assert.assertEquals("ID", idp.getId());
 		Assert.assertEquals("un", idp.getUniqueName());
 	}
+
 
 //	@Test
 //	public void testTransformerPathComplex() {
