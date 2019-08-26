@@ -9,7 +9,8 @@
 			  xmlns:jcb="http://java.sun.com/xml/ns/jaxb">
 
 
-	<jcb:globalBindings fixedAttributeAsConstantProperty="true"/>
+	<jcb:globalBindings
+	    fixedAttributeAsConstantProperty="true" />
 
 	<jxb:bindings schemaLocation="jaxb2-plugin-test.xsd">
 		<jxb:bindings>
@@ -19,6 +20,12 @@
 		</jxb:bindings>
 		<jxb:bindings node="//xs:element[@name='last-name']">
 			<jxb:property name="surname"/>
+		</jxb:bindings>
+		<!-- Use of java.rmi.Remote saves us having to create our own marker interface -->
+		<jxb:bindings node="//xs:element[@name='reserved-words-single-choice']/xs:complexType/xs:choice">
+            <jxb:property>
+                <jxb:baseType name="java.lang.Object" />
+            </jxb:property>
 		</jxb:bindings>
 	</jxb:bindings>
 </jxb:bindings>

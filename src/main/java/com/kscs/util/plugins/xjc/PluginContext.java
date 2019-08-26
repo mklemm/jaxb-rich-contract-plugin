@@ -34,6 +34,8 @@ import java.util.Deque;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.BiFunction;
+import java.util.function.Function;
 
 import javax.xml.bind.JAXB;
 import javax.xml.bind.annotation.XmlRootElement;
@@ -42,6 +44,8 @@ import javax.xml.bind.annotation.XmlType;
 import javax.xml.namespace.QName;
 import javax.xml.transform.dom.DOMSource;
 
+import com.sun.codemodel.JJavaName;
+import com.sun.xml.bind.api.impl.NameConverter;
 import org.xml.sax.ErrorHandler;
 import org.xml.sax.SAXException;
 
@@ -497,5 +501,29 @@ public class PluginContext extends Plugin {
 
 	public JTypedInvocation _new(final JClass type) {
 		return new JTypedInvocation(type);
+	}
+
+	public String convertWord(final String str, final BiFunction<NameConverter, String, String> converterFunction) {
+		String name;
+		// This is similar to the logic used in CPropertyInfo
+		if (outline.getModel() != null) {
+			name = converterFunction.apply(outline.getModel().getNameConverter(), str);
+		} else {
+			name = converterFunction.apply(NameConverter.standard, str);
+		}
+		// Prefix name with _ if it is a reserved java identifier
+		if (!JJavaName.isJavaIdentifier(name)) {
+			return '_' + name;
+		} else {
+			return name;
+		}
+	}
+
+	public String toVariableName(final String str) {
+		return convertWord(str, NameConverter::toVariableName);
+	}
+
+	public String toPropertyName(final String str) {
+		return convertWord(str, NameConverter::toPropertyName);
 	}
 }
