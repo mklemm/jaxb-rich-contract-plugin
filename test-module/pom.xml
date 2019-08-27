@@ -50,10 +50,13 @@
 				</executions>
 				<configuration>
 					<strict>false</strict>
-					<!-- uncoment this to only compile one schema -->
+					<!-- un-comment these to only compile one schema -->
 <!--					<schemaIncludes>-->
 <!--						<include>jaxb2-plugin-test.xsd</include>-->
 <!--					</schemaIncludes>-->
+<!--					<bindingIncludes>-->
+<!--						<include>binding-config.xjb</include>-->
+<!--					</bindingIncludes>-->
 					<args>
 						<arg>-Ximmutable</arg>
                         <arg>-Xfluent-builder</arg>
