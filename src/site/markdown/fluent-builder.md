@@ -152,3 +152,7 @@ Name of the generated "build" method that concludes building and returns the pro
 ##### -endMethodName=`<string>` (end)
 Name of the generated "end" method that concludes a nested builder and returns to the outer builder. Can be set here to handle naming conflicts.
 
+
+##### -generateJavadocFromAnnotations=`{y|n}` (y)
+If true, append schema annotation text to class getters/setters and builder methods.
+

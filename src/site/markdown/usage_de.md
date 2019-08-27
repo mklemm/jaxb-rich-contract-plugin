@@ -85,6 +85,7 @@ Dieses "cheat sheet" gibt alle verfügbaren Plugin-Optionen an und zeigt, wie di
                             <arg>-copyAlways=n</arg>
                             <arg>-buildMethodName=build</arg>
                             <arg>-endMethodName=end</arg>
+                            <arg>-generateJavadocFromAnnotations=y</arg>
                         <arg>-Xmeta</arg>
                             <arg>-generateTools=y</arg>
                             <arg>-extended=n</arg>

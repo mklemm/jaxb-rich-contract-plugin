@@ -24,13 +24,6 @@
 
 package com.kscs.util.plugins.xjc;
 
-import java.util.LinkedHashMap;
-import java.util.Map;
-
-import org.xml.sax.ErrorHandler;
-import org.xml.sax.SAXException;
-import org.xml.sax.SAXParseException;
-
 import com.kscs.util.jaxb.Buildable;
 import com.kscs.util.jaxb.PropertyTree;
 import com.kscs.util.jaxb.PropertyTreeUse;
@@ -46,6 +39,12 @@ import com.sun.codemodel.JMod;
 import com.sun.tools.xjc.Options;
 import com.sun.tools.xjc.outline.ClassOutline;
 import com.sun.tools.xjc.outline.Outline;
+import org.xml.sax.ErrorHandler;
+import org.xml.sax.SAXException;
+import org.xml.sax.SAXParseException;
+
+import java.util.LinkedHashMap;
+import java.util.Map;
 
 /**
  * Plugin to generate fluent Builders for generated classes
@@ -79,6 +78,8 @@ public class FluentBuilderPlugin extends AbstractPlugin {
 	protected String buildMethodName = PluginContext.BUILD_METHOD_NAME;
 	@Opt
 	protected String endMethodName = "end";
+	@Opt
+	protected boolean generateJavadocFromAnnotations = true;
 
 	@Override
 	public String getOptionName() {
@@ -126,6 +127,6 @@ public class FluentBuilderPlugin extends AbstractPlugin {
 	public BuilderGeneratorSettings getSettings() {
 		return new BuilderGeneratorSettings(this.copyPartial, this.narrow, this.newBuilderMethodName, this.newCopyBuilderMethodName, this.builderFieldSuffix,
 				new ClassName(this.builderInterfaceName, this.builderClassName), this.copyToMethodName,
-				this.copyAlways, this.buildMethodName, this.endMethodName);
+				this.copyAlways, this.buildMethodName, this.endMethodName, generateJavadocFromAnnotations);
 	}
 }

@@ -198,15 +198,6 @@ class BuilderGenerator {
 			    // TODO not sure when we will come in here so throw ex to highlight in testing
 				throw new RuntimeException(String.format(
 						"Don't think we should ever come in here, fieldName: %s", propertyOutline.getFieldName()));
-
-//				final JMethod withMethod = this.builderClass.raw.method(JMod.PUBLIC, this.builderClass.type, PluginContext.WITH_METHOD_PREFIX + propertyName);
-//				final JVar param = withMethod.param(JMod.FINAL, elementType, fieldName);
-//				generateWithMethodJavadoc(withMethod, param);
-//				if (this.implement) {
-//					final JFieldVar builderField = this.builderClass.raw.field(JMod.PRIVATE, elementType, fieldName);
-//					withMethod.body().assign(JExpr._this().ref(builderField), param);
-//					withMethod.body()._return(JExpr._this());
-//				}
 			} else {
 				final JClass builderFieldElementType = childBuilderOutline.getBuilderClass().narrow(this.builderClass.type);
 				final JClass builderWithMethodReturnType = childBuilderOutline.getBuilderClass().narrow(this.builderClass.type.wildcard());
@@ -216,14 +207,12 @@ class BuilderGenerator {
 				final JMethod withBuilderMethod = this.builderClass.raw.method(JMod.PUBLIC, builderWithMethodReturnType, PluginContext.WITH_METHOD_PREFIX + propertyName);
 				generateBuilderMethodJavadoc(withBuilderMethod, "with", fieldName, propertyOutline.getSchemaAnnotationText().orElse(null));
 				if (this.implement) {
-//					final JFieldVar builderField = this.builderClass.raw.field(JMod.PRIVATE, builderFieldElementType, fieldName);
 
 					// Generate the withXXX method that takes a value and returns the parent builder
 					withValueMethod.body().assign(JExpr._this().ref(superTypeBuilderField), nullSafe(param, JExpr._new(builderFieldElementType).arg(JExpr._this()).arg(param).arg(JExpr.FALSE)));
 					withValueMethod.body()._return(JExpr._this());
 
 					// Generate the withXXX method that takes no args and returns a new child builder for that type
-
 					JVar childBuilder = withBuilderMethod.body().decl(
 					        JMod.FINAL,
 							builderWithMethodReturnType,
@@ -475,31 +464,6 @@ class BuilderGenerator {
 			// as it will either be Object or some interface.  Throw an exception for now to highlight it in testing
 			throw new RuntimeException(String.format(
 					"Don't think we should ever come in here, fieldName: %s", propertyOutline.getFieldName()));
-
-//			final JClass elementType = (JClass)fieldType;
-//			final JClass builderFieldElementType = childBuilderOutline.getBuilderClass().narrow(this.builderClass.type);
-//			final JClass builderWithMethodReturnType = childBuilderOutline.getBuilderClass().narrow(this.builderClass.type.wildcard());
-//			final JMethod withValueMethod = this.builderClass.raw.method(JMod.PUBLIC, this.builderClass.type, PluginContext.WITH_METHOD_PREFIX + propertyName);
-//			final JVar param = withValueMethod.param(JMod.FINAL, elementType, fieldName);
-//			generateWithMethodJavadoc(withValueMethod, param);
-//			final JMethod withBuilderMethod = childBuilderOutline.getClassOutline().getImplClass().isAbstract() ? null : this.builderClass.raw.method(JMod.PUBLIC, builderWithMethodReturnType, PluginContext.WITH_METHOD_PREFIX + propertyName);
-//			if (withBuilderMethod != null) {
-//				generateBuilderMethodJavadoc(withBuilderMethod, "with", fieldName);
-//			}
-//			if (this.implement) {
-//
-//
-//				// This is a singular choice so we don't want any builders for the concrete choices as we have
-//				// a generic Buildable field for the single chosen choice. We also need different withXXX method
-//				// bodies
-//				// Generate the withXXX method that takes a value and returns the parent builder
-//				builderField = this.builderClass.raw.field(JMod.PRIVATE, this.pluginContext.buildableInterface, fieldName);
-//				withValueMethod.body().assign(
-//						JExpr._this().ref(builderField),
-//						nullSafe(param, JExpr._new(builderFieldElementType).arg(JExpr._this()).arg(param).arg(this.settings.isCopyAlways() ? JExpr.TRUE : JExpr.FALSE)));
-//				withValueMethod.body()._return(JExpr._this());
-//				// As this is a choice we can't have a no-args withXXX method as we don't know what type is required
-//			}
 		}
 		return Optional.of(builderField);
 	}
@@ -838,16 +802,18 @@ class BuilderGenerator {
 		}
 
 		// Add schema annotation text to the parent class getters/setters
-		this.typeOutline.getImplClass().methods().forEach(jMethod -> {
-			final String fieldName = getCorrespondingFieldName(jMethod);
-			this.typeOutline.getDeclaredFields().stream()
-					.filter(typeOutline -> typeOutline.getFieldName().equals(fieldName))
-					.findAny()
-					.flatMap(DefinedPropertyOutline::getSchemaAnnotationText)
-					.ifPresent(schemaAnnotation -> {
-						appendJavadocPara(jMethod.javadoc(), schemaAnnotation);
-					});
-		});
+        if (settings.isGeneratingJavadocFromAnnotations()) {
+			this.typeOutline.getImplClass().methods().forEach(jMethod -> {
+				final String fieldName = getCorrespondingFieldName(jMethod);
+				this.typeOutline.getDeclaredFields().stream()
+						.filter(typeOutline -> typeOutline.getFieldName().equals(fieldName))
+						.findAny()
+						.flatMap(DefinedPropertyOutline::getSchemaAnnotationText)
+						.ifPresent(schemaAnnotation -> {
+							appendJavadocPara(jMethod.javadoc(), schemaAnnotation);
+						});
+			});
+		}
 
 		if (this.typeOutline.getDeclaredFields() != null) {
 			for (final PropertyOutline fieldOutline : this.typeOutline.getDeclaredFields()) {
@@ -953,7 +919,7 @@ class BuilderGenerator {
 	}
 
 	private JDocComment appendJavadocPara(final JDocComment jDocComment, final String paragraphText) {
-		if (paragraphText != null) {
+		if (paragraphText != null && settings.isGeneratingJavadocFromAnnotations()) {
 			String wrappedText = WordWrap.from(paragraphText)
 					.maxWidth(80)
 					.wrap();
