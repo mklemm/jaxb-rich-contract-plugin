@@ -24,24 +24,28 @@
 
 package com.kscs.util.plugins.xjc.outline;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-
-import javax.xml.bind.JAXBElement;
-
+import com.kscs.util.plugins.xjc.SchemaAnnotationUtils;
 import com.sun.codemodel.JClass;
 import com.sun.codemodel.JFieldVar;
 import com.sun.codemodel.JMethod;
 import com.sun.codemodel.JType;
+import com.sun.tools.xjc.model.CClassInfo;
+import com.sun.tools.xjc.model.CPropertyInfo;
 import com.sun.tools.xjc.model.nav.NClass;
 import com.sun.tools.xjc.model.nav.NType;
+import com.sun.tools.xjc.outline.ClassOutline;
 import com.sun.tools.xjc.outline.FieldOutline;
 import com.sun.xml.bind.v2.model.core.Element;
 import com.sun.xml.bind.v2.model.core.ElementPropertyInfo;
 import com.sun.xml.bind.v2.model.core.PropertyInfo;
 import com.sun.xml.bind.v2.model.core.ReferencePropertyInfo;
 import com.sun.xml.bind.v2.model.core.TypeRef;
+
+import javax.xml.bind.JAXBElement;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Optional;
 
 /**
  * @author Mirko Klemm 2015-01-28
@@ -51,6 +55,7 @@ public class DefinedPropertyOutline implements PropertyOutline {
 	private final PropertyInfo<NType,NClass> propertyInfo;
 	private final List<TagRef> referencedItems;
 	private final JClass jaxbElementClass;
+	private final String annotationText;
 
 	public DefinedPropertyOutline(final FieldOutline fieldOutline) {
 		this.fieldOutline = fieldOutline;
@@ -71,6 +76,18 @@ public class DefinedPropertyOutline implements PropertyOutline {
 		} else {
 			this.referencedItems = Collections.emptyList();
 		}
+
+		final ClassOutline classOutline = fieldOutline.parent();
+		final CClassInfo classInfo = classOutline.target;
+		final String fieldName = fieldOutline.getPropertyInfo().getName(false);
+		final CPropertyInfo property = classInfo.getProperties().stream()
+				.filter(it-> it.getName(false).equals(fieldName))
+				.findAny()
+				.orElseThrow(() ->
+						new IllegalStateException("Can't find property [" +
+								fieldName + "] in class [" + classInfo.getTypeName() + "]"));
+
+		this.annotationText = SchemaAnnotationUtils.getFieldAnnotationDescription(property);
 	}
 
 	@Override
@@ -131,7 +148,17 @@ public class DefinedPropertyOutline implements PropertyOutline {
 		return this.referencedItems;
 	}
 
-	public boolean isArray() {
+    @Override
+    public Optional<String> getSchemaAnnotationText() {
+		if (this.annotationText == null || this.annotationText.isEmpty()) {
+			return Optional.empty();
+		} else {
+			return Optional.of(this.annotationText);
+		}
+    }
+
+    public boolean isArray() {
 		return getRawType().isArray();
 	}
+
 }

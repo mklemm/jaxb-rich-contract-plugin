@@ -38,6 +38,11 @@
 			<artifactId>jaxb-plugin-lib</artifactId>
 			<version>1.4.0</version>
 		</dependency>
+    <dependency>
+      <groupId>com.github.davidmoten</groupId>
+      <artifactId>word-wrap</artifactId>
+      <version>0.1.6</version>
+    </dependency>
 	</dependencies>
 
 	<build>

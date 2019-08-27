@@ -24,15 +24,15 @@
 
 package com.kscs.util.plugins.xjc.outline;
 
-import java.util.List;
-
-import javax.xml.namespace.QName;
-
 import com.sun.codemodel.JFieldVar;
 import com.sun.codemodel.JType;
 import com.sun.tools.xjc.model.nav.NClass;
 import com.sun.tools.xjc.model.nav.NType;
 import com.sun.xml.bind.v2.model.core.TypeInfo;
+
+import javax.xml.namespace.QName;
+import java.util.List;
+import java.util.Optional;
 
 /**
  * @author Mirko Klemm 2015-01-28
@@ -47,6 +47,13 @@ public interface PropertyOutline {
 	boolean isCollection();
 	boolean isIndirect();
 	List<TagRef> getChoiceProperties();
+
+	/**
+	 * @return The annotation description text from the corresponding part of the schema if there is any.
+	 */
+	default Optional<String> getSchemaAnnotationText() {
+		return Optional.empty();
+	}
 
 	class TagRef {
 		private final QName tagName;
