@@ -81,7 +81,7 @@ You should add "maven-jaxb2-plugin" to your `<build>` configuration. Then add "j
                             <arg>-copyAlways=n</arg>
                             <arg>-buildMethodName=build</arg>
                             <arg>-endMethodName=end</arg>
-                            <arg>-generateJavadocFromAnnotations=y</arg>
+                            <arg>-generateJavadocFromAnnotations=n</arg>
                         <arg>-Xmeta</arg>
                             <arg>-generateTools=y</arg>
                             <arg>-extended=n</arg>

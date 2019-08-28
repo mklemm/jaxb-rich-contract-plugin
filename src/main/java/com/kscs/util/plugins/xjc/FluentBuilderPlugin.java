@@ -79,7 +79,7 @@ public class FluentBuilderPlugin extends AbstractPlugin {
 	@Opt
 	protected String endMethodName = "end";
 	@Opt
-	protected boolean generateJavadocFromAnnotations = true;
+	protected boolean generateJavadocFromAnnotations = false;
 
 	@Override
 	public String getOptionName() {

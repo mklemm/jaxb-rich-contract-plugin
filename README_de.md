@@ -253,7 +253,7 @@ Dieses "cheat sheet" gibt alle verfügbaren Plugin-Optionen an und zeigt, wie di
                             <arg>-copyAlways=n</arg>
                             <arg>-buildMethodName=build</arg>
                             <arg>-endMethodName=end</arg>
-                            <arg>-generateJavadocFromAnnotations=y</arg>
+                            <arg>-generateJavadocFromAnnotations=n</arg>
                         <arg>-Xmeta</arg>
                             <arg>-generateTools=y</arg>
                             <arg>-extended=n</arg>
@@ -743,7 +743,7 @@ Name der generierten "build"-Methode, die das gebaute Objekt zurÃ¼ckliefert.
 Name der generierten "end"-Methode, die einen sub-Builder beendet.
 
 
-##### -generateJavadocFromAnnotations=`{y|n}` (y)
+##### -generateJavadocFromAnnotations=`{y|n}` (n)
 TODO
 
 ## meta

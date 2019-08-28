@@ -153,6 +153,6 @@ Name der generierten "build"-Methode, die das gebaute Objekt zurÃ¼ckliefert.
 Name der generierten "end"-Methode, die einen sub-Builder beendet.
 
 
-##### -generateJavadocFromAnnotations=`{y|n}` (y)
+##### -generateJavadocFromAnnotations=`{y|n}` (n)
 TODO
 

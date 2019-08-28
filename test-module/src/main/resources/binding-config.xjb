@@ -10,7 +10,8 @@
 
 
 	<jcb:globalBindings
-	    fixedAttributeAsConstantProperty="true" />
+	    fixedAttributeAsConstantProperty="true"
+	    localScoping="toplevel" />
 
 	<jxb:bindings schemaLocation="jaxb2-plugin-test.xsd">
 		<jxb:bindings>

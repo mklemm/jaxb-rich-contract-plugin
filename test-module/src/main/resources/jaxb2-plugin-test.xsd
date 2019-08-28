@@ -157,51 +157,66 @@
 		</sequence>
 	</complexType>
 
-	<!-- No way to test for the existence of the annotations in javadoc, other than manually -->
+	<!--
+	No way to test for the existence of the annotations in javadoc, as the javadoc is not available at runtime.
+	This element is here for manual testing only.
+	 -->
 	<element name="javadoc-annotations">
+		<annotation>
+			<documentation>javadoc-annotations element annotation. And this is some extra text to test that line breaking is working correctly.</documentation>
+		</annotation>
 		<complexType>
+			<annotation>
+				<documentation>javadoc-annotations anonymous complex type annotation. And this is some extra text to test that line breaking is working correctly.</documentation>
+			</annotation>
 			<sequence>
 				<element name="simple-element" type="string">
 					<annotation>
-						<documentation>simple-element annotation</documentation>
+						<documentation>simple-element element annotation. And this is some extra text to test that line breaking is working correctly.</documentation>
 					</annotation>
 				</element>
 				<element name="simple-element-with-attributes" type="string">
 					<annotation>
-						<documentation>simple-element-with-attributes annotation</documentation>
+						<documentation>simple-element-with-attributes element annotation. And this is some extra text to test that line breaking is working correctly.</documentation>
 					</annotation>
                     <complexType>
+						<annotation>
+							<documentation>simple-element-with-attributes anonymous complex type annotation. And this is some extra text to test that line breaking is working correctly.</documentation>
+						</annotation>
 						<attribute name="attribute-one" type="string">
 							<annotation>
-								<documentation>simpleElementWithAttributes_attribute-one annotation</documentation>
+								<documentation>simpleElementWithAttributes_attribute-one attribute annotation. And this is some extra text to test that line breaking is working correctly.</documentation>
 							</annotation>
 						</attribute>
 						<attribute name="attribute-two" type="string">
 							<annotation>
-								<documentation>simpleElementWithAttributes_attribute-two annotation</documentation>
+								<documentation>simpleElementWithAttributes_attribute-two attribute annotation. And this is some extra text to test that line breaking is working correctly.</documentation>
 							</annotation>
 						</attribute>
 					</complexType>
 				</element>
 				<element name="use-of-complexType" type="tns:javadoc-annotations-complex-type">
 					<annotation>
-						<documentation>use-of-complexType</documentation>
+						<documentation>use-of-complexType element annotation. And this is some extra text to test that line breaking is working correctly.</documentation>
 					</annotation>
 				</element>
 				<element name="choice-of-elements">
 					<annotation>
-						<documentation>choice-of-elements annotation</documentation>
+						<documentation>choice-of-elements element annotation. And this is some extra text to test that line breaking is working correctly.</documentation>
 					</annotation>
 					<complexType>
+						<annotation>
+							<documentation>choice-of-elements anonymous complex type annotation. And this is some extra text to test that line breaking is working correctly.</documentation>
+						</annotation>
 						<choice>
 							<element name="choice-one" type="string">
 								<annotation>
-									<documentation>choice-one annotation</documentation>
+									<documentation>choice-one element annotation. And this is some extra text to test that line breaking is working correctly.</documentation>
 								</annotation>
 							</element>
 							<element name="choice-two" type="string">
 								<annotation>
-									<documentation>choice-two annotation</documentation>
+									<documentation>choice-two element annotation. And this is some extra text to test that line breaking is working correctly.</documentation>
 								</annotation>
 							</element>
 						</choice>
@@ -213,12 +228,12 @@
 
 	<complexType name="javadoc-annotations-complex-type">
 		<annotation>
-			<documentation>javadoc-annotations-complex-type annotation</documentation>
+			<documentation>javadoc-annotations-complex-type named complex type annotation. And this is some extra text to test that line breaking is working correctly.</documentation>
 		</annotation>
 		<sequence>
 			<element name="some-element" type="string">
 				<annotation>
-					<documentation>javadoc-annotations-complex-type_some-element annotation</documentation>
+					<documentation>javadoc-annotations-complex-type_some-element annotation. And this is some extra text to test that line breaking is working correctly.</documentation>
 				</annotation>
 			</element>
 		</sequence>

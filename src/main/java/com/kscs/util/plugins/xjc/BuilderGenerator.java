@@ -27,6 +27,7 @@ import com.kscs.util.jaxb.Buildable;
 import com.kscs.util.jaxb.PropertyTree;
 import com.kscs.util.plugins.xjc.codemodel.ClassName;
 import com.kscs.util.plugins.xjc.codemodel.GenerifiedClass;
+import com.kscs.util.plugins.xjc.outline.DefinedClassOutline;
 import com.kscs.util.plugins.xjc.outline.DefinedInterfaceOutline;
 import com.kscs.util.plugins.xjc.outline.DefinedPropertyOutline;
 import com.kscs.util.plugins.xjc.outline.DefinedTypeOutline;
@@ -38,7 +39,6 @@ import com.sun.codemodel.JBlock;
 import com.sun.codemodel.JClass;
 import com.sun.codemodel.JConditional;
 import com.sun.codemodel.JDefinedClass;
-import com.sun.codemodel.JDocComment;
 import com.sun.codemodel.JExpr;
 import com.sun.codemodel.JExpression;
 import com.sun.codemodel.JFieldRef;
@@ -51,6 +51,7 @@ import com.sun.codemodel.JType;
 import com.sun.codemodel.JTypeVar;
 import com.sun.codemodel.JVar;
 import com.sun.tools.xjc.model.CClassInfo;
+import com.sun.tools.xjc.model.CCustomizable;
 import com.sun.tools.xjc.model.CElementInfo;
 import com.sun.tools.xjc.model.CNonElement;
 import com.sun.tools.xjc.model.nav.NClass;
@@ -58,7 +59,8 @@ import com.sun.tools.xjc.model.nav.NType;
 import com.sun.tools.xjc.outline.Aspect;
 import com.sun.tools.xjc.outline.Outline;
 import com.sun.xml.bind.v2.model.core.TypeInfo;
-import org.davidmoten.text.utils.WordWrap;
+import com.sun.xml.xsom.XSComponent;
+import com.sun.xml.xsom.impl.ElementDecl;
 import org.xml.sax.SAXException;
 import org.xml.sax.SAXParseException;
 
@@ -682,8 +684,8 @@ class BuilderGenerator {
 			}
 			otherRef = otherParam;
 			generateFieldCopyExpressions(cloneGenerator, body, otherRef, JExpr._this());
-			copyToMethod.javadoc().append(getMessage("javadoc.method.copyTo"));
-			copyToMethod.javadoc().addParam(otherParam).append(getMessage("javadoc.method.copyTo.param.other"));
+			copyToMethod.javadoc().append(JavadocUtils.hardWrapTextForJavadoc(getMessage("javadoc.method.copyTo")));
+			copyToMethod.javadoc().addParam(otherParam).append(JavadocUtils.hardWrapTextForJavadoc(getMessage("javadoc.method.copyTo.param.other")));
 		}
 	}
 
@@ -800,20 +802,7 @@ class BuilderGenerator {
 			initBody = null;
 			productParam = null;
 		}
-
-		// Add schema annotation text to the parent class getters/setters
-        if (settings.isGeneratingJavadocFromAnnotations()) {
-			this.typeOutline.getImplClass().methods().forEach(jMethod -> {
-				final String fieldName = getCorrespondingFieldName(jMethod);
-				this.typeOutline.getDeclaredFields().stream()
-						.filter(typeOutline -> typeOutline.getFieldName().equals(fieldName))
-						.findAny()
-						.flatMap(DefinedPropertyOutline::getSchemaAnnotationText)
-						.ifPresent(schemaAnnotation -> {
-							appendJavadocPara(jMethod.javadoc(), schemaAnnotation);
-						});
-			});
-		}
+		generateDefinedClassJavadoc();
 
 		if (this.typeOutline.getDeclaredFields() != null) {
 			for (final PropertyOutline fieldOutline : this.typeOutline.getDeclaredFields()) {
@@ -847,6 +836,45 @@ class BuilderGenerator {
 			}
 		}
 		generateCopyOfBuilderMethods();
+	}
+
+	private boolean isTopLevelElement(final DefinedTypeOutline definedTypeOutline) {
+		if (definedTypeOutline instanceof DefinedClassOutline) {
+			CCustomizable target = ((DefinedClassOutline) definedTypeOutline).getClassOutline().getTarget();
+			if (target instanceof CClassInfo) {
+				final XSComponent schemaComponent = ((CClassInfo) target).getSchemaComponent();
+
+				if (schemaComponent instanceof ElementDecl) {
+					return true;
+				}
+			}
+		}
+		return false;
+	}
+
+	private void generateDefinedClassJavadoc() {
+		if (settings.isGeneratingJavadocFromAnnotations()) {
+
+			// xjc seems to add annotations at the class level for named and anonymous complex types
+			// but doesn't wrap them to a sensible width. If we hard wrap the existing javadoc then
+            // it messes up all the <pre> blocks. It is not worth the effort/risk to try and wrap everything
+			// this is not a pre block.
+//		    JavadocUtils.hardWrapCommentText(this.definedClass.javadoc());
+
+			// Add our field level annotations to the getters/setters on the defined class
+			this.typeOutline.getImplClass().methods().forEach(jMethod -> {
+				final String fieldName = getCorrespondingFieldName(jMethod);
+				this.typeOutline.getDeclaredFields().stream()
+						.filter(typeOutline -> typeOutline.getFieldName().equals(fieldName))
+						.findAny()
+						.flatMap(DefinedPropertyOutline::getSchemaAnnotationText)
+						.ifPresent(schemaAnnotation -> {
+							if (settings.isGeneratingJavadocFromAnnotations()) {
+								JavadocUtils.appendJavadocParagraph(jMethod, schemaAnnotation);
+							}
+						});
+			});
+		}
 	}
 
 	private String getCorrespondingFieldName(final JMethod jMethod) {
@@ -899,38 +927,44 @@ class BuilderGenerator {
 
 	private void generateAddMethodJavadoc(final JMethod method, final JVar param, final String schemaAnnotation) {
 		final String propertyName = param.name();
-		method.javadoc().append(MessageFormat.format(this.resources.getString("comment.addMethod"), propertyName))
-				.addParam(param).append(MessageFormat.format(this.resources.getString("comment.addMethod.param"), propertyName));
-		appendJavadocPara(method.javadoc(), schemaAnnotation);
+		JavadocUtils.appendJavadocCommentParagraphs(
+					method.javadoc(),
+					settings.isGeneratingJavadocFromAnnotations() ? schemaAnnotation : null,
+					MessageFormat.format(this.resources.getString("comment.addMethod"), propertyName))
+				.addParam(param)
+				.append(JavadocUtils.hardWrapTextForJavadoc(MessageFormat.format(
+						this.resources.getString("comment.addMethod.param"),
+						propertyName)));
 	}
 
 	private void generateWithMethodJavadoc(final JMethod method, final JVar param, final String schemaAnnotation) {
 		final String propertyName = param.name();
-		method.javadoc().append(MessageFormat.format(this.resources.getString("comment.withMethod"), propertyName))
-				.addParam(param).append(MessageFormat.format(this.resources.getString("comment.withMethod.param"), propertyName));
-		appendJavadocPara(method.javadoc(), schemaAnnotation);
+		JavadocUtils.appendJavadocCommentParagraphs(
+					method.javadoc(),
+					settings.isGeneratingJavadocFromAnnotations() ? schemaAnnotation : null,
+					MessageFormat.format(this.resources.getString("comment.withMethod"), propertyName))
+				.addParam(param)
+				.append(JavadocUtils.hardWrapTextForJavadoc(MessageFormat.format(
+						this.resources.getString("comment.withMethod.param"),
+						propertyName)));
 	}
 
 	private void generateBuilderMethodJavadoc(final JMethod method, final String methodPrefix, final String propertyName, final String schemaAnnotation) {
 		final String endMethodClassName = method.type().erasure().fullName();
-		method.javadoc().append(MessageFormat.format(this.resources.getString("comment." + methodPrefix + "BuilderMethod"), propertyName, endMethodClassName))
-				.addReturn().append(MessageFormat.format(this.resources.getString("comment." + methodPrefix + "BuilderMethod.return"), propertyName, endMethodClassName));
-		appendJavadocPara(method.javadoc(), schemaAnnotation);
+		JavadocUtils.appendJavadocCommentParagraphs(
+					method.javadoc(),
+					settings.isGeneratingJavadocFromAnnotations() ? schemaAnnotation : null,
+					MessageFormat.format(
+							this.resources.getString("comment." + methodPrefix + "BuilderMethod"),
+							propertyName,
+							endMethodClassName))
+				.addReturn()
+				.append(JavadocUtils.hardWrapTextForJavadoc(MessageFormat.format(
+						this.resources.getString("comment." + methodPrefix + "BuilderMethod.return"),
+						propertyName,
+						endMethodClassName)));
 	}
 
-	private JDocComment appendJavadocPara(final JDocComment jDocComment, final String paragraphText) {
-		if (paragraphText != null && settings.isGeneratingJavadocFromAnnotations()) {
-			String wrappedText = WordWrap.from(paragraphText)
-					.maxWidth(80)
-					.wrap();
-			if (!jDocComment.isEmpty()) {
-				wrappedText = "\n<P>\n" + wrappedText;
-			}
-			return jDocComment.append(wrappedText);
-		} else {
-			return jDocComment;
-		}
-	}
 
 	private BuilderOutline getReferencedBuilderOutline(final JType type) {
 		BuilderOutline builderOutline = null;

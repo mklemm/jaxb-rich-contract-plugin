@@ -249,7 +249,7 @@ You should add "maven-jaxb2-plugin" to your `<build>` configuration. Then add "j
                             <arg>-copyAlways=n</arg>
                             <arg>-buildMethodName=build</arg>
                             <arg>-endMethodName=end</arg>
-                            <arg>-generateJavadocFromAnnotations=y</arg>
+                            <arg>-generateJavadocFromAnnotations=n</arg>
                         <arg>-Xmeta</arg>
                             <arg>-generateTools=y</arg>
                             <arg>-extended=n</arg>
@@ -734,8 +734,8 @@ Name of the generated "build" method that concludes building and returns the pro
 Name of the generated "end" method that concludes a nested builder and returns to the outer builder. Can be set here to handle naming conflicts.
 
 
-##### -generateJavadocFromAnnotations=`{y|n}` (y)
-If true, append schema annotation text to class getters/setters and builder methods.
+##### -generateJavadocFromAnnotations=`{y|n}` (n)
+If true, append schema annotation text (./annotation/documentation) to class getters/setters and builder methods.
 
 ## meta
 ### Motivation
