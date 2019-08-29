@@ -838,20 +838,6 @@ class BuilderGenerator {
 		generateCopyOfBuilderMethods();
 	}
 
-	private boolean isTopLevelElement(final DefinedTypeOutline definedTypeOutline) {
-		if (definedTypeOutline instanceof DefinedClassOutline) {
-			CCustomizable target = ((DefinedClassOutline) definedTypeOutline).getClassOutline().getTarget();
-			if (target instanceof CClassInfo) {
-				final XSComponent schemaComponent = ((CClassInfo) target).getSchemaComponent();
-
-				if (schemaComponent instanceof ElementDecl) {
-					return true;
-				}
-			}
-		}
-		return false;
-	}
-
 	private void generateDefinedClassJavadoc() {
 		if (settings.isGeneratingJavadocFromAnnotations()) {
 

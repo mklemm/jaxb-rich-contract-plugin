@@ -1,242 +1,243 @@
 <schema xmlns="http://www.w3.org/2001/XMLSchema" version="1.0"
-		targetNamespace="http://www.kscs.com/jaxb2/contract/test"
-		xmlns:tns="http://www.kscs.com/jaxb2/contract/test"
-		elementFormDefault="qualified">
+  targetNamespace="http://www.kscs.com/jaxb2/contract/test"
+  xmlns:tns="http://www.kscs.com/jaxb2/contract/test"
+  elementFormDefault="qualified">
 
-	<complexType name="root-type" abstract="true">
-		<sequence>
-			<element name="simple-element" type="string"/>
-			<element name="list-entries" type="tns:list-entry" maxOccurs="unbounded"/>
-		</sequence>
-	</complexType>
+  <complexType name="root-type" abstract="true">
+    <sequence>
+      <element name="simple-element" type="string"/>
+      <element name="list-entries" type="tns:list-entry" maxOccurs="unbounded"/>
+    </sequence>
+  </complexType>
 
 
-	<complexType name="list-entry">
-		<sequence>
-			<element name="description" type="string"/>
-			<element name="tasks" type="string" maxOccurs="unbounded"/>
-		</sequence>
-		<attribute name="id" type="ID" use="optional"/>
-	</complexType>
+  <complexType name="list-entry">
+    <sequence>
+      <element name="description" type="string"/>
+      <element name="tasks" type="string" maxOccurs="unbounded"/>
+    </sequence>
+    <attribute name="id" type="ID" use="optional"/>
+  </complexType>
 
-	<element name="derived" type="tns:derived-type"/>
+  <element name="derived" type="tns:derived-type"/>
 
-	<complexType name="derived-type">
-		<complexContent>
-			<extension base="tns:root-type">
-				<sequence>
-					<element name="children" type="string" maxOccurs="unbounded"/>
-					<element name="name" type="string"/>
-				</sequence>
-			</extension>
-		</complexContent>
-	</complexType>
+  <complexType name="derived-type">
+    <complexContent>
+      <extension base="tns:root-type">
+        <sequence>
+          <element name="children" type="string" maxOccurs="unbounded"/>
+          <element name="name" type="string"/>
+        </sequence>
+      </extension>
+    </complexContent>
+  </complexType>
 
-	<group name="user-properties">
-		<sequence>
-			<element name="first-name" type="string"/>
-			<element name="last-name" type="string"/>
-			<element name="age" type="int"/>
-			<element name="type" type="string" fixed="MyType"/>
-		</sequence>
-	</group>
+  <group name="user-properties">
+    <sequence>
+      <element name="first-name" type="string"/>
+      <element name="last-name" type="string"/>
+      <element name="age" type="int"/>
+      <element name="type" type="string" fixed="MyType"/>
+    </sequence>
+  </group>
 
-	<attributeGroup name="identifying-properties">
-		<attribute name="id" type="ID"/>
-		<attribute name="unique-name" type="string"/>
-		<attribute name="display-name" type="string"/>
-		<attribute name="version" type="string" fixed="1.1.2"/>
-	</attributeGroup>
+  <attributeGroup name="identifying-properties">
+    <attribute name="id" type="ID"/>
+    <attribute name="unique-name" type="string"/>
+    <attribute name="display-name" type="string"/>
+    <attribute name="version" type="string" fixed="1.1.2"/>
+  </attributeGroup>
 
-	<element name="company-member">
-		<complexType>
-			<sequence>
-				<element name="phone" type="string"/>
-				<group ref="tns:user-properties"/>
-			</sequence>
-			<attributeGroup ref="tns:identifying-properties"/>
-		</complexType>
-	</element>
+  <element name="company-member">
+    <complexType>
+      <sequence>
+        <element name="phone" type="string"/>
+        <group ref="tns:user-properties"/>
+      </sequence>
+      <attributeGroup ref="tns:identifying-properties"/>
+    </complexType>
+  </element>
 
-	<element name="tourist">
-		<complexType>
-			<sequence>
-				<element name="destination" type="string"/>
-				<element name="departure-date" type="date"/>
-				<group ref="tns:user-properties"/>
-				<element ref="tns:address"/>
-			</sequence>
-			<attributeGroup ref="tns:identifying-properties"/>
-		</complexType>
-	</element>
+  <element name="tourist">
+    <complexType>
+      <sequence>
+        <element name="destination" type="string"/>
+        <element name="departure-date" type="date"/>
+        <group ref="tns:user-properties"/>
+        <element ref="tns:address"/>
+      </sequence>
+      <attributeGroup ref="tns:identifying-properties"/>
+    </complexType>
+  </element>
 
-	<element name="address">
-		<complexType>
-			<sequence>
-				<element name="street" type="string"/>
-				<element name="city" type="tns:city"/>
-			</sequence>
-			<attribute name="created-at" type="dateTime"/>
-		</complexType>
-	</element>
+  <element name="address">
+    <complexType>
+      <sequence>
+        <element name="street" type="string"/>
+        <element name="city" type="tns:city"/>
+      </sequence>
+      <attribute name="created-at" type="dateTime"/>
+    </complexType>
+  </element>
 
-	<complexType name="city">
-		<sequence>
-			<element name="postal-code" type="string"/>
-			<element name="town" type="string"/>
-			<element name="inhabitants" type="tns:person" minOccurs="0" maxOccurs="unbounded"/>
-		</sequence>
-	</complexType>
+  <complexType name="city">
+    <sequence>
+      <element name="postal-code" type="string"/>
+      <element name="town" type="string"/>
+      <element name="inhabitants" type="tns:person" minOccurs="0" maxOccurs="unbounded"/>
+    </sequence>
+  </complexType>
 
-	<complexType name="person" abstract="true">
-		<sequence>
-			<element name="name" type="string"/>
-			<element ref="tns:address"/>
-			<element name="phone-number" type="long"/>
-		</sequence>
-	</complexType>
+  <complexType name="person" abstract="true">
+    <sequence>
+      <element name="name" type="string"/>
+      <element ref="tns:address"/>
+      <element name="phone-number" type="long"/>
+    </sequence>
+  </complexType>
 
-	<complexType name="worker">
-		<complexContent>
-			<extension base="tns:person">
-				<sequence>
-					<element name="salary" type="decimal"/>
-					<element name="company" type="string"/>
-				</sequence>
-			</extension>
-		</complexContent>
-	</complexType>
+  <complexType name="worker">
+    <complexContent>
+      <extension base="tns:person">
+        <sequence>
+          <element name="salary" type="decimal"/>
+          <element name="company" type="string"/>
+        </sequence>
+      </extension>
+    </complexContent>
+  </complexType>
 
-	<complexType name="blacksmith">
-		<complexContent>
-			<extension base="tns:worker">
-				<sequence>
-					<element name="tools" type="string" minOccurs="0" maxOccurs="unbounded"/>
-					<element name="anvil" type="string"/>
-				</sequence>
-			</extension>
-		</complexContent>
-	</complexType>
+  <complexType name="blacksmith">
+    <complexContent>
+      <extension base="tns:worker">
+        <sequence>
+          <element name="tools" type="string" minOccurs="0" maxOccurs="unbounded"/>
+          <element name="anvil" type="string"/>
+        </sequence>
+      </extension>
+    </complexContent>
+  </complexType>
 
-	<element name="reserved-words-single-choice">
-		<complexType>
-			<choice>
-				<element name="import" type="tns:import"/>
-				<element name="class" type="tns:class"/>
-			</choice>
-		</complexType>
-	</element>
+  <element name="reserved-words-single-choice">
+    <complexType>
+      <choice>
+        <element name="import" type="tns:import"/>
+        <element name="class" type="tns:class"/>
+      </choice>
+    </complexType>
+  </element>
 
-	<element name="reserved-words-multi-choice">
-		<complexType>
-			<choice maxOccurs="unbounded">
-				<element name="import" type="tns:import"/>
-				<element name="class" type="tns:class"/>
-			</choice>
-		</complexType>
-	</element>
+  <element name="reserved-words-multi-choice">
+    <complexType>
+      <choice maxOccurs="unbounded">
+        <element name="import" type="tns:import"/>
+        <element name="class" type="tns:class"/>
+      </choice>
+    </complexType>
+  </element>
 
-	<element name="reserved-words-sequence">
-		<complexType>
-			<sequence>
-				<element name="import" type="tns:import"/>
-				<element name="class" type="tns:class"/>
-			</sequence>
-		</complexType>
-	</element>
+  <element name="reserved-words-sequence">
+    <complexType>
+      <sequence>
+        <element name="import" type="tns:import"/>
+        <element name="class" type="tns:class"/>
+      </sequence>
+    </complexType>
+  </element>
 
-	<complexType name="import">
-		<sequence>
-			<element name="import" type="string"/>
-		</sequence>
-	</complexType>
+  <complexType name="import">
+    <sequence>
+      <element name="import" type="string"/>
+    </sequence>
+  </complexType>
 
-	<complexType name="class">
-		<sequence>
-			<element name="class" type="string"/>
-		</sequence>
-	</complexType>
+  <complexType name="class">
+    <sequence>
+      <element name="class" type="string"/>
+    </sequence>
+  </complexType>
 
-	<!--
-	No way to test for the existence of the annotations in javadoc, as the javadoc is not available at runtime.
-	This element is here for manual testing only.
-	 -->
-	<element name="javadoc-annotations">
-		<annotation>
-			<documentation>javadoc-annotations element annotation. And this is some extra text to test that line breaking is working correctly.</documentation>
-		</annotation>
-		<complexType>
-			<annotation>
-				<documentation>javadoc-annotations anonymous complex type annotation. And this is some extra text to test that line breaking is working correctly.</documentation>
-			</annotation>
-			<sequence>
-				<element name="simple-element" type="string">
-					<annotation>
-						<documentation>simple-element element annotation. And this is some extra text to test that line breaking is working correctly.</documentation>
-					</annotation>
-				</element>
-				<element name="simple-element-with-attributes" type="string">
-					<annotation>
-						<documentation>simple-element-with-attributes element annotation. And this is some extra text to test that line breaking is working correctly.</documentation>
-					</annotation>
-                    <complexType>
-						<annotation>
-							<documentation>simple-element-with-attributes anonymous complex type annotation. And this is some extra text to test that line breaking is working correctly.</documentation>
-						</annotation>
-						<attribute name="attribute-one" type="string">
-							<annotation>
-								<documentation>simpleElementWithAttributes_attribute-one attribute annotation. And this is some extra text to test that line breaking is working correctly.</documentation>
-							</annotation>
-						</attribute>
-						<attribute name="attribute-two" type="string">
-							<annotation>
-								<documentation>simpleElementWithAttributes_attribute-two attribute annotation. And this is some extra text to test that line breaking is working correctly.</documentation>
-							</annotation>
-						</attribute>
-					</complexType>
-				</element>
-				<element name="use-of-complexType" type="tns:javadoc-annotations-complex-type">
-					<annotation>
-						<documentation>use-of-complexType element annotation. And this is some extra text to test that line breaking is working correctly.</documentation>
-					</annotation>
-				</element>
-				<element name="choice-of-elements">
-					<annotation>
-						<documentation>choice-of-elements element annotation. And this is some extra text to test that line breaking is working correctly.</documentation>
-					</annotation>
-					<complexType>
-						<annotation>
-							<documentation>choice-of-elements anonymous complex type annotation. And this is some extra text to test that line breaking is working correctly.</documentation>
-						</annotation>
-						<choice>
-							<element name="choice-one" type="string">
-								<annotation>
-									<documentation>choice-one element annotation. And this is some extra text to test that line breaking is working correctly.</documentation>
-								</annotation>
-							</element>
-							<element name="choice-two" type="string">
-								<annotation>
-									<documentation>choice-two element annotation. And this is some extra text to test that line breaking is working correctly.</documentation>
-								</annotation>
-							</element>
-						</choice>
-					</complexType>
-				</element>
-			</sequence>
-		</complexType>
-	</element>
+  <!--
+  No way to test for the existence of the annotations in javadoc, as the javadoc is not available at runtime.
+  This element is here for manual testing only.
+   -->
+  <element name="javadoc-annotations">
+    <annotation>
+      <documentation>javadoc-annotations element annotation. And this is some extra text to test that line breaking is working correctly.</documentation>
+    </annotation>
+    <complexType>
+      <annotation>
+        <documentation>javadoc-annotations anonymous complex type annotation. And this is some extra text to test that line breaking is working correctly.</documentation>
+      </annotation>
+      <sequence>
+        <element name="simple-element" type="string">
+          <annotation>
+            <documentation>simple-element element annotation. And this is some extra text to test that line breaking is working correctly.</documentation>
+          </annotation>
+        </element>
+        <element name="simple-element-with-attributes" type="string">
+          <annotation>
+            <documentation>simple-element-with-attributes element annotation. And this is some extra text to test that line breaking is working correctly.</documentation>
+          </annotation>
+          <complexType>
+            <annotation>
+              <documentation>simple-element-with-attributes anonymous complex type annotation. And this is some extra text to test that line breaking is working correctly.</documentation>
+            </annotation>
+            <attribute name="attribute-one" type="string">
+              <annotation>
+                <documentation>simpleElementWithAttributes_attribute-one attribute annotation. And this is some extra text to test that line breaking is working correctly.</documentation>
+              </annotation>
+            </attribute>
+            <attribute name="attribute-two" type="string">
+              <annotation>
+                <documentation>simpleElementWithAttributes_attribute-two attribute annotation. And this is some extra text to test that line breaking is working correctly.</documentation>
+              </annotation>
+            </attribute>
+          </complexType>
+        </element>
+        <element name="use-of-complexType" type="tns:javadoc-annotations-complex-type">
+          <annotation>
+            <documentation>use-of-complexType element annotation. And this is some extra text to test that line breaking is working correctly.</documentation>
+          </annotation>
+        </element>
+        <element name="choice-of-elements">
+          <annotation>
+            <documentation>choice-of-elements element annotation. And this is some extra text to test that line breaking is working correctly.</documentation>
+          </annotation>
+          <complexType>
+            <annotation>
+              <documentation>choice-of-elements anonymous complex type annotation. And this is some extra text to test that line breaking is working correctly.</documentation>
+            </annotation>
+            <choice>
+              <element name="choice-one" type="string">
+                <annotation>
+                  <documentation>choice-one element annotation. And this is some extra text to test that line breaking is working correctly.</documentation>
+                </annotation>
+              </element>
+              <element name="choice-two" type="string">
+                <annotation>
+                  <documentation>choice-two element annotation. And this is some extra text to test that line breaking is working correctly.</documentation>
+                </annotation>
+              </element>
+            </choice>
+          </complexType>
+        </element>
+      </sequence>
+    </complexType>
+  </element>
 
-	<complexType name="javadoc-annotations-complex-type">
-		<annotation>
-			<documentation>javadoc-annotations-complex-type named complex type annotation. And this is some extra text to test that line breaking is working correctly.</documentation>
-		</annotation>
-		<sequence>
-			<element name="some-element" type="string">
-				<annotation>
-					<documentation>javadoc-annotations-complex-type_some-element annotation. And this is some extra text to test that line breaking is working correctly.</documentation>
-				</annotation>
-			</element>
-		</sequence>
-	</complexType>
+  <complexType name="javadoc-annotations-complex-type">
+    <annotation>
+      <documentation>javadoc-annotations-complex-type named complex type annotation. And this is some extra text to test that line breaking is working correctly.</documentation>
+    </annotation>
+    <sequence>
+      <element name="some-element" type="string">
+        <annotation>
+          <documentation>javadoc-annotations-complex-type_some-element annotation. And this is some extra text to test that line breaking is working correctly.</documentation>
+        </annotation>
+      </element>
+    </sequence>
+  </complexType>
 
 </schema>
+<!-- vim: set expandtab shiftwidth=2 tabstop=2: -->

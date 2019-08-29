@@ -46,6 +46,7 @@ public class GenerateClasses {
                 schemaFile.toAbsolutePath().toString(), //the source schema to gen classes from
                 "-Ximmutable",
                 "-Xfluent-builder",
+                "-generateJavadocFromAnnotations=true",
                 "-Xclone",
                 // TODO Not sure how to handle the episodes file that group-contract needs
 //                "-Xgroup-contract",
