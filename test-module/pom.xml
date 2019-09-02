@@ -78,6 +78,7 @@
 					<args>
 						<arg>-Ximmutable</arg>
                         <arg>-Xfluent-builder</arg>
+						<arg>-generateJavadocFromAnnotations=true</arg>
 						<arg>-Xclone</arg>
 						<arg>-Xgroup-contract</arg>
 					</args>

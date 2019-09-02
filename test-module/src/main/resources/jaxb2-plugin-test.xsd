@@ -157,6 +157,46 @@
     </sequence>
   </complexType>
 
+  <complexType name="transport" abstract="true">
+    <sequence>
+      <element name="name" type="string"/>
+    </sequence>
+  </complexType>
+
+  <complexType name="car">
+    <annotation>
+      <documentation>car complex type. And this is some extra text to test that line breaking is working correctly.</documentation>
+    </annotation>
+    <complexContent>
+      <extension base="tns:transport">
+        <sequence>
+          <element name="engine-size" type="int">
+            <annotation>
+              <documentation>engine-size element. And this is some extra text to test that line breaking is working correctly.</documentation>
+            </annotation>
+          </element>
+        </sequence>
+      </extension>
+    </complexContent>
+  </complexType>
+
+  <complexType name="bike">
+    <annotation>
+      <documentation>bike complex type. And this is some extra text to test that line breaking is working correctly.</documentation>
+    </annotation>
+    <complexContent>
+      <extension base="tns:transport">
+        <sequence>
+          <element name="frame-size" type="int">
+            <annotation>
+              <documentation>frame-size element. And this is some extra text to test that line breaking is working correctly.</documentation>
+            </annotation>
+          </element>
+        </sequence>
+      </extension>
+    </complexContent>
+  </complexType>
+
   <!--
   No way to test for the existence of the annotations in javadoc, as the javadoc is not available at runtime.
   This element is here for manual testing only.
@@ -208,18 +248,32 @@
             <annotation>
               <documentation>choice-of-elements anonymous complex type annotation. And this is some extra text to test that line breaking is working correctly.</documentation>
             </annotation>
-            <choice>
-              <element name="choice-one" type="string">
-                <annotation>
-                  <documentation>choice-one element annotation. And this is some extra text to test that line breaking is working correctly.</documentation>
-                </annotation>
-              </element>
-              <element name="choice-two" type="string">
-                <annotation>
-                  <documentation>choice-two element annotation. And this is some extra text to test that line breaking is working correctly.</documentation>
-                </annotation>
-              </element>
-            </choice>
+<!--            <sequence>-->
+              <choice>
+                <element name="choice-one-item-one" type="string">
+                  <annotation>
+                    <documentation>choice-one-item-one element annotation. And this is some extra text to test that line breaking is working correctly.</documentation>
+                  </annotation>
+                </element>
+                <element name="choice-one-item-one" type="string">
+                  <annotation>
+                    <documentation>choice-one-item-one element annotation. And this is some extra text to test that line breaking is working correctly.</documentation>
+                  </annotation>
+                </element>
+              </choice>
+<!--              <choice>-->
+<!--                <element name="bike" type="tns:bike">-->
+<!--                  <annotation>-->
+<!--                    <documentation>bike element annotation. And this is some extra text to test that line breaking is working correctly.</documentation>-->
+<!--                  </annotation>-->
+<!--                </element>-->
+<!--                <element name="car" type="tns:car">-->
+<!--                  <annotation>-->
+<!--                    <documentation>car element annotation. And this is some extra text to test that line breaking is working correctly.</documentation>-->
+<!--                  </annotation>-->
+<!--                </element>-->
+<!--              </choice>-->
+<!--            </sequence>-->
           </complexType>
         </element>
       </sequence>
