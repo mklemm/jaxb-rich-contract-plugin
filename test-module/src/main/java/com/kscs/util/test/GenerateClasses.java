@@ -26,10 +26,12 @@ package com.kscs.util.test;
 import com.sun.tools.xjc.Driver;
 
 import java.io.File;
+import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Arrays;
+import java.util.Comparator;
 
 public class GenerateClasses {
 
@@ -45,16 +47,23 @@ public class GenerateClasses {
         if (!rootDir.endsWith(TEST_MODULE_NAME)) {
             rootDir = Paths.get("." + File.separator + TEST_MODULE_NAME).normalize().toAbsolutePath();
         }
-        Path resourcesDir = rootDir.resolve("src").resolve("main").resolve("resources");
-        Path schemaFile = resourcesDir.resolve("jaxb2-plugin-test.xsd");
-        Path bindingFile = resourcesDir.resolve("binding-config.xjb");
-        Path outputDir = rootDir.resolve("target").resolve("GenerateClassesOutput");
+        final Path resourcesDir = rootDir.resolve("src").resolve("main").resolve("resources");
+        final Path schemaFile = resourcesDir.resolve("jaxb2-plugin-test.xsd");
+        final Path bindingFile = resourcesDir.resolve("binding-config.xjb");
+        // Use the same dir that the maven plugin uses
+        final Path outputDir = rootDir
+                .resolve("target")
+                .resolve("generated-sources")
+                .resolve("xjc");
 
         System.out.println("rootDir: " + rootDir.toAbsolutePath().toString());
         System.out.println("schemaFile: " + schemaFile.toAbsolutePath().toString());
         System.out.println("bindingFile: " + bindingFile.toAbsolutePath().toString());
         System.out.println("outputDir: " + outputDir.toAbsolutePath().toString());
 
+        clearDirectory(outputDir);
+
+        // Ensure the full path exists
         Files.createDirectories(outputDir);
 
         final String[] xjcOptions = new String[]{
@@ -80,11 +89,26 @@ public class GenerateClasses {
                 .map(str -> "  " + str)
                 .forEach(System.out::println);
 
+        // Run the xjc code generation process
         final int exitStatus = Driver.run(xjcOptions, System.out, System.out);
 
         if (exitStatus != 0) {
             System.out.print("Executing xjc failed");
             System.exit(1);
+        }
+    }
+
+    private static void clearDirectory(final Path rootDir) {
+        try {
+            if (Files.isDirectory(rootDir)) {
+                Files.walk(rootDir)
+                        .sorted(Comparator.reverseOrder())
+                        .peek(path -> System.out.println("Deleting " + path.toAbsolutePath().normalize().toString()))
+                        .map(Path::toFile)
+                        .forEach(File::delete);
+            }
+        } catch (IOException e) {
+            throw new RuntimeException("Error deleting path " + rootDir.toAbsolutePath().toString(), e);
         }
     }
 }
