@@ -29,6 +29,12 @@
             </jxb:property>
 		</jxb:bindings>
 
+		<jxb:bindings node="//xs:element[@name='choice-of-elements-two']/xs:complexType/xs:choice">
+            <jxb:property name="transport">
+                <jxb:baseType name="Transport" />
+            </jxb:property>
+		</jxb:bindings>
+
 		<jxb:bindings node="//xs:element[@name='choice-of-elements-four']/xs:complexType/xs:choice">
             <jxb:property name="object">
                 <jxb:baseType name="java.lang.Object" />

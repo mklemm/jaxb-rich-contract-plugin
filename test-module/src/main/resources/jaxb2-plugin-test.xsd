@@ -261,6 +261,11 @@
             <documentation>use-of-complexType element annotation. And this is some extra text to test that line breaking is working correctly.</documentation>
           </annotation>
         </element>
+        <element name="use-of-complexType-with-super-type" type="tns:car">
+          <annotation>
+            <documentation>use-of-complexType-with-super-type element annotation. And this is some extra text to test that line breaking is working correctly.</documentation>
+          </annotation>
+        </element>
         <!-- Single choice of two primitives, should giver two class variables -->
         <element name="choice-of-elements-one">
           <annotation>
@@ -320,14 +325,14 @@
               <documentation>choice-of-elements-three anonymous complex type annotation. And this is some extra text to test that line breaking is working correctly.</documentation>
             </annotation>
             <choice>
-              <element name="class" type="tns:class">
+              <element name="city" type="tns:city">
                 <annotation>
-                  <documentation>class element annotation. And this is some extra text to test that line breaking is working correctly.</documentation>
+                  <documentation>city element annotation. And this is some extra text to test that line breaking is working correctly.</documentation>
                 </annotation>
               </element>
-              <element name="import" type="tns:import">
+              <element name="worker" type="tns:worker">
                 <annotation>
-                  <documentation>import element annotation. And this is some extra text to test that line breaking is working correctly.</documentation>
+                  <documentation>worker element annotation. And this is some extra text to test that line breaking is working correctly.</documentation>
                 </annotation>
               </element>
             </choice>
@@ -343,14 +348,14 @@
               <documentation>choice-of-elements-four anonymous complex type annotation. And this is some extra text to test that line breaking is working correctly.</documentation>
             </annotation>
             <choice>
-              <element name="class" type="tns:class">
+              <element name="city" type="tns:city">
                 <annotation>
-                  <documentation>class element annotation. And this is some extra text to test that line breaking is working correctly.</documentation>
+                  <documentation>city element annotation. And this is some extra text to test that line breaking is working correctly.</documentation>
                 </annotation>
               </element>
-              <element name="import" type="tns:import">
+              <element name="worker" type="tns:worker">
                 <annotation>
-                  <documentation>import element annotation. And this is some extra text to test that line breaking is working correctly.</documentation>
+                  <documentation>worker element annotation. And this is some extra text to test that line breaking is working correctly.</documentation>
                 </annotation>
               </element>
             </choice>
@@ -366,14 +371,14 @@
               <documentation>choice-of-elements-five anonymous complex type annotation. And this is some extra text to test that line breaking is working correctly.</documentation>
             </annotation>
             <choice maxOccurs="unbounded">
-              <element name="class" type="tns:class">
+              <element name="city" type="tns:city">
                 <annotation>
-                  <documentation>class element annotation. And this is some extra text to test that line breaking is working correctly.</documentation>
+                  <documentation>city element annotation. And this is some extra text to test that line breaking is working correctly.</documentation>
                 </annotation>
               </element>
-              <element name="import" type="tns:import">
+              <element name="worker" type="tns:worker">
                 <annotation>
-                  <documentation>import element annotation. And this is some extra text to test that line breaking is working correctly.</documentation>
+                  <documentation>worker element annotation. And this is some extra text to test that line breaking is working correctly.</documentation>
                 </annotation>
               </element>
             </choice>
