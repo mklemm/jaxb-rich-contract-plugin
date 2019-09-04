@@ -27,7 +27,6 @@ import com.kscs.util.jaxb.Buildable;
 import com.kscs.util.jaxb.PropertyTree;
 import com.kscs.util.plugins.xjc.codemodel.ClassName;
 import com.kscs.util.plugins.xjc.codemodel.GenerifiedClass;
-import com.kscs.util.plugins.xjc.outline.DefinedClassOutline;
 import com.kscs.util.plugins.xjc.outline.DefinedInterfaceOutline;
 import com.kscs.util.plugins.xjc.outline.DefinedPropertyOutline;
 import com.kscs.util.plugins.xjc.outline.DefinedTypeOutline;
@@ -51,7 +50,6 @@ import com.sun.codemodel.JType;
 import com.sun.codemodel.JTypeVar;
 import com.sun.codemodel.JVar;
 import com.sun.tools.xjc.model.CClassInfo;
-import com.sun.tools.xjc.model.CCustomizable;
 import com.sun.tools.xjc.model.CElementInfo;
 import com.sun.tools.xjc.model.CNonElement;
 import com.sun.tools.xjc.model.nav.NClass;
@@ -59,8 +57,6 @@ import com.sun.tools.xjc.model.nav.NType;
 import com.sun.tools.xjc.outline.Aspect;
 import com.sun.tools.xjc.outline.Outline;
 import com.sun.xml.bind.v2.model.core.TypeInfo;
-import com.sun.xml.xsom.XSComponent;
-import com.sun.xml.xsom.impl.ElementDecl;
 import org.xml.sax.SAXException;
 import org.xml.sax.SAXParseException;
 
@@ -205,9 +201,14 @@ class BuilderGenerator {
 				final JClass builderWithMethodReturnType = childBuilderOutline.getBuilderClass().narrow(this.builderClass.type.wildcard());
 				final JMethod withValueMethod = this.builderClass.raw.method(JMod.PUBLIC, this.builderClass.type, PluginContext.WITH_METHOD_PREFIX + propertyName);
 				final JVar param = withValueMethod.param(JMod.FINAL, elementType, fieldName);
-				generateWithMethodJavadoc(withValueMethod, param, propertyOutline.getSchemaAnnotationText().orElse(null));
+				generateWithMethodJavadoc(
+						withValueMethod, param, propertyOutline.getSchemaAnnotationText(typeInfo).orElse(null));
 				final JMethod withBuilderMethod = this.builderClass.raw.method(JMod.PUBLIC, builderWithMethodReturnType, PluginContext.WITH_METHOD_PREFIX + propertyName);
-				generateBuilderMethodJavadoc(withBuilderMethod, "with", fieldName, propertyOutline.getSchemaAnnotationText().orElse(null));
+				generateBuilderMethodJavadoc(
+				        withBuilderMethod,
+						"with",
+						fieldName,
+						propertyOutline.getSchemaAnnotationText(typeInfo).orElse(null));
 				if (this.implement) {
 
 					// Generate the withXXX method that takes a value and returns the parent builder
@@ -238,28 +239,33 @@ class BuilderGenerator {
 			final TypeInfo<NType,NClass> typeInfo = tagRef.getTypeInfo();
 			final QName elementName = tagRef.getTagName();
 			final JType elementType = typeInfo.getType().toType(this.pluginContext.outline, Aspect.EXPOSED);
-			generateAddMethods(propertyOutline, elementName, elementType);
+			generateAddMethods(
+					propertyOutline,
+					elementName,
+					elementType,
+					propertyOutline.getSchemaAnnotationText(tagRef).orElse(null));
 		}
 	}
 
 	private void generateAddMethods(final PropertyOutline propertyOutline,
-	                                final QName elementName, final JType jType) {
+	                                final QName elementName, final JType jType,
+									final String schemaAnnotation) {
 		final JClass elementType = jType.boxify();
 		final JClass iterableType = this.pluginContext.iterableClass.narrow(elementType.wildcard());
 		final String fieldName = this.pluginContext.toVariableName(elementName.getLocalPart());
 		final String propertyName = this.pluginContext.toPropertyName(elementName.getLocalPart());
 		final JMethod addIterableMethod = this.builderClass.raw.method(JMod.PUBLIC, this.builderClass.type, PluginContext.ADD_METHOD_PREFIX + propertyName);
 		final JVar addIterableParam = addIterableMethod.param(JMod.FINAL, iterableType, fieldName + "_");
-		generateAddMethodJavadoc(addIterableMethod, addIterableParam, propertyOutline.getSchemaAnnotationText().orElse(null));
+		generateAddMethodJavadoc(addIterableMethod, addIterableParam, schemaAnnotation);
 		final JMethod addVarargsMethod = this.builderClass.raw.method(JMod.PUBLIC, this.builderClass.type, PluginContext.ADD_METHOD_PREFIX + propertyName);
 		final JVar addVarargsParam = addVarargsMethod.varParam(elementType, fieldName + "_");
-		generateAddMethodJavadoc(addVarargsMethod, addVarargsParam, propertyOutline.getSchemaAnnotationText().orElse(null));
+		generateAddMethodJavadoc(addVarargsMethod, addVarargsParam, schemaAnnotation);
 		final BuilderOutline childBuilderOutline = getBuilderDeclaration(elementType);
 		final JMethod addMethod;
 		if (childBuilderOutline != null && !childBuilderOutline.getClassOutline().getImplClass().isAbstract()) {
 			final JClass builderWithMethodReturnType = childBuilderOutline.getBuilderClass().narrow(this.builderClass.type.wildcard());
 			addMethod = this.builderClass.raw.method(JMod.PUBLIC, builderWithMethodReturnType, PluginContext.ADD_METHOD_PREFIX + propertyName);
-			generateBuilderMethodJavadoc(addMethod, "add", fieldName, propertyOutline.getSchemaAnnotationText().orElse(null));
+			generateBuilderMethodJavadoc(addMethod, "add", fieldName, schemaAnnotation);
 		} else {
 			addMethod = null;
 		}
@@ -851,7 +857,9 @@ class BuilderGenerator {
 			this.typeOutline.getImplClass().methods().forEach(jMethod -> {
 				final String fieldName = getCorrespondingFieldName(jMethod);
 				this.typeOutline.getDeclaredFields().stream()
-						.filter(typeOutline -> typeOutline.getFieldName().equals(fieldName))
+						.filter(typeOutline ->
+                                // need to allow for reserved word renaming
+                                pluginContext.areVariableNamesEqual(typeOutline.getFieldName(), fieldName))
 						.findAny()
 						.flatMap(DefinedPropertyOutline::getSchemaAnnotationText)
 						.ifPresent(schemaAnnotation -> {
@@ -935,7 +943,11 @@ class BuilderGenerator {
 						propertyName)));
 	}
 
-	private void generateBuilderMethodJavadoc(final JMethod method, final String methodPrefix, final String propertyName, final String schemaAnnotation) {
+	private void generateBuilderMethodJavadoc(
+			final JMethod method,
+			final String methodPrefix,
+			final String propertyName,
+            final String schemaAnnotation) {
 		final String endMethodClassName = method.type().erasure().fullName();
 		JavadocUtils.appendJavadocCommentParagraphs(
 					method.javadoc(),

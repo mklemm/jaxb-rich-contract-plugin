@@ -44,7 +44,9 @@ import com.sun.xml.bind.v2.model.core.TypeRef;
 import javax.xml.bind.JAXBElement;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 /**
@@ -54,6 +56,7 @@ public class DefinedPropertyOutline implements PropertyOutline {
 	private final FieldOutline fieldOutline;
 	private final PropertyInfo<NType,NClass> propertyInfo;
 	private final List<TagRef> referencedItems;
+	private final Map<TagRef, String> referencedAnnotations;
 	private final JClass jaxbElementClass;
 	private final String annotationText;
 
@@ -61,33 +64,57 @@ public class DefinedPropertyOutline implements PropertyOutline {
 		this.fieldOutline = fieldOutline;
 		this.propertyInfo = fieldOutline.getPropertyInfo();
 		this.jaxbElementClass = fieldOutline.getRawType().owner().ref(JAXBElement.class);
-		if(this.propertyInfo instanceof ElementPropertyInfo) {
-			final ElementPropertyInfo<NType, NClass> elementPropertyInfo = (ElementPropertyInfo<NType, NClass>)this.propertyInfo;
-			this.referencedItems = new ArrayList<>(elementPropertyInfo.getTypes().size());
-			for(final TypeRef<NType,NClass> typeRef : elementPropertyInfo.getTypes()) {
-				this.referencedItems.add(new TagRef(typeRef.getTagName(), typeRef.getTarget()));
-			}
-		} else if(this.propertyInfo instanceof ReferencePropertyInfo) {
-			final ReferencePropertyInfo<NType, NClass> elementPropertyInfo = (ReferencePropertyInfo<NType, NClass>)this.propertyInfo;
-			this.referencedItems = new ArrayList<>(elementPropertyInfo.getElements().size());
-			for(final Element<NType,NClass> element : elementPropertyInfo.getElements()) {
-				this.referencedItems.add(new TagRef(element.getElementName(), element));
-			}
-		} else {
-			this.referencedItems = Collections.emptyList();
-		}
 
 		final ClassOutline classOutline = fieldOutline.parent();
 		final CClassInfo classInfo = classOutline.target;
 		final String fieldName = fieldOutline.getPropertyInfo().getName(false);
-		final CPropertyInfo property = classInfo.getProperties().stream()
-				.filter(it-> it.getName(false).equals(fieldName))
-				.findAny()
-				.orElseThrow(() ->
-						new IllegalStateException("Can't find property [" +
-								fieldName + "] in class [" + classInfo.getTypeName() + "]"));
+		final CPropertyInfo property = getPropertyInfo(classInfo, fieldName);
 
-		this.annotationText = SchemaAnnotationUtils.getFieldAnnotationDescription(property);
+		if(this.propertyInfo instanceof ElementPropertyInfo) {
+			final ElementPropertyInfo<NType, NClass> elementPropertyInfo = (ElementPropertyInfo<NType, NClass>)this.propertyInfo;
+			this.referencedItems = new ArrayList<>(elementPropertyInfo.getTypes().size());
+			this.referencedAnnotations = new HashMap<>(elementPropertyInfo.getTypes().size());
+			for(final TypeRef<NType,NClass> typeRef : elementPropertyInfo.getTypes()) {
+
+				TagRef tagRef = new TagRef(typeRef.getTagName(), typeRef.getTarget());
+				this.referencedItems.add(tagRef);
+				if (typeRef.getTarget() instanceof CClassInfo) {
+					// Get the annotation for the referenced type, i.e. the complex type
+				    final String referencedItemAnnotation = SchemaAnnotationUtils.getClassAnnotationDescription(
+				    		(CClassInfo) typeRef.getTarget());
+				    this.referencedAnnotations.put(tagRef, referencedItemAnnotation);
+				}
+			}
+			if (elementPropertyInfo.getTypes() != null && elementPropertyInfo.getTypes().size() > 1) {
+				// This appears to be a single java field bound to an xs:choice and there does't appear to be any
+				// way of getting the annotation for the xs:choice itself. If we try and get the field annotation
+				// we will get the annotation of the first choice. Therefore provide no javadoc.
+				this.annotationText = null;
+			} else {
+				this.annotationText = SchemaAnnotationUtils.getFieldAnnotationDescription(property);
+			}
+		} else if(this.propertyInfo instanceof ReferencePropertyInfo) {
+			final ReferencePropertyInfo<NType, NClass> elementPropertyInfo = (ReferencePropertyInfo<NType, NClass>)this.propertyInfo;
+			this.referencedItems = new ArrayList<>(elementPropertyInfo.getElements().size());
+			this.referencedAnnotations = new HashMap<>(elementPropertyInfo.getElements().size());
+			for(final Element<NType,NClass> element : elementPropertyInfo.getElements()) {
+				this.referencedItems.add(new TagRef(element.getElementName(), element));
+			}
+			this.annotationText = SchemaAnnotationUtils.getFieldAnnotationDescription(property);
+		} else {
+			this.referencedItems = Collections.emptyList();
+			this.referencedAnnotations = Collections.emptyMap();
+			this.annotationText = SchemaAnnotationUtils.getFieldAnnotationDescription(property);
+		}
+	}
+
+	private CPropertyInfo getPropertyInfo(final CClassInfo classInfo, final String fieldName) {
+		return classInfo.getProperties().stream()
+					.filter(it -> it.getName(false).equals(fieldName))
+					.findAny()
+					.orElseThrow(() ->
+							new IllegalStateException("Can't find property [" +
+									fieldName + "] in class [" + classInfo.getTypeName() + "]"));
 	}
 
 	@Override
@@ -157,7 +184,16 @@ public class DefinedPropertyOutline implements PropertyOutline {
 		}
     }
 
-    public boolean isArray() {
+	@Override
+	public Optional<String> getSchemaAnnotationText(final TagRef tagRef) {
+		if (this.referencedAnnotations == null || this.referencedAnnotations.isEmpty()) {
+			return Optional.empty();
+		} else {
+			return Optional.ofNullable(this.referencedAnnotations.get(tagRef));
+		}
+	}
+
+	public boolean isArray() {
 		return getRawType().isArray();
 	}
 

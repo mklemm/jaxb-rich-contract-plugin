@@ -55,6 +55,14 @@ public interface PropertyOutline {
 		return Optional.empty();
 	}
 
+	/**
+     * @param tagRef The {@link TagRef} of the referenced type to get the schema annotation for
+	 * @return The annotation description text from the corresponding part of the schema if there is any.
+	 */
+	default Optional<String> getSchemaAnnotationText(TagRef tagRef) {
+		return Optional.empty();
+	}
+
 	class TagRef {
 		private final QName tagName;
 		private final TypeInfo<NType,NClass> typeInfo;
