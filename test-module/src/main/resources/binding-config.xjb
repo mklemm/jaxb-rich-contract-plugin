@@ -22,17 +22,24 @@
 		<jxb:bindings node="//xs:element[@name='last-name']">
 			<jxb:property name="surname"/>
 		</jxb:bindings>
+
 		<jxb:bindings node="//xs:element[@name='reserved-words-single-choice']/xs:complexType/xs:choice">
             <jxb:property>
                 <jxb:baseType name="java.lang.Object" />
             </jxb:property>
 		</jxb:bindings>
-		<!--
-		<jxb:bindings node="//xs:element[@name='choice-of-elements']/xs:complexType/xs:choice">
-            <jxb:property>
-                <jxb:baseType name="com.kscs.jaxb2.contract.test.Transport" />
+
+		<jxb:bindings node="//xs:element[@name='choice-of-elements-four']/xs:complexType/xs:choice">
+            <jxb:property name="object">
+                <jxb:baseType name="java.lang.Object" />
             </jxb:property>
 		</jxb:bindings>
-		-->
+
+		<jxb:bindings node="//xs:element[@name='choice-of-elements-five']/xs:complexType/xs:choice">
+            <jxb:property name="object">
+                <jxb:baseType name="java.lang.Object" />
+            </jxb:property>
+		</jxb:bindings>
+
 	</jxb:bindings>
 </jxb:bindings>

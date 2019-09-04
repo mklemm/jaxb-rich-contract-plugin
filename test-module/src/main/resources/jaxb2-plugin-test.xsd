@@ -146,20 +146,41 @@
   </element>
 
   <complexType name="import">
+    <annotation>
+      <documentation>import complex type annotation. And this is some extra text to test that line breaking is working correctly.</documentation>
+    </annotation>
     <sequence>
-      <element name="import" type="string"/>
+      <element name="import" type="string">
+        <annotation>
+          <documentation>import element annotation. And this is some extra text to test that line breaking is working correctly.</documentation>
+        </annotation>
+      </element>
     </sequence>
   </complexType>
 
   <complexType name="class">
+    <annotation>
+      <documentation>class complex type. And this is some extra text to test that line breaking is working correctly.</documentation>
+    </annotation>
     <sequence>
-      <element name="class" type="string"/>
+      <element name="class" type="string">
+        <annotation>
+          <documentation>class element annotation. and this is some extra text to test that line breaking is working correctly.</documentation>
+        </annotation>
+      </element>
     </sequence>
   </complexType>
 
   <complexType name="transport" abstract="true">
+    <annotation>
+      <documentation>transportation complex type. And this is some extra text to test that line breaking is working correctly.</documentation>
+    </annotation>
     <sequence>
-      <element name="name" type="string"/>
+      <element name="name" type="string">
+        <annotation>
+          <documentation>name element annotation. and this is some extra text to test that line breaking is working correctly.</documentation>
+        </annotation>
+      </element>
     </sequence>
   </complexType>
 
@@ -240,40 +261,122 @@
             <documentation>use-of-complexType element annotation. And this is some extra text to test that line breaking is working correctly.</documentation>
           </annotation>
         </element>
-        <element name="choice-of-elements">
+        <!-- Single choice of two primitives, should giver two class variables -->
+        <element name="choice-of-elements-one">
           <annotation>
-            <documentation>choice-of-elements element annotation. And this is some extra text to test that line breaking is working correctly.</documentation>
+            <documentation>choice-of-elements-one element annotation. And this is some extra text to test that line breaking is working correctly.</documentation>
           </annotation>
           <complexType>
             <annotation>
-              <documentation>choice-of-elements anonymous complex type annotation. And this is some extra text to test that line breaking is working correctly.</documentation>
+              <documentation>choice-of-elements-one anonymous complex type annotation. And this is some extra text to test that line breaking is working correctly.</documentation>
             </annotation>
-<!--            <sequence>-->
-              <choice>
-                <element name="choice-one-item-one" type="string">
-                  <annotation>
-                    <documentation>choice-one-item-one element annotation. And this is some extra text to test that line breaking is working correctly.</documentation>
-                  </annotation>
-                </element>
-                <element name="choice-one-item-one" type="string">
-                  <annotation>
-                    <documentation>choice-one-item-one element annotation. And this is some extra text to test that line breaking is working correctly.</documentation>
-                  </annotation>
-                </element>
-              </choice>
-<!--              <choice>-->
-<!--                <element name="bike" type="tns:bike">-->
-<!--                  <annotation>-->
-<!--                    <documentation>bike element annotation. And this is some extra text to test that line breaking is working correctly.</documentation>-->
-<!--                  </annotation>-->
-<!--                </element>-->
-<!--                <element name="car" type="tns:car">-->
-<!--                  <annotation>-->
-<!--                    <documentation>car element annotation. And this is some extra text to test that line breaking is working correctly.</documentation>-->
-<!--                  </annotation>-->
-<!--                </element>-->
-<!--              </choice>-->
-<!--            </sequence>-->
+            <choice>
+              <annotation>
+                <documentation>choice of choice-one-item-one or choice-one-item-two annotation. And this is some extra text to test that line breaking is working correctly.</documentation>
+              </annotation>
+              <element name="choice-one-item-one" type="string">
+                <annotation>
+                  <documentation>choice-one-item-one element annotation. And this is some extra text to test that line breaking is working correctly.</documentation>
+                </annotation>
+              </element>
+              <element name="choice-one-item-two" type="int">
+                <annotation>
+                  <documentation>choice-one-item-two element annotation. And this is some extra text to test that line breaking is working correctly.</documentation>
+                </annotation>
+              </element>
+            </choice>
+          </complexType>
+        </element>
+        <!-- Single choice of two complex types with common base type (Transport) -->
+        <element name="choice-of-elements-two">
+          <annotation>
+            <documentation>choice-of-elements-two element annotation. And this is some extra text to test that line breaking is working correctly.</documentation>
+          </annotation>
+          <complexType>
+            <annotation>
+              <documentation>choice-of-elements-two anonymous complex type annotation. And this is some extra text to test that line breaking is working correctly.</documentation>
+            </annotation>
+            <choice>
+              <element name="bike" type="tns:bike">
+                <annotation>
+                  <documentation>bike element annotation. And this is some extra text to test that line breaking is working correctly.</documentation>
+                </annotation>
+              </element>
+              <element name="car" type="tns:car">
+                <annotation>
+                  <documentation>car element annotation. And this is some extra text to test that line breaking is working correctly.</documentation>
+                </annotation>
+              </element>
+            </choice>
+          </complexType>
+        </element>
+        <!-- Single choice of two complex types -->
+        <element name="choice-of-elements-three">
+          <annotation>
+            <documentation>choice-of-elements-three element annotation. And this is some extra text to test that line breaking is working correctly.</documentation>
+          </annotation>
+          <complexType>
+            <annotation>
+              <documentation>choice-of-elements-three anonymous complex type annotation. And this is some extra text to test that line breaking is working correctly.</documentation>
+            </annotation>
+            <choice>
+              <element name="class" type="tns:class">
+                <annotation>
+                  <documentation>class element annotation. And this is some extra text to test that line breaking is working correctly.</documentation>
+                </annotation>
+              </element>
+              <element name="import" type="tns:import">
+                <annotation>
+                  <documentation>import element annotation. And this is some extra text to test that line breaking is working correctly.</documentation>
+                </annotation>
+              </element>
+            </choice>
+          </complexType>
+        </element>
+        <!-- Single choice of two complex types that will be bound to a base type of Object -->
+        <element name="choice-of-elements-four">
+          <annotation>
+            <documentation>choice-of-elements-four element annotation. And this is some extra text to test that line breaking is working correctly.</documentation>
+          </annotation>
+          <complexType>
+            <annotation>
+              <documentation>choice-of-elements-four anonymous complex type annotation. And this is some extra text to test that line breaking is working correctly.</documentation>
+            </annotation>
+            <choice>
+              <element name="class" type="tns:class">
+                <annotation>
+                  <documentation>class element annotation. And this is some extra text to test that line breaking is working correctly.</documentation>
+                </annotation>
+              </element>
+              <element name="import" type="tns:import">
+                <annotation>
+                  <documentation>import element annotation. And this is some extra text to test that line breaking is working correctly.</documentation>
+                </annotation>
+              </element>
+            </choice>
+          </complexType>
+        </element>
+        <!-- Multiple choice of two complex types that will be bound to a base type of Object -->
+        <element name="choice-of-elements-five">
+          <annotation>
+            <documentation>choice-of-elements-five element annotation. And this is some extra text to test that line breaking is working correctly.</documentation>
+          </annotation>
+          <complexType>
+            <annotation>
+              <documentation>choice-of-elements-five anonymous complex type annotation. And this is some extra text to test that line breaking is working correctly.</documentation>
+            </annotation>
+            <choice maxOccurs="unbounded">
+              <element name="class" type="tns:class">
+                <annotation>
+                  <documentation>class element annotation. And this is some extra text to test that line breaking is working correctly.</documentation>
+                </annotation>
+              </element>
+              <element name="import" type="tns:import">
+                <annotation>
+                  <documentation>import element annotation. And this is some extra text to test that line breaking is working correctly.</documentation>
+                </annotation>
+              </element>
+            </choice>
           </complexType>
         </element>
       </sequence>
