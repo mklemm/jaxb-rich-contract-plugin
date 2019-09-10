@@ -401,5 +401,28 @@
     </sequence>
   </complexType>
 
+  <simpleType name="javadoc-annotations-enum-simple-type">
+    <annotation>
+      <documentation>javadoc-annotations-enum-simple-type simple type annotation. And this is some extra text to test that line breaking is working correctly.</documentation>
+    </annotation>
+    <restriction base="string">
+      <enumeration value="COW">
+        <annotation>
+          <documentation>javadoc-annotations-enum-simple-type_COW simple type annotation. And this is some extra text to test that line breaking is working correctly.</documentation>
+        </annotation>
+      </enumeration>
+      <enumeration value="HORSE">
+        <annotation>
+          <documentation>javadoc-annotations-enum-simple-type_HORSE simple type annotation. And this is some extra text to test that line breaking is working correctly.</documentation>
+        </annotation>
+      </enumeration>
+      <enumeration value="PIG">
+        <annotation>
+          <documentation>javadoc-annotations-enum-simple-type_PIG simple type annotation. And this is some extra text to test that line breaking is working correctly.</documentation>
+        </annotation>
+      </enumeration>
+    </restriction>
+  </simpleType>
+
 </schema>
 <!-- vim: set expandtab shiftwidth=2 tabstop=2: -->

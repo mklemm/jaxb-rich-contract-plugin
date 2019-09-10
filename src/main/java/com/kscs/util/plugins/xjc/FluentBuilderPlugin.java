@@ -37,7 +37,9 @@ import com.sun.codemodel.JClassAlreadyExistsException;
 import com.sun.codemodel.JDefinedClass;
 import com.sun.codemodel.JMod;
 import com.sun.tools.xjc.Options;
+import com.sun.tools.xjc.model.CEnumLeafInfo;
 import com.sun.tools.xjc.outline.ClassOutline;
+import com.sun.tools.xjc.outline.EnumOutline;
 import com.sun.tools.xjc.outline.Outline;
 import org.xml.sax.ErrorHandler;
 import org.xml.sax.SAXException;
@@ -121,6 +123,19 @@ public class FluentBuilderPlugin extends AbstractPlugin {
 			final BuilderGenerator builderGenerator = new BuilderGenerator(pluginContext, builderClasses, builderOutline, getSettings());
 			builderGenerator.buildProperties();
 		}
+
+		// Add class level javadoc for enums (i.e. enumerated simple types), if required
+		// xjc seems to add the field level javadoc itself
+		if (getSettings().isGeneratingJavadocFromAnnotations()) {
+			for (final EnumOutline enumOutline : outline.getEnums()) {
+				if (enumOutline.getTarget() instanceof CEnumLeafInfo) {
+					final String schemaAnnotation = SchemaAnnotationUtils.getEnumAnnotationDescription(
+					        (CEnumLeafInfo) enumOutline.getTarget());
+					JavadocUtils.appendJavadocParagraph(enumOutline.getImplClass(), schemaAnnotation);
+				}
+			}
+		}
+
 		return true;
 	}
 

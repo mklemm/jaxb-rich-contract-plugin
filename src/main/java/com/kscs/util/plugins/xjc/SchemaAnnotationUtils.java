@@ -25,6 +25,7 @@ package com.kscs.util.plugins.xjc;
 
 import com.sun.tools.xjc.model.CClassInfo;
 import com.sun.tools.xjc.model.CElementPropertyInfo;
+import com.sun.tools.xjc.model.CEnumLeafInfo;
 import com.sun.tools.xjc.model.CNonElement;
 import com.sun.tools.xjc.model.CPropertyInfo;
 import com.sun.tools.xjc.reader.xmlschema.bindinfo.BindInfo;
@@ -56,6 +57,17 @@ public class SchemaAnnotationUtils {
         //         <xs:documentation>This annotation will be used in the class javadoc</xs:documentation>
         //      </xs:annotation>
         XSAnnotation annotation = classInfo.getSchemaComponent().getAnnotation();
+        return resolveDescription(annotation);
+    }
+
+    public static String getEnumAnnotationDescription(CEnumLeafInfo enumLeafInfo) {
+        // To get annotations in the class level javadoc, there needs to be an annotation
+        // element as a child of the simpleType element , e.g.
+        //<xs:simpleType name="SomeSimpleType">
+        //   <xs:annotation>
+        //      <xs:documentation>This annotation will be used in the class javadoc</xs:documentation>
+        //   </xs:annotation>
+        XSAnnotation annotation = enumLeafInfo.getSchemaComponent().getAnnotation();
         return resolveDescription(annotation);
     }
 

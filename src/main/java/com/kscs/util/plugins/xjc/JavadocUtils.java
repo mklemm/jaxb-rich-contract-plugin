@@ -33,7 +33,8 @@ import java.util.List;
 public class JavadocUtils {
 
     /**
-     * Adds a paragraph and optionally a p tag to the head of the passed {@link JDocComment}. Also hard wraps the text.
+     * Adds a paragraph and optionally a p tag to the head of the passed {@link JDocComment}.
+     * Also hard wraps the text.
      */
     static JDocComment appendJavadocParagraph(final JDocCommentable jDocCommentable, final String paragraphText) {
         final JDocComment jDocComment = jDocCommentable.javadoc();
@@ -43,11 +44,14 @@ public class JavadocUtils {
 
             // Add hard line breaks so we get readable javadoc
             String wrappedText = hardWrapTextForJavadoc(paragraphText);
-            jDocComment.append(wrappedText);
+            jDocComment.append(wrappedText + "\n\n");
 
             if (!jdocItems.isEmpty()) {
-                // We already had text in the comment section so add line break and p tag
-                jDocComment.append("\n<P>\n");
+                Object firstItem = jdocItems.get(0);
+                if (!(firstItem instanceof String) || !((String) firstItem).startsWith("<p>") ) {
+                    // We already had text in the comment section so add line break and p tag
+                    jDocComment.append("<P>\n");
+                }
             }
             // add the removed items back in so we have our para at the head
             jDocComment.addAll(jdocItems);
