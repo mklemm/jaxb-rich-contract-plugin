@@ -24,31 +24,6 @@
 
 package com.kscs.util.plugins.xjc;
 
-import java.lang.reflect.Method;
-import java.util.ArrayDeque;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Deque;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.function.BiFunction;
-import java.util.function.Function;
-
-import javax.xml.bind.JAXB;
-import javax.xml.bind.annotation.XmlRootElement;
-import javax.xml.bind.annotation.XmlSchema;
-import javax.xml.bind.annotation.XmlType;
-import javax.xml.namespace.QName;
-import javax.xml.transform.dom.DOMSource;
-
-import com.sun.codemodel.JJavaName;
-import com.sun.xml.bind.api.impl.NameConverter;
-import org.xml.sax.ErrorHandler;
-import org.xml.sax.SAXException;
-
 import com.kscs.util.jaxb.Buildable;
 import com.kscs.util.jaxb.Copyable;
 import com.kscs.util.jaxb.PartialCopyable;
@@ -68,6 +43,7 @@ import com.sun.codemodel.JExpression;
 import com.sun.codemodel.JFieldVar;
 import com.sun.codemodel.JForEach;
 import com.sun.codemodel.JInvocation;
+import com.sun.codemodel.JJavaName;
 import com.sun.codemodel.JMethod;
 import com.sun.codemodel.JPackage;
 import com.sun.codemodel.JTryBlock;
@@ -82,7 +58,29 @@ import com.sun.tools.xjc.outline.ClassOutline;
 import com.sun.tools.xjc.outline.EnumOutline;
 import com.sun.tools.xjc.outline.FieldOutline;
 import com.sun.tools.xjc.outline.Outline;
+import com.sun.xml.bind.api.impl.NameConverter;
 import com.sun.xml.xsom.XSDeclaration;
+import org.xml.sax.ErrorHandler;
+import org.xml.sax.SAXException;
+
+import javax.xml.bind.JAXB;
+import javax.xml.bind.annotation.XmlRootElement;
+import javax.xml.bind.annotation.XmlSchema;
+import javax.xml.bind.annotation.XmlType;
+import javax.xml.namespace.QName;
+import javax.xml.transform.dom.DOMSource;
+import java.lang.reflect.Method;
+import java.util.ArrayDeque;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Deque;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.function.BiFunction;
+import java.util.function.Function;
 
 /**
  * Common context for all plugins implemented by this
@@ -503,7 +501,7 @@ public class PluginContext extends Plugin {
 		return new JTypedInvocation(type);
 	}
 
-	public String convertWord(final String str, final BiFunction<NameConverter, String, String> converterFunction) {
+	private String convertWord(final String str, final BiFunction<NameConverter, String, String> converterFunction) {
 		String name;
 		// This is similar to the logic used in CPropertyInfo
 		if (outline.getModel() != null) {
@@ -519,11 +517,41 @@ public class PluginContext extends Plugin {
 		}
 	}
 
-	public String toVariableName(final String str) {
+	String toVariableName(final String str) {
 		return convertWord(str, NameConverter::toVariableName);
 	}
 
-	public String toPropertyName(final String str) {
+	String toPropertyName(final String str) {
 		return convertWord(str, NameConverter::toPropertyName);
+	}
+
+	/**
+     * Compare to variable names applying the same name conversion to both to allow
+	 * for reserved word renaming.
+	 */
+	boolean areVariableNamesEqual(final String variable1,
+										  final String variable2) {
+		return areStringsEqual(variable1, variable2, this::toVariableName);
+	}
+
+	/**
+	 * Compare to property names applying the same name conversion to both to allow
+	 * for reserved word renaming.
+	 */
+	boolean arePropertyNamesEqual(final String variable1,
+										  final String variable2) {
+		return areStringsEqual(variable1, variable2, this::toPropertyName);
+	}
+
+	private boolean areStringsEqual(final String str1,
+									final String str2,
+									final Function<String, String> converterFunction) {
+		if (str1 == null && str2 == null) {
+			return true;
+		} else if (str1 == null || str2 == null) {
+			return false;
+		} else {
+			return converterFunction.apply(str1).equals(converterFunction.apply(str2));
+		}
 	}
 }

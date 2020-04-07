@@ -23,8 +23,10 @@
  */
 package com.kscs.util.plugins.xjc.outline;
 
-import java.util.List;
 import com.sun.codemodel.JClass;
+
+import java.util.List;
+import java.util.Optional;
 
 /**
  * @author mirko 2014-05-29
@@ -35,4 +37,11 @@ public interface TypeOutline {
 	JClass getImplClass();
 	boolean isLocal();
 	boolean isInterface();
+
+	/**
+	 * @return The annotation description text from the corresponding part of the schema if there is any.
+	 */
+	default Optional<String> getSchemaAnnotationText() {
+		return Optional.empty();
+	}
 }

@@ -23,20 +23,6 @@
  */
 package com.kscs.util.plugins.xjc;
 
-import java.lang.reflect.Modifier;
-import java.text.MessageFormat;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.ResourceBundle;
-
-import javax.xml.namespace.QName;
-
-import com.sun.tools.xjc.model.CNonElement;
-import com.sun.tools.xjc.outline.Outline;
-import org.xml.sax.SAXException;
-import org.xml.sax.SAXParseException;
-
 import com.kscs.util.jaxb.Buildable;
 import com.kscs.util.jaxb.PropertyTree;
 import com.kscs.util.plugins.xjc.codemodel.ClassName;
@@ -65,10 +51,23 @@ import com.sun.codemodel.JTypeVar;
 import com.sun.codemodel.JVar;
 import com.sun.tools.xjc.model.CClassInfo;
 import com.sun.tools.xjc.model.CElementInfo;
+import com.sun.tools.xjc.model.CNonElement;
 import com.sun.tools.xjc.model.nav.NClass;
 import com.sun.tools.xjc.model.nav.NType;
 import com.sun.tools.xjc.outline.Aspect;
+import com.sun.tools.xjc.outline.Outline;
 import com.sun.xml.bind.v2.model.core.TypeInfo;
+import org.xml.sax.SAXException;
+import org.xml.sax.SAXParseException;
+
+import javax.xml.namespace.QName;
+import java.beans.Introspector;
+import java.lang.reflect.Modifier;
+import java.text.MessageFormat;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.ResourceBundle;
 
 import static com.kscs.util.plugins.xjc.base.PluginUtil.nullSafe;
 
@@ -185,47 +184,41 @@ class BuilderGenerator {
 				.orElseThrow(() -> new RuntimeException(String.format(
 				        "Expecting to have a builderField for property %s", propertyOutline.getFieldName())));
 
-	    // Now create the withXXX methods for each choice type
+		// Now create the withXXX methods for each choice type
 		for (final PropertyOutline.TagRef typeInfo : propertyOutline.getChoiceProperties()) {
 			final QName elementName = typeInfo.getTagName();
 			final JType elementType = getTagRefType(typeInfo, this.pluginContext.outline, Aspect.EXPOSED);
 			final String fieldName = this.pluginContext.toVariableName(elementName.getLocalPart());
 			final String propertyName = this.pluginContext.toPropertyName(elementName.getLocalPart());
 			final BuilderOutline childBuilderOutline = getBuilderDeclaration(elementType);
-			final BuilderOutline choiceChildBuilderOutline = getBuilderDeclaration(propertyOutline.getElementType());
 			if (childBuilderOutline == null) {
 			    // TODO not sure when we will come in here so throw ex to highlight in testing
 				throw new RuntimeException(String.format(
 						"Don't think we should ever come in here, fieldName: %s", propertyOutline.getFieldName()));
-
-//				final JMethod withMethod = this.builderClass.raw.method(JMod.PUBLIC, this.builderClass.type, PluginContext.WITH_METHOD_PREFIX + propertyName);
-//				final JVar param = withMethod.param(JMod.FINAL, elementType, fieldName);
-//				generateWithMethodJavadoc(withMethod, param);
-//				if (this.implement) {
-//					final JFieldVar builderField = this.builderClass.raw.field(JMod.PRIVATE, elementType, fieldName);
-//					withMethod.body().assign(JExpr._this().ref(builderField), param);
-//					withMethod.body()._return(JExpr._this());
-//				}
 			} else {
 				final JClass builderFieldElementType = childBuilderOutline.getBuilderClass().narrow(this.builderClass.type);
 				final JClass builderWithMethodReturnType = childBuilderOutline.getBuilderClass().narrow(this.builderClass.type.wildcard());
 				final JMethod withValueMethod = this.builderClass.raw.method(JMod.PUBLIC, this.builderClass.type, PluginContext.WITH_METHOD_PREFIX + propertyName);
 				final JVar param = withValueMethod.param(JMod.FINAL, elementType, fieldName);
-				generateWithMethodJavadoc(withValueMethod, param);
+				generateWithMethodJavadoc(
+						withValueMethod, param, propertyOutline.getSchemaAnnotationText(typeInfo).orElse(null));
 				final JMethod withBuilderMethod = this.builderClass.raw.method(JMod.PUBLIC, builderWithMethodReturnType, PluginContext.WITH_METHOD_PREFIX + propertyName);
-				generateBuilderMethodJavadoc(withBuilderMethod, "with", fieldName);
+				generateBuilderMethodJavadoc(
+				        withBuilderMethod,
+						"with",
+						fieldName,
+						propertyOutline.getSchemaAnnotationText(typeInfo).orElse(null));
 				if (this.implement) {
-//					final JFieldVar builderField = this.builderClass.raw.field(JMod.PRIVATE, builderFieldElementType, fieldName);
-
 					// Generate the withXXX method that takes a value and returns the parent builder
-					withValueMethod.body().assign(JExpr._this().ref(superTypeBuilderField), nullSafe(param, JExpr._new(builderFieldElementType).arg(JExpr._this()).arg(param).arg(JExpr.FALSE)));
+					withValueMethod.body().assign(
+							JExpr._this().ref(superTypeBuilderField),
+							nullSafe(param, JExpr._new(builderFieldElementType).arg(JExpr._this()).arg(param).arg(JExpr.FALSE)));
 					withValueMethod.body()._return(JExpr._this());
 
 					// Generate the withXXX method that takes no args and returns a new child builder for that type
-
 					JVar childBuilder = withBuilderMethod.body().decl(
 					        JMod.FINAL,
-							builderWithMethodReturnType,
+							builderFieldElementType,
 							fieldName + this.settings.getBuilderFieldSuffix(),
 							JExpr._new(builderFieldElementType)
 									.arg(JExpr._this())
@@ -246,28 +239,33 @@ class BuilderGenerator {
 			final TypeInfo<NType,NClass> typeInfo = tagRef.getTypeInfo();
 			final QName elementName = tagRef.getTagName();
 			final JType elementType = typeInfo.getType().toType(this.pluginContext.outline, Aspect.EXPOSED);
-			generateAddMethods(propertyOutline, elementName, elementType);
+			generateAddMethods(
+					propertyOutline,
+					elementName,
+					elementType,
+					propertyOutline.getSchemaAnnotationText(tagRef).orElse(null));
 		}
 	}
 
 	private void generateAddMethods(final PropertyOutline propertyOutline,
-	                                final QName elementName, final JType jType) {
+	                                final QName elementName, final JType jType,
+									final String schemaAnnotation) {
 		final JClass elementType = jType.boxify();
 		final JClass iterableType = this.pluginContext.iterableClass.narrow(elementType.wildcard());
 		final String fieldName = this.pluginContext.toVariableName(elementName.getLocalPart());
 		final String propertyName = this.pluginContext.toPropertyName(elementName.getLocalPart());
 		final JMethod addIterableMethod = this.builderClass.raw.method(JMod.PUBLIC, this.builderClass.type, PluginContext.ADD_METHOD_PREFIX + propertyName);
 		final JVar addIterableParam = addIterableMethod.param(JMod.FINAL, iterableType, fieldName + "_");
-		generateAddMethodJavadoc(addIterableMethod, addIterableParam);
+		generateAddMethodJavadoc(addIterableMethod, addIterableParam, schemaAnnotation);
 		final JMethod addVarargsMethod = this.builderClass.raw.method(JMod.PUBLIC, this.builderClass.type, PluginContext.ADD_METHOD_PREFIX + propertyName);
 		final JVar addVarargsParam = addVarargsMethod.varParam(elementType, fieldName + "_");
-		generateAddMethodJavadoc(addVarargsMethod, addVarargsParam);
+		generateAddMethodJavadoc(addVarargsMethod, addVarargsParam, schemaAnnotation);
 		final BuilderOutline childBuilderOutline = getBuilderDeclaration(elementType);
 		final JMethod addMethod;
 		if (childBuilderOutline != null && !childBuilderOutline.getClassOutline().getImplClass().isAbstract()) {
 			final JClass builderWithMethodReturnType = childBuilderOutline.getBuilderClass().narrow(this.builderClass.type.wildcard());
 			addMethod = this.builderClass.raw.method(JMod.PUBLIC, builderWithMethodReturnType, PluginContext.ADD_METHOD_PREFIX + propertyName);
-			generateBuilderMethodJavadoc(addMethod, "add", fieldName);
+			generateBuilderMethodJavadoc(addMethod, "add", fieldName, schemaAnnotation);
 		} else {
 			addMethod = null;
 		}
@@ -307,17 +305,17 @@ class BuilderGenerator {
 		final JMethod addIterableMethod = this.builderClass.raw.method(JMod.PUBLIC, this.builderClass.type, PluginContext.ADD_METHOD_PREFIX + propertyName);
 		addIterableMethod.annotate(Override.class);
 		final JVar addIterableParam = addIterableMethod.param(JMod.FINAL, iterableType, fieldName + "_");
-		generateAddMethodJavadoc(addIterableMethod, addIterableParam);
+		generateAddMethodJavadoc(addIterableMethod, addIterableParam, propertyOutline.getSchemaAnnotationText().orElse(null));
 		final JMethod addVarargsMethod = this.builderClass.raw.method(JMod.PUBLIC, this.builderClass.type, PluginContext.ADD_METHOD_PREFIX + propertyName);
 		addVarargsMethod.annotate(Override.class);
 		final JVar addVarargsParam = addVarargsMethod.varParam(elementType, fieldName + "_");
-		generateAddMethodJavadoc(addVarargsMethod, addVarargsParam);
+		generateAddMethodJavadoc(addVarargsMethod, addVarargsParam, propertyOutline.getSchemaAnnotationText().orElse(null));
 		final BuilderOutline childBuilderOutline = getBuilderDeclaration(elementType);
 		final JMethod addMethod;
 		if (childBuilderOutline != null && !childBuilderOutline.getClassOutline().getImplClass().isAbstract()) {
 			addMethod = this.builderClass.raw.method(JMod.PUBLIC, childBuilderOutline.getBuilderClass().narrow(this.builderClass.type.wildcard()), PluginContext.ADD_METHOD_PREFIX + propertyName);
 			addMethod.annotate(Override.class);
-			generateBuilderMethodJavadoc(addMethod, "add", fieldName);
+			generateBuilderMethodJavadoc(addMethod, "add", fieldName, propertyOutline.getSchemaAnnotationText().orElse(null));
 		} else {
 			addMethod = null;
 		}
@@ -338,22 +336,22 @@ class BuilderGenerator {
 		final JClass iterableType = this.pluginContext.iterableClass.narrow(elementType.wildcard());
 		final JMethod addIterableMethod = this.builderClass.raw.method(JMod.PUBLIC, this.builderClass.type, PluginContext.ADD_METHOD_PREFIX + propertyName);
 		final JVar addIterableParam = addIterableMethod.param(JMod.FINAL, iterableType, fieldName);
-		generateAddMethodJavadoc(addIterableMethod, addIterableParam);
+		generateAddMethodJavadoc(addIterableMethod, addIterableParam, propertyOutline.getSchemaAnnotationText().orElse(null));
 		final JMethod withIterableMethod = this.builderClass.raw.method(JMod.PUBLIC, this.builderClass.type, PluginContext.WITH_METHOD_PREFIX + propertyName);
 		final JVar withIterableParam = withIterableMethod.param(JMod.FINAL, iterableType, fieldName);
-		generateWithMethodJavadoc(withIterableMethod, withIterableParam);
+		generateWithMethodJavadoc(withIterableMethod, withIterableParam, propertyOutline.getSchemaAnnotationText().orElse(null));
 		final JMethod addVarargsMethod = this.builderClass.raw.method(JMod.PUBLIC, this.builderClass.type, PluginContext.ADD_METHOD_PREFIX + propertyName);
 		final JVar addVarargsParam = addVarargsMethod.varParam(elementType, fieldName);
-		generateAddMethodJavadoc(addVarargsMethod, addVarargsParam);
+		generateAddMethodJavadoc(addVarargsMethod, addVarargsParam, propertyOutline.getSchemaAnnotationText().orElse(null));
 		final JMethod withVarargsMethod = this.builderClass.raw.method(JMod.PUBLIC, this.builderClass.type, PluginContext.WITH_METHOD_PREFIX + propertyName);
 		final JVar withVarargsParam = withVarargsMethod.varParam(elementType, fieldName);
-		generateWithMethodJavadoc(withVarargsMethod, withVarargsParam);
+		generateWithMethodJavadoc(withVarargsMethod, withVarargsParam, propertyOutline.getSchemaAnnotationText().orElse(null));
 		final BuilderOutline childBuilderOutline = getBuilderDeclaration(elementType);
 		final JMethod addMethod;
 		if (childBuilderOutline != null && !childBuilderOutline.getClassOutline().getImplClass().isAbstract()) {
 			final JClass builderWithMethodReturnType = childBuilderOutline.getBuilderClass().narrow(this.builderClass.type.wildcard());
 			addMethod = this.builderClass.raw.method(JMod.PUBLIC, builderWithMethodReturnType, PluginContext.ADD_METHOD_PREFIX + propertyName);
-			generateBuilderMethodJavadoc(addMethod, "add", propertyName);
+			generateBuilderMethodJavadoc(addMethod, "add", propertyName, propertyOutline.getSchemaAnnotationText().orElse(null));
 		} else {
 			addMethod = null;
 		}
@@ -404,7 +402,7 @@ class BuilderGenerator {
 		if (childBuilderOutline == null) {
 			final JMethod withMethod = this.builderClass.raw.method(JMod.PUBLIC, this.builderClass.type, PluginContext.WITH_METHOD_PREFIX + propertyName);
 			final JVar param = withMethod.param(JMod.FINAL, fieldType, fieldName);
-			generateWithMethodJavadoc(withMethod, param);
+			generateWithMethodJavadoc(withMethod, param, propertyOutline.getSchemaAnnotationText().orElse(null));
 			final JFieldVar builderField;
 			if (this.implement) {
 				builderField = this.builderClass.raw.field(JMod.PRIVATE, fieldType, fieldName);
@@ -418,10 +416,10 @@ class BuilderGenerator {
 			final JClass builderWithMethodReturnType = childBuilderOutline.getBuilderClass().narrow(this.builderClass.type.wildcard());
 			final JMethod withValueMethod = this.builderClass.raw.method(JMod.PUBLIC, this.builderClass.type, PluginContext.WITH_METHOD_PREFIX + propertyName);
 			final JVar param = withValueMethod.param(JMod.FINAL, elementType, fieldName);
-			generateWithMethodJavadoc(withValueMethod, param);
+			generateWithMethodJavadoc(withValueMethod, param, propertyOutline.getSchemaAnnotationText().orElse(null));
 			final JMethod withBuilderMethod = childBuilderOutline.getClassOutline().getImplClass().isAbstract() ? null : this.builderClass.raw.method(JMod.PUBLIC, builderWithMethodReturnType, PluginContext.WITH_METHOD_PREFIX + propertyName);
 			if (withBuilderMethod != null) {
-				generateBuilderMethodJavadoc(withBuilderMethod, "with", fieldName);
+				generateBuilderMethodJavadoc(withBuilderMethod, "with", fieldName, propertyOutline.getSchemaAnnotationText().orElse(null));
 			}
 			if (this.implement) {
 				final JFieldVar builderField = this.builderClass.raw.field(JMod.PRIVATE, builderFieldElementType, fieldName);
@@ -436,16 +434,23 @@ class BuilderGenerator {
 		}
 	}
 
-	private Optional<JFieldVar> generateSingularChoiceSuperTypeProperty(final JBlock initBody, final JVar productParam, final PropertyOutline propertyOutline) {
+	private Optional<JFieldVar> generateSingularChoiceSuperTypeProperty(
+			final JBlock initBody,
+			final JVar productParam,
+			final PropertyOutline propertyOutline) {
+
 		final String propertyName = propertyOutline.getBaseName();
 		final String fieldName = propertyOutline.getFieldName();
 		final JType fieldType = propertyOutline.getRawType();
 		final BuilderOutline childBuilderOutline = getBuilderDeclaration(fieldType);
 		JFieldVar builderField = null;
 		if (childBuilderOutline == null) {
-			final JMethod withMethod = this.builderClass.raw.method(JMod.PUBLIC, this.builderClass.type, PluginContext.WITH_METHOD_PREFIX + propertyName);
+		    // No child builder so the items extend some class that is outside of the xjc generated code, e.g.
+			// an added interface or a class in the JDK, such as Object.
+			final JMethod withMethod = this.builderClass.raw.method(
+					JMod.PUBLIC, this.builderClass.type, PluginContext.WITH_METHOD_PREFIX + propertyName);
 			final JVar param = withMethod.param(JMod.FINAL, fieldType, fieldName);
-			generateWithMethodJavadoc(withMethod, param);
+			generateWithMethodJavadoc(withMethod, param, propertyOutline.getSchemaAnnotationText().orElse(null));
 			if (this.implement) {
 
 				// TODO what do we do about a choice between multiple things of the same type, e.g. a choice
@@ -470,35 +475,52 @@ class BuilderGenerator {
 										JExpr._this().ref(builderField).invoke(this.settings.getBuildMethodName()))));
 			}
 		} else {
-			// TODO not sure if we will get here for a singular choice prop as it should never have a child builder
-			// as it will either be Object or some interface.  Throw an exception for now to highlight it in testing
-			throw new RuntimeException(String.format(
-					"Don't think we should ever come in here, fieldName: %s", propertyOutline.getFieldName()));
+			// The singular choice items extend a class that was also generated by xjc so it has a builder too. This is
+			// the case if the inheritance is modelled in the schema with the choice items extending a super-type
+			// and the bindings file forcing the baseType of the property to the super-type.
+			final JClass elementType = (JClass)fieldType;
+			final JClass builderFieldElementType = childBuilderOutline.getBuilderClass().narrow(this.builderClass.type);
+			final JClass builderWithMethodReturnType = childBuilderOutline.getBuilderClass().narrow(this.builderClass.type.wildcard());
+			final JMethod withValueMethod = this.builderClass.raw.method(JMod.PUBLIC, this.builderClass.type, PluginContext.WITH_METHOD_PREFIX + propertyName);
+			final JVar param = withValueMethod.param(JMod.FINAL, elementType, fieldName);
+			generateWithMethodJavadoc(withValueMethod, param, propertyOutline.getSchemaAnnotationText().orElse(null));
+			final JMethod withBuilderMethod = childBuilderOutline.getClassOutline().getImplClass().isAbstract() ? null : this.builderClass.raw.method(JMod.PUBLIC, builderWithMethodReturnType, PluginContext.WITH_METHOD_PREFIX + propertyName);
+			if (withBuilderMethod != null) {
+				generateBuilderMethodJavadoc(withBuilderMethod, "with", fieldName, propertyOutline.getSchemaAnnotationText().orElse(null));
+			}
+			if (this.implement) {
+				builderField = this.builderClass.raw.field(JMod.PRIVATE, builderFieldElementType, fieldName);
+				withValueMethod.body().assign(
+						JExpr._this().ref(builderField),
+						nullSafe(
+								param,
+								JExpr._new(builderFieldElementType)
+										.arg(JExpr._this())
+										.arg(param)
+										.arg(this.settings.isCopyAlways() ? JExpr.TRUE : JExpr.FALSE)));
+				withValueMethod.body()._return(JExpr._this());
 
-//			final JClass elementType = (JClass)fieldType;
-//			final JClass builderFieldElementType = childBuilderOutline.getBuilderClass().narrow(this.builderClass.type);
-//			final JClass builderWithMethodReturnType = childBuilderOutline.getBuilderClass().narrow(this.builderClass.type.wildcard());
-//			final JMethod withValueMethod = this.builderClass.raw.method(JMod.PUBLIC, this.builderClass.type, PluginContext.WITH_METHOD_PREFIX + propertyName);
-//			final JVar param = withValueMethod.param(JMod.FINAL, elementType, fieldName);
-//			generateWithMethodJavadoc(withValueMethod, param);
-//			final JMethod withBuilderMethod = childBuilderOutline.getClassOutline().getImplClass().isAbstract() ? null : this.builderClass.raw.method(JMod.PUBLIC, builderWithMethodReturnType, PluginContext.WITH_METHOD_PREFIX + propertyName);
-//			if (withBuilderMethod != null) {
-//				generateBuilderMethodJavadoc(withBuilderMethod, "with", fieldName);
-//			}
-//			if (this.implement) {
-//
-//
-//				// This is a singular choice so we don't want any builders for the concrete choices as we have
-//				// a generic Buildable field for the single chosen choice. We also need different withXXX method
-//				// bodies
-//				// Generate the withXXX method that takes a value and returns the parent builder
-//				builderField = this.builderClass.raw.field(JMod.PRIVATE, this.pluginContext.buildableInterface, fieldName);
-//				withValueMethod.body().assign(
-//						JExpr._this().ref(builderField),
-//						nullSafe(param, JExpr._new(builderFieldElementType).arg(JExpr._this()).arg(param).arg(this.settings.isCopyAlways() ? JExpr.TRUE : JExpr.FALSE)));
-//				withValueMethod.body()._return(JExpr._this());
-//				// As this is a choice we can't have a no-args withXXX method as we don't know what type is required
-//			}
+				if (withBuilderMethod != null) {
+					withBuilderMethod.body()
+							._if(JExpr._this()
+									.ref(builderField)
+									.ne(JExpr._null()))
+							._then()
+							._return(JExpr._this().ref(builderField));
+					withBuilderMethod.body()
+							._return(JExpr._this()
+									.ref(builderField)
+									.assign(JExpr._new(builderFieldElementType)
+											.arg(JExpr._this())
+											.arg(JExpr._null())
+											.arg(JExpr.FALSE)));
+				}
+				initBody.assign(
+						productParam.ref(fieldName),
+						nullSafe(
+						        JExpr._this().ref(builderField),
+                                JExpr._this().ref(builderField).invoke(this.settings.getBuildMethodName())));
+			}
 		}
 		return Optional.of(builderField);
 	}
@@ -528,16 +550,16 @@ class BuilderGenerator {
 				final JClass collectionType = this.pluginContext.collectionClass.narrow(elementType.wildcard());
 				final JMethod addIterableMethod = this.builderClass.raw.method(JMod.PUBLIC, this.builderClass.type, PluginContext.ADD_METHOD_PREFIX + superPropertyName);
 				final JVar addIterableParam = addIterableMethod.param(JMod.FINAL, iterableType, fieldName);
-				generateAddMethodJavadoc(addIterableMethod, addIterableParam);
+				generateAddMethodJavadoc(addIterableMethod, addIterableParam, propertyOutline.getSchemaAnnotationText().orElse(null));
 				final JMethod addVarargsMethod = this.builderClass.raw.method(JMod.PUBLIC, this.builderClass.type, PluginContext.ADD_METHOD_PREFIX + superPropertyName);
 				final JVar addVarargsParam = addVarargsMethod.varParam(elementType, fieldName);
-				generateAddMethodJavadoc(addVarargsMethod, addVarargsParam);
+				generateAddMethodJavadoc(addVarargsMethod, addVarargsParam, propertyOutline.getSchemaAnnotationText().orElse(null));
 				final JMethod withIterableMethod = this.builderClass.raw.method(JMod.PUBLIC, this.builderClass.type, PluginContext.WITH_METHOD_PREFIX + superPropertyName);
 				final JVar withIterableParam = withIterableMethod.param(JMod.FINAL, iterableType, fieldName);
-				generateWithMethodJavadoc(withIterableMethod, withIterableParam);
+				generateWithMethodJavadoc(withIterableMethod, withIterableParam, propertyOutline.getSchemaAnnotationText().orElse(null));
 				final JMethod withVarargsMethod = this.builderClass.raw.method(JMod.PUBLIC, this.builderClass.type, PluginContext.WITH_METHOD_PREFIX + superPropertyName);
 				final JVar withVarargsParam = withVarargsMethod.varParam(elementType, fieldName);
-				generateWithMethodJavadoc(withVarargsMethod, withVarargsParam);
+				generateWithMethodJavadoc(withVarargsMethod, withVarargsParam, propertyOutline.getSchemaAnnotationText().orElse(null));
 				if (this.implement) {
 					addIterableMethod.annotate(Override.class);
 					addIterableMethod.body().invoke(JExpr._super(), PluginContext.ADD_METHOD_PREFIX + superPropertyName).arg(addIterableParam);
@@ -556,7 +578,7 @@ class BuilderGenerator {
 				if (childBuilderOutline != null && !childBuilderOutline.getClassOutline().getImplClass().isAbstract()) {
 					final JClass builderFieldElementType = childBuilderOutline.getBuilderClass().narrow(this.builderClass.type.wildcard());
 					final JMethod addMethod = this.builderClass.raw.method(JMod.PUBLIC, builderFieldElementType, PluginContext.ADD_METHOD_PREFIX + superPropertyName);
-					generateBuilderMethodJavadoc(addMethod, "add", superPropertyOutline.getFieldName());
+					generateBuilderMethodJavadoc(addMethod, "add", superPropertyOutline.getFieldName(), propertyOutline.getSchemaAnnotationText().orElse(null));
 					if (this.implement) {
 						addMethod.annotate(Override.class);
 						addMethod.body()._return(JExpr.cast(builderFieldElementType, JExpr._super().invoke(addMethod)));
@@ -567,7 +589,7 @@ class BuilderGenerator {
 				final JClass iterableType = this.pluginContext.iterableClass.narrow(elementType);
 				final JMethod withVarargsMethod = this.builderClass.raw.method(JMod.PUBLIC, this.builderClass.type, PluginContext.WITH_METHOD_PREFIX + superPropertyName);
 				final JVar withVarargsParam = withVarargsMethod.varParam(((JClass)fieldType).getTypeParameters().get(0), fieldName);
-				generateWithMethodJavadoc(withVarargsMethod, withVarargsParam);
+				generateWithMethodJavadoc(withVarargsMethod, withVarargsParam, propertyOutline.getSchemaAnnotationText().orElse(null));
 				if (this.implement) {
 					withVarargsMethod.annotate(Override.class);
 					withVarargsMethod.body().invoke(JExpr._super(), PluginContext.WITH_METHOD_PREFIX + superPropertyName).arg(withVarargsParam);
@@ -577,7 +599,7 @@ class BuilderGenerator {
 		} else {
 			final JMethod withMethod = this.builderClass.raw.method(JMod.PUBLIC, this.builderClass.type, PluginContext.WITH_METHOD_PREFIX + superPropertyName);
 			final JVar param = withMethod.param(JMod.FINAL, superPropertyOutline.getRawType(), fieldName);
-			generateWithMethodJavadoc(withMethod, param);
+			generateWithMethodJavadoc(withMethod, param, propertyOutline.getSchemaAnnotationText().orElse(null));
 			if (this.implement) {
 				withMethod.annotate(Override.class);
 				withMethod.body().invoke(JExpr._super(), PluginContext.WITH_METHOD_PREFIX + superPropertyName).arg(param);
@@ -587,7 +609,7 @@ class BuilderGenerator {
 			if (childBuilderOutline != null && !childBuilderOutline.getClassOutline().getImplClass().isAbstract()) {
 				final JClass builderFieldElementType = childBuilderOutline.getBuilderClass().narrow(this.builderClass.type.wildcard());
 				final JMethod addMethod = this.builderClass.raw.method(JMod.PUBLIC, builderFieldElementType, PluginContext.WITH_METHOD_PREFIX + superPropertyName);
-				generateBuilderMethodJavadoc(addMethod, "with", superPropertyOutline.getFieldName());
+				generateBuilderMethodJavadoc(addMethod, "with", superPropertyOutline.getFieldName(), propertyOutline.getSchemaAnnotationText().orElse(null));
 				if (this.implement) {
 					addMethod.body()._return(JExpr.cast(builderFieldElementType, JExpr._super().invoke(addMethod)));
 				}
@@ -717,8 +739,8 @@ class BuilderGenerator {
 			}
 			otherRef = otherParam;
 			generateFieldCopyExpressions(cloneGenerator, body, otherRef, JExpr._this());
-			copyToMethod.javadoc().append(getMessage("javadoc.method.copyTo"));
-			copyToMethod.javadoc().addParam(otherParam).append(getMessage("javadoc.method.copyTo.param.other"));
+			copyToMethod.javadoc().append(JavadocUtils.hardWrapTextForJavadoc(getMessage("javadoc.method.copyTo")));
+			copyToMethod.javadoc().addParam(otherParam).append(JavadocUtils.hardWrapTextForJavadoc(getMessage("javadoc.method.copyTo.param.other")));
 		}
 	}
 
@@ -835,6 +857,8 @@ class BuilderGenerator {
 			initBody = null;
 			productParam = null;
 		}
+		generateDefinedClassJavadoc();
+
 		if (this.typeOutline.getDeclaredFields() != null) {
 			for (final PropertyOutline fieldOutline : this.typeOutline.getDeclaredFields()) {
 				if (fieldOutline.hasGetter()) {
@@ -867,6 +891,38 @@ class BuilderGenerator {
 			}
 		}
 		generateCopyOfBuilderMethods();
+	}
+
+	private void generateDefinedClassJavadoc() {
+		if (settings.isGeneratingJavadocFromAnnotations()) {
+
+			// xjc seems to add annotations at the class level for named and anonymous complex types
+			// but doesn't wrap them to a sensible width. If we hard wrap the existing javadoc then
+            // it messes up all the <pre> blocks. It is not worth the effort/risk to try and wrap everything
+			// this is not a pre block.
+//		    JavadocUtils.hardWrapCommentText(this.definedClass.javadoc());
+
+			// Add our field level annotations to the getters/setters on the defined class
+			this.typeOutline.getImplClass().methods().forEach(jMethod -> {
+				final String fieldName = getCorrespondingFieldName(jMethod);
+				this.typeOutline.getDeclaredFields().stream()
+						.filter(typeOutline ->
+                                // need to allow for reserved word renaming
+                                pluginContext.areVariableNamesEqual(typeOutline.getFieldName(), fieldName))
+						.findAny()
+						.flatMap(DefinedPropertyOutline::getSchemaAnnotationText)
+						.ifPresent(schemaAnnotation -> {
+							if (settings.isGeneratingJavadocFromAnnotations()) {
+								JavadocUtils.appendJavadocParagraph(jMethod, schemaAnnotation);
+							}
+						});
+			});
+		}
+	}
+
+	private String getCorrespondingFieldName(final JMethod jMethod) {
+		String methodName = jMethod.name();
+		return Introspector.decapitalize(methodName.substring(methodName.startsWith("is") ? 2 : 3));
 	}
 
 	private void generateBuilderMemberOverrides(final TypeOutline superClass) throws SAXException {
@@ -912,23 +968,50 @@ class BuilderGenerator {
 		return ifNull._else().forEach(sourceElementType, BuilderGenerator.ITEM_VAR_NAME, source);
 	}
 
-	private void generateAddMethodJavadoc(final JMethod method, final JVar param) {
+	private void generateAddMethodJavadoc(final JMethod method, final JVar param, final String schemaAnnotation) {
 		final String propertyName = param.name();
-		method.javadoc().append(MessageFormat.format(this.resources.getString("comment.addMethod"), propertyName))
-				.addParam(param).append(MessageFormat.format(this.resources.getString("comment.addMethod.param"), propertyName));
+		JavadocUtils.appendJavadocCommentParagraphs(
+					method.javadoc(),
+					settings.isGeneratingJavadocFromAnnotations() ? schemaAnnotation : null,
+					MessageFormat.format(this.resources.getString("comment.addMethod"), propertyName))
+				.addParam(param)
+				.append(JavadocUtils.hardWrapTextForJavadoc(MessageFormat.format(
+						this.resources.getString("comment.addMethod.param"),
+						propertyName)));
 	}
 
-	private void generateWithMethodJavadoc(final JMethod method, final JVar param) {
+	private void generateWithMethodJavadoc(final JMethod method, final JVar param, final String schemaAnnotation) {
 		final String propertyName = param.name();
-		method.javadoc().append(MessageFormat.format(this.resources.getString("comment.withMethod"), propertyName))
-				.addParam(param).append(MessageFormat.format(this.resources.getString("comment.withMethod.param"), propertyName));
+		JavadocUtils.appendJavadocCommentParagraphs(
+					method.javadoc(),
+					settings.isGeneratingJavadocFromAnnotations() ? schemaAnnotation : null,
+					MessageFormat.format(this.resources.getString("comment.withMethod"), propertyName))
+				.addParam(param)
+				.append(JavadocUtils.hardWrapTextForJavadoc(MessageFormat.format(
+						this.resources.getString("comment.withMethod.param"),
+						propertyName)));
 	}
 
-	private void generateBuilderMethodJavadoc(final JMethod method, final String methodPrefix, final String propertyName) {
+	private void generateBuilderMethodJavadoc(
+			final JMethod method,
+			final String methodPrefix,
+			final String propertyName,
+            final String schemaAnnotation) {
 		final String endMethodClassName = method.type().erasure().fullName();
-		method.javadoc().append(MessageFormat.format(this.resources.getString("comment." + methodPrefix + "BuilderMethod"), propertyName, endMethodClassName))
-				.addReturn().append(MessageFormat.format(this.resources.getString("comment." + methodPrefix + "BuilderMethod.return"), propertyName, endMethodClassName));
+		JavadocUtils.appendJavadocCommentParagraphs(
+					method.javadoc(),
+					settings.isGeneratingJavadocFromAnnotations() ? schemaAnnotation : null,
+					MessageFormat.format(
+							this.resources.getString("comment." + methodPrefix + "BuilderMethod"),
+							propertyName,
+							endMethodClassName))
+				.addReturn()
+				.append(JavadocUtils.hardWrapTextForJavadoc(MessageFormat.format(
+						this.resources.getString("comment." + methodPrefix + "BuilderMethod.return"),
+						propertyName,
+						endMethodClassName)));
 	}
+
 
 	private BuilderOutline getReferencedBuilderOutline(final JType type) {
 		BuilderOutline builderOutline = null;
@@ -963,4 +1046,5 @@ class BuilderGenerator {
 	private String getMessage(final String resourceKey, final Object... args) {
 		return MessageFormat.format(this.resources.getString(resourceKey), args);
 	}
+
 }

@@ -24,13 +24,6 @@
 
 package com.kscs.util.plugins.xjc;
 
-import java.util.LinkedHashMap;
-import java.util.Map;
-
-import org.xml.sax.ErrorHandler;
-import org.xml.sax.SAXException;
-import org.xml.sax.SAXParseException;
-
 import com.kscs.util.jaxb.Buildable;
 import com.kscs.util.jaxb.PropertyTree;
 import com.kscs.util.jaxb.PropertyTreeUse;
@@ -44,8 +37,16 @@ import com.sun.codemodel.JClassAlreadyExistsException;
 import com.sun.codemodel.JDefinedClass;
 import com.sun.codemodel.JMod;
 import com.sun.tools.xjc.Options;
+import com.sun.tools.xjc.model.CEnumLeafInfo;
 import com.sun.tools.xjc.outline.ClassOutline;
+import com.sun.tools.xjc.outline.EnumOutline;
 import com.sun.tools.xjc.outline.Outline;
+import org.xml.sax.ErrorHandler;
+import org.xml.sax.SAXException;
+import org.xml.sax.SAXParseException;
+
+import java.util.LinkedHashMap;
+import java.util.Map;
 
 /**
  * Plugin to generate fluent Builders for generated classes
@@ -79,6 +80,8 @@ public class FluentBuilderPlugin extends AbstractPlugin {
 	protected String buildMethodName = PluginContext.BUILD_METHOD_NAME;
 	@Opt
 	protected String endMethodName = "end";
+	@Opt
+	protected boolean generateJavadocFromAnnotations = false;
 
 	@Override
 	public String getOptionName() {
@@ -120,12 +123,25 @@ public class FluentBuilderPlugin extends AbstractPlugin {
 			final BuilderGenerator builderGenerator = new BuilderGenerator(pluginContext, builderClasses, builderOutline, getSettings());
 			builderGenerator.buildProperties();
 		}
+
+		// Add class level javadoc for enums (i.e. enumerated simple types), if required
+		// xjc seems to add the field level javadoc itself
+		if (getSettings().isGeneratingJavadocFromAnnotations()) {
+			for (final EnumOutline enumOutline : outline.getEnums()) {
+				if (enumOutline.getTarget() instanceof CEnumLeafInfo) {
+					final String schemaAnnotation = SchemaAnnotationUtils.getEnumAnnotationDescription(
+					        (CEnumLeafInfo) enumOutline.getTarget());
+					JavadocUtils.appendJavadocParagraph(enumOutline.getImplClass(), schemaAnnotation);
+				}
+			}
+		}
+
 		return true;
 	}
 
 	public BuilderGeneratorSettings getSettings() {
 		return new BuilderGeneratorSettings(this.copyPartial, this.narrow, this.newBuilderMethodName, this.newCopyBuilderMethodName, this.builderFieldSuffix,
 				new ClassName(this.builderInterfaceName, this.builderClassName), this.copyToMethodName,
-				this.copyAlways, this.buildMethodName, this.endMethodName);
+				this.copyAlways, this.buildMethodName, this.endMethodName, generateJavadocFromAnnotations);
 	}
 }
