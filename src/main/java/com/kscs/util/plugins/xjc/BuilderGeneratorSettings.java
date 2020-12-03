@@ -40,8 +40,20 @@ public class BuilderGeneratorSettings {
 	private final boolean copyAlways;
 	private final String buildMethodName;
 	private final String endMethodName;
+	private final boolean generatingJavadocFromAnnotations;
 
-	public BuilderGeneratorSettings(final boolean generatingPartialCopy, final boolean generatingNarrowCopy, final String newBuilderMethodName, final String newCopyBuilderMethodName, final String builderFieldSuffix, final ClassName builderClassName, final String copyToMethodName, final boolean copyAlways, final String buildMethodName, final String endMethodName) {
+	public BuilderGeneratorSettings(
+			final boolean generatingPartialCopy,
+			final boolean generatingNarrowCopy,
+			final String newBuilderMethodName,
+			final String newCopyBuilderMethodName,
+			final String builderFieldSuffix,
+			final ClassName builderClassName,
+			final String copyToMethodName,
+			final boolean copyAlways,
+			final String buildMethodName,
+			final String endMethodName,
+            final boolean generatingJavadocFromAnnotations) {
 		this.generatingPartialCopy = generatingPartialCopy;
 		this.generatingNarrowCopy = generatingNarrowCopy;
 		this.newBuilderMethodName = newBuilderMethodName;
@@ -52,6 +64,7 @@ public class BuilderGeneratorSettings {
 		this.copyAlways = copyAlways;
 		this.buildMethodName = buildMethodName;
 		this.endMethodName = endMethodName;
+		this.generatingJavadocFromAnnotations = generatingJavadocFromAnnotations;
 	}
 
 	public boolean isGeneratingPartialCopy() {
@@ -92,5 +105,9 @@ public class BuilderGeneratorSettings {
 
 	public String getEndMethodName() {
 		return this.endMethodName;
+	}
+
+	boolean isGeneratingJavadocFromAnnotations() {
+		return generatingJavadocFromAnnotations;
 	}
 }

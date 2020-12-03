@@ -23,13 +23,16 @@
  */
 package com.kscs.util.plugins.xjc.outline;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
 import com.kscs.util.plugins.xjc.PluginContext;
+import com.kscs.util.plugins.xjc.SchemaAnnotationUtils;
 import com.sun.codemodel.JDefinedClass;
 import com.sun.tools.xjc.outline.ClassOutline;
 import com.sun.tools.xjc.outline.FieldOutline;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Optional;
 
 /**
  * @author mirko 2014-05-29
@@ -44,6 +47,7 @@ public class DefinedClassOutline implements DefinedTypeOutline {
 		this.pluginContext = pluginContext;
 		this.classOutline = classOutline;
 		final List<DefinedPropertyOutline> properties = new ArrayList<>(classOutline.getDeclaredFields().length);
+
 		for (final FieldOutline fieldOutline : classOutline.getDeclaredFields()) {
 			properties.add(new DefinedPropertyOutline(fieldOutline));
 		}
@@ -61,7 +65,6 @@ public class DefinedClassOutline implements DefinedTypeOutline {
 			} catch (final Exception e) {
 				throw new RuntimeException("Cannot find superclass of " + this.classOutline.target.getName() + ": " + this.classOutline.target.getLocator());
 			}
-
 		}
 	}
 
@@ -88,6 +91,16 @@ public class DefinedClassOutline implements DefinedTypeOutline {
 	@Override
 	public boolean isInterface() {
 		return false;
+	}
+
+	@Override
+	public Optional<String> getSchemaAnnotationText() {
+		final String annotationText = SchemaAnnotationUtils.getClassAnnotationDescription(this.classOutline.target);
+		if (annotationText == null || annotationText.isEmpty()) {
+			return Optional.empty();
+		} else {
+			return Optional.of(annotationText);
+		}
 	}
 
 	public ClassOutline getClassOutline() {
