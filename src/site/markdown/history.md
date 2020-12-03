@@ -118,7 +118,8 @@
 	* Requires JAXB 2.3 now
 * **2.0.1**
     * Reverted JAXBElement handling because of ObjectFactory problems
-
+* **2.1.0**
+	* Merged some pull requests to handle documentation annotations
 
 
 
