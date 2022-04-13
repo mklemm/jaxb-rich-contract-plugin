@@ -246,8 +246,10 @@ You should add "maven-jaxb2-plugin" to your `<build>` configuration. Then add "j
                             <arg>-copyPartial=y</arg>
                             <arg>-selectorClassName=Selector</arg>
                             <arg>-builderClassName=Builder</arg>
+                            <arg>-builderMethodPrefix=with</arg>
                             <arg>-builderInterfaceName=BuildSupport</arg>
                             <arg>-copyAlways=n</arg>
+                            <arg>-copyOfBuilder=y</arg>
                             <arg>-buildMethodName=build</arg>
                             <arg>-endMethodName=end</arg>
                             <arg>-generateJavadocFromAnnotations=n</arg>
@@ -805,7 +807,7 @@ Name of the generated "copyTo" method.
 
 
 ##### -builderFieldSuffix=`<string>` (_Builder)
-Suffix to append to the field holding the builder, change to  prevent name clashes.
+Suffix to append to the field holding the builder, change to prevent name clashes.
 
 
 ##### -generateTools=`{y|n}` (y)
@@ -829,12 +831,20 @@ Name of the generated nested "Selector" builder class, used to build up a proper
 Name of the generated nested builder class. Can be set to handle naming conflicts.
 
 
+##### -builderMethodPrefix=`<string>` (with)
+Prefix to prepend to the builder methods.
+
+
 ##### -builderInterfaceName=`<string>` (BuildSupport)
 Name of the generated nested builder interface. Can be set to handle naming conflicts.
 
 
 ##### -copyAlways=`{y|n}` (n)
-If true, generate code of fluent-builder "withXXX" methods so that all objects passed to the builder are inherently deep-copied.
+If true, generate code of fluent-builder field methods so that all objects passed to the builder are inherently deep-copied.
+
+
+##### -copyOfBuilder=`{y|n}` (y)
+If true, generate a copyOf method for the fluent-builder.
 
 
 ##### -buildMethodName=`<string>` (build)
@@ -889,11 +899,11 @@ Allow property values to be set via property meta information.
 ##### -visitMethodName=`<string>` (visit)
 Name of the method to apply a visitor.
 
-[6]: #constrained-properties
-[4]: #clone
-[5]: #copy
-[3]: #group-contract
-[2]: #immutable
-[8]: #modifier
-[1]: #fluent-builder
-[7]: #meta
+[1]: #constrained-properties
+[2]: #clone
+[3]: #copy
+[4]: #group-contract
+[5]: #immutable
+[6]: #modifier
+[7]: #fluent-builder
+[8]: #meta

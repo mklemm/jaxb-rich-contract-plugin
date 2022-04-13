@@ -250,8 +250,10 @@ Dieses "cheat sheet" gibt alle verfügbaren Plugin-Optionen an und zeigt, wie di
                             <arg>-copyPartial=y</arg>
                             <arg>-selectorClassName=Selector</arg>
                             <arg>-builderClassName=Builder</arg>
+                            <arg>-builderMethodPrefix=with</arg>
                             <arg>-builderInterfaceName=BuildSupport</arg>
                             <arg>-copyAlways=n</arg>
+                            <arg>-copyOfBuilder=y</arg>
                             <arg>-buildMethodName=build</arg>
                             <arg>-endMethodName=end</arg>
                             <arg>-generateJavadocFromAnnotations=n</arg>
@@ -838,12 +840,20 @@ Name der generierten inneren "Selector" Builder-Klasse, die intern zum Aufbau de
 Name der generierten inneren Builder-Klasse. Kann hier gesetzt werden, um Namenskonflikte zu lösen.
 
 
+##### -builderMethodPrefix=`<string>` (with)
+Prefix, das vor den Namen der Buildermethoden angehängt wird.
+
+
 ##### -builderInterfaceName=`<string>` (BuildSupport)
 Name des generierten inneren Builder-Interfaces. Kann hier gesetzt werden, um Namenskonflikte zu lösen.
 
 
 ##### -copyAlways=`{y|n}` (n)
-Ist diese Option 'yes', werden alle withXXX-Methoden, die JAXB-generierte Objekte akzeptieren, so generiert, dass die übergebenen Objekte kopiert werden.
+Ist diese Option 'yes', werden alle Variablen-Methoden, die JAXB-generierte Objekte akzeptieren, so generiert, dass die übergebenen Objekte kopiert werden.
+
+
+##### -copyOfBuilder=`{y|n}` (y)
+Ist diese Option 'yes', wird eine copyOf Methode für den fluent-builder generiert.
 
 
 ##### -buildMethodName=`<string>` (build)
@@ -897,11 +907,11 @@ Generiere eine Möglichkeit, den Wert eines Propertys über die Metadaten zu än
 ##### -visitMethodName=`<string>` (visit)
 Name der Methode, mit der ein Visitor durch das Objekt geschickt werden kann.
 
-[1]: #constrained-properties
-[2]: #clone
-[3]: #copy
-[4]: #group-contract
-[5]: #immutable
-[6]: #modifier
-[7]: #fluent-builder
-[8]: #meta
+[6]: #constrained-properties
+[4]: #clone
+[5]: #copy
+[3]: #group-contract
+[2]: #immutable
+[8]: #modifier
+[1]: #fluent-builder
+[7]: #meta

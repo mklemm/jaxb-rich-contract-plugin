@@ -81,8 +81,10 @@ Dieses "cheat sheet" gibt alle verfügbaren Plugin-Optionen an und zeigt, wie di
                             <arg>-copyPartial=y</arg>
                             <arg>-selectorClassName=Selector</arg>
                             <arg>-builderClassName=Builder</arg>
+                            <arg>-builderMethodPrefix=with</arg>
                             <arg>-builderInterfaceName=BuildSupport</arg>
                             <arg>-copyAlways=n</arg>
+                            <arg>-copyOfBuilder=y</arg>
                             <arg>-buildMethodName=build</arg>
                             <arg>-endMethodName=end</arg>
                             <arg>-generateJavadocFromAnnotations=n</arg>

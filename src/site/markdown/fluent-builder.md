@@ -223,7 +223,7 @@ Name of the generated "copyTo" method.
 
 
 ##### -builderFieldSuffix=`<string>` (_Builder)
-Suffix to append to the field holding the builder, change to  prevent name clashes.
+Suffix to append to the field holding the builder, change to prevent name clashes.
 
 
 ##### -generateTools=`{y|n}` (y)
@@ -247,12 +247,20 @@ Name of the generated nested "Selector" builder class, used to build up a proper
 Name of the generated nested builder class. Can be set to handle naming conflicts.
 
 
+##### -builderMethodPrefix=`<string>` (with)
+Prefix to prepend to the builder methods.
+
+
 ##### -builderInterfaceName=`<string>` (BuildSupport)
 Name of the generated nested builder interface. Can be set to handle naming conflicts.
 
 
 ##### -copyAlways=`{y|n}` (n)
-If true, generate code of fluent-builder "withXXX" methods so that all objects passed to the builder are inherently deep-copied.
+If true, generate code of fluent-builder field methods so that all objects passed to the builder are inherently deep-copied.
+
+
+##### -copyOfBuilder=`{y|n}` (y)
+If true, generate a copyOf method for the fluent-builder.
 
 
 ##### -buildMethodName=`<string>` (build)

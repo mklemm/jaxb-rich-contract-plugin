@@ -247,12 +247,20 @@ Name der generierten inneren "Selector" Builder-Klasse, die intern zum Aufbau de
 Name der generierten inneren Builder-Klasse. Kann hier gesetzt werden, um Namenskonflikte zu lösen.
 
 
+##### -builderMethodPrefix=`<string>` (with)
+Prefix, das vor den Namen der Buildermethoden angehängt wird.
+
+
 ##### -builderInterfaceName=`<string>` (BuildSupport)
 Name des generierten inneren Builder-Interfaces. Kann hier gesetzt werden, um Namenskonflikte zu lösen.
 
 
 ##### -copyAlways=`{y|n}` (n)
-Ist diese Option 'yes', werden alle withXXX-Methoden, die JAXB-generierte Objekte akzeptieren, so generiert, dass die übergebenen Objekte kopiert werden.
+Ist diese Option 'yes', werden alle Variablen-Methoden, die JAXB-generierte Objekte akzeptieren, so generiert, dass die übergebenen Objekte kopiert werden.
+
+
+##### -copyOfBuilder=`{y|n}` (y)
+Ist diese Option 'yes', wird eine copyOf Methode für den fluent-builder generiert.
 
 
 ##### -buildMethodName=`<string>` (build)

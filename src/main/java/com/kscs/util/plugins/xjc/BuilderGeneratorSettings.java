@@ -35,9 +35,11 @@ public class BuilderGeneratorSettings {
 	private final String newBuilderMethodName;
 	private final String newCopyBuilderMethodName;
 	private final String builderFieldSuffix;
+	private final String builderMethodPrefix;
 	private final ClassName builderClassName;
 	private final String copyToMethodName;
 	private final boolean copyAlways;
+	private final boolean copyOfBuilder;
 	private final String buildMethodName;
 	private final String endMethodName;
 	private final boolean generatingJavadocFromAnnotations;
@@ -48,9 +50,11 @@ public class BuilderGeneratorSettings {
 			final String newBuilderMethodName,
 			final String newCopyBuilderMethodName,
 			final String builderFieldSuffix,
+			final String builderMethodPrefix,
 			final ClassName builderClassName,
 			final String copyToMethodName,
 			final boolean copyAlways,
+			final boolean copyOfBuilder,
 			final String buildMethodName,
 			final String endMethodName,
             final boolean generatingJavadocFromAnnotations) {
@@ -59,9 +63,11 @@ public class BuilderGeneratorSettings {
 		this.newBuilderMethodName = newBuilderMethodName;
 		this.newCopyBuilderMethodName = newCopyBuilderMethodName;
 		this.builderFieldSuffix = builderFieldSuffix;
+		this.builderMethodPrefix = builderMethodPrefix;
 		this.builderClassName = builderClassName;
 		this.copyToMethodName = copyToMethodName;
 		this.copyAlways = copyAlways;
+		this.copyOfBuilder = copyOfBuilder;
 		this.buildMethodName = buildMethodName;
 		this.endMethodName = endMethodName;
 		this.generatingJavadocFromAnnotations = generatingJavadocFromAnnotations;
@@ -87,6 +93,10 @@ public class BuilderGeneratorSettings {
 		return this.builderFieldSuffix;
 	}
 
+	public String getBuilderMethodPrefix() {
+		return builderMethodPrefix;
+	}
+
 	public ClassName getBuilderClassName() {
 		return this.builderClassName;
 	}
@@ -97,6 +107,10 @@ public class BuilderGeneratorSettings {
 
 	public boolean isCopyAlways() {
 		return this.copyAlways;
+	}
+
+	public boolean isCopyOfBuilder() {
+		return copyOfBuilder;
 	}
 
 	public String getBuildMethodName() {

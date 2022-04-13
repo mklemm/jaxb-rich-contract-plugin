@@ -77,8 +77,10 @@ You should add "maven-jaxb2-plugin" to your `<build>` configuration. Then add "j
                             <arg>-copyPartial=y</arg>
                             <arg>-selectorClassName=Selector</arg>
                             <arg>-builderClassName=Builder</arg>
+                            <arg>-builderMethodPrefix=with</arg>
                             <arg>-builderInterfaceName=BuildSupport</arg>
                             <arg>-copyAlways=n</arg>
+                            <arg>-copyOfBuilder=y</arg>
                             <arg>-buildMethodName=build</arg>
                             <arg>-endMethodName=end</arg>
                             <arg>-generateJavadocFromAnnotations=n</arg>
