@@ -264,7 +264,7 @@ Ist diese Option 'yes', wird eine copyOf Methode für den fluent-builder generie
 
 
 ##### -buildMethodName=`<string>` (build)
-Name der generierten "build"-Methode, die das gebaute Objekt zurÃ¼ckliefert.
+Name der generierten "build"-Methode, die das gebaute Objekt zurückliefert.
 
 
 ##### -endMethodName=`<string>` (end)

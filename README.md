@@ -899,11 +899,11 @@ Allow property values to be set via property meta information.
 ##### -visitMethodName=`<string>` (visit)
 Name of the method to apply a visitor.
 
-[1]: #constrained-properties
-[2]: #clone
-[3]: #copy
-[4]: #group-contract
-[5]: #immutable
-[6]: #modifier
-[7]: #fluent-builder
-[8]: #meta
+[6]: #constrained-properties
+[4]: #clone
+[5]: #copy
+[3]: #group-contract
+[2]: #immutable
+[8]: #modifier
+[1]: #fluent-builder
+[7]: #meta
