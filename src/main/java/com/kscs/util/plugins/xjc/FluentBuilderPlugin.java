@@ -82,6 +82,8 @@ public class FluentBuilderPlugin extends AbstractPlugin {
 	protected String endMethodName = "end";
 	@Opt
 	protected boolean generateJavadocFromAnnotations = false;
+	@Opt
+	protected boolean getters = false;
 
 	@Override
 	public String getOptionName() {
@@ -142,6 +144,6 @@ public class FluentBuilderPlugin extends AbstractPlugin {
 	public BuilderGeneratorSettings getSettings() {
 		return new BuilderGeneratorSettings(this.copyPartial, this.narrow, this.newBuilderMethodName, this.newCopyBuilderMethodName, this.builderFieldSuffix,
 				new ClassName(this.builderInterfaceName, this.builderClassName), this.copyToMethodName,
-				this.copyAlways, this.buildMethodName, this.endMethodName, generateJavadocFromAnnotations);
+				this.copyAlways, this.buildMethodName, this.endMethodName, generateJavadocFromAnnotations, this.getters);
 	}
 }

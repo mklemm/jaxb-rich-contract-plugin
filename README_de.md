@@ -255,6 +255,7 @@ Dieses "cheat sheet" gibt alle verfügbaren Plugin-Optionen an und zeigt, wie di
                             <arg>-buildMethodName=build</arg>
                             <arg>-endMethodName=end</arg>
                             <arg>-generateJavadocFromAnnotations=n</arg>
+                            <arg>-getters=n</arg>
                         <arg>-Xmeta</arg>
                             <arg>-generateTools=y</arg>
                             <arg>-extended=n</arg>
@@ -847,7 +848,7 @@ Ist diese Option 'yes', werden alle withXXX-Methoden, die JAXB-generierte Objekt
 
 
 ##### -buildMethodName=`<string>` (build)
-Name der generierten "build"-Methode, die das gebaute Objekt zurÃ¼ckliefert.
+Name der generierten "build"-Methode, die das gebaute Objekt zurückliefert.
 
 
 ##### -endMethodName=`<string>` (end)
@@ -855,7 +856,11 @@ Name der generierten "end"-Methode, die einen sub-Builder beendet.
 
 
 ##### -generateJavadocFromAnnotations=`{y|n}` (n)
-TODO
+Wenn true, wird der Text der Schema-Annotation (./annotation/documentation) an die Getters/Setters und Builder-Methoden der Klasse angehängt.
+
+
+##### -getters=`{y|n}` (n)
+Erzeugt eine "Getter"-Methode für jede Property, die den aktuellen Wert für einfache Properties ohne Builder oder den aktuellen Builder für buildable Properties zurückgibt.Für eine Collection Property gibt sie die aktuelle Collection von Buildern zurück. Für eine Choice Property gibt sie den aktuellen Builder als "Buildable"-Schnittstelle zurück.Für eine Choice Collection Property wird die aktuelle Collection von Buildern als "Buildable"-Schnittstelle zurückgegeben.
 
 ## meta
 ### Motivation

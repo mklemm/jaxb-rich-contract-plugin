@@ -79,6 +79,7 @@ public class GenerateClasses {
                 "-Ximmutable",
                 "-Xfluent-builder",
                 "-generateJavadocFromAnnotations=true",
+                "-getters=y",
                 "-Xclone",
                 // TODO Not sure how to handle the episodes file that group-contract needs
 //                "-Xgroup-contract",

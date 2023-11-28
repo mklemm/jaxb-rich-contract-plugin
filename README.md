@@ -251,6 +251,7 @@ You should add "maven-jaxb2-plugin" to your `<build>` configuration. Then add "j
                             <arg>-buildMethodName=build</arg>
                             <arg>-endMethodName=end</arg>
                             <arg>-generateJavadocFromAnnotations=n</arg>
+                            <arg>-getters=n</arg>
                         <arg>-Xmeta</arg>
                             <arg>-generateTools=y</arg>
                             <arg>-extended=n</arg>
@@ -847,6 +848,10 @@ Name of the generated "end" method that concludes a nested builder and returns t
 
 ##### -generateJavadocFromAnnotations=`{y|n}` (n)
 If true, append schema annotation text (./annotation/documentation) to class getters/setters and builder methods.
+
+
+##### -getters=`{y|n}` (n)
+Generates a "getter" method for each property which returns the current value for simple properties without a builder or the current builder for buildable properties.For a collection property it returns the current collection of builders.For a choice property it returns the current builder as a "Buildable" interface.For a choice collection property it returns the current collection of builders as "Buildable" interface.
 
 ## meta
 ### Motivation

@@ -100,6 +100,7 @@ public class PluginContext extends Plugin {
 	public static final String INIT_METHOD_NAME = "init";
 	public static final String ADD_METHOD_PREFIX = "add";
 	public static final String WITH_METHOD_PREFIX = "with";
+	public static final String GET_METHOD_PREFIX = "get";
 	public static final String NEW_OBJECT_VAR_NAME = "_newObject";
 	public static final String ADD_ALL = "addAll";
 	public static final String CLONE_METHOD_NAME = "clone";
