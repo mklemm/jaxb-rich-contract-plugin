@@ -58,7 +58,7 @@ public interface PropertyVisitor {
 
 	/**
 	 * Called upon visiting a collection property, where the collection items are wrapped in a
-	 * {@link javax.xml.bind.JAXBElement} instance.
+	 * {@link jakarta.xml.bind.JAXBElement} instance.
 	 * @param property The property being visited
 	 * @return true if visiting shall continue, false if visiting should be finished
 	 */
@@ -66,7 +66,7 @@ public interface PropertyVisitor {
 
 	/**
 	 * Called upon visiting a collection property, where the collection items are wrapped in a
-	 * {@link javax.xml.bind.JAXBElement} instance and are of a java primitive type
+	 * {@link jakarta.xml.bind.JAXBElement} instance and are of a java primitive type
 	 * @param property The property being visited
 	 * @return true if visiting shall continue, false if visiting should be finished
 	 */

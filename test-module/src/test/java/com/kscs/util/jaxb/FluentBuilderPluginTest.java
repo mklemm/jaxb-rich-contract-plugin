@@ -8,7 +8,7 @@ import com.kscs.jaxb2.contract.test.Worker;
 import org.junit.Assert;
 import org.junit.Test;
 
-import javax.xml.bind.JAXB;
+import jakarta.xml.bind.JAXB;
 import java.io.File;
 
 /**

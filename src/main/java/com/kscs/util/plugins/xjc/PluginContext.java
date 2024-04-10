@@ -24,6 +24,26 @@
 
 package com.kscs.util.plugins.xjc;
 
+import java.lang.reflect.Method;
+import java.util.ArrayDeque;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Deque;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.function.BiFunction;
+import java.util.function.Function;
+
+import javax.xml.namespace.QName;
+import javax.xml.transform.dom.DOMSource;
+
+import org.glassfish.jaxb.core.api.impl.NameConverter;
+import org.xml.sax.ErrorHandler;
+import org.xml.sax.SAXException;
+
 import com.kscs.util.jaxb.Buildable;
 import com.kscs.util.jaxb.Copyable;
 import com.kscs.util.jaxb.PartialCopyable;
@@ -58,29 +78,12 @@ import com.sun.tools.xjc.outline.ClassOutline;
 import com.sun.tools.xjc.outline.EnumOutline;
 import com.sun.tools.xjc.outline.FieldOutline;
 import com.sun.tools.xjc.outline.Outline;
-import com.sun.xml.bind.api.impl.NameConverter;
 import com.sun.xml.xsom.XSDeclaration;
-import org.xml.sax.ErrorHandler;
-import org.xml.sax.SAXException;
 
-import javax.xml.bind.JAXB;
-import javax.xml.bind.annotation.XmlRootElement;
-import javax.xml.bind.annotation.XmlSchema;
-import javax.xml.bind.annotation.XmlType;
-import javax.xml.namespace.QName;
-import javax.xml.transform.dom.DOMSource;
-import java.lang.reflect.Method;
-import java.util.ArrayDeque;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.Deque;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.function.BiFunction;
-import java.util.function.Function;
+import jakarta.xml.bind.JAXB;
+import jakarta.xml.bind.annotation.XmlRootElement;
+import jakarta.xml.bind.annotation.XmlSchema;
+import jakarta.xml.bind.annotation.XmlType;
 
 /**
  * Common context for all plugins implemented by this

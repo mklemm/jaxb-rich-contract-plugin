@@ -1,9 +1,8 @@
 <?xml version="1.0" encoding="utf-8" ?>
 
-<jxb:bindings version="2.1" xmlns:jxb="http://java.sun.com/xml/ns/jaxb" xmlns:xs="http://www.w3.org/2001/XMLSchema"
+<jxb:bindings version="3.0" xmlns:jxb="https://jakarta.ee/xml/ns/jaxb" xmlns:xs="http://www.w3.org/2001/XMLSchema"
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xjc="http://java.sun.com/xml/ns/jaxb/xjc"
-	xmlns:xml="http://www.w3.org/XML/1998/namespace"
-    xsi:schemaLocation="http://java.sun.com/xml/ns/jaxb http://java.sun.com/xml/ns/jaxb/bindingschema_2_1.xsd">
+	xmlns:xml="http://www.w3.org/XML/1998/namespace">
 
 
 	<jxb:bindings schemaLocation="xhtml5.xsd" node="/xs:schema">

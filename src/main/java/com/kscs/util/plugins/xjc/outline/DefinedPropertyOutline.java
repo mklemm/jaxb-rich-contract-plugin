@@ -24,6 +24,19 @@
 
 package com.kscs.util.plugins.xjc.outline;
 
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+
+import org.glassfish.jaxb.core.v2.model.core.Element;
+import org.glassfish.jaxb.core.v2.model.core.ElementPropertyInfo;
+import org.glassfish.jaxb.core.v2.model.core.PropertyInfo;
+import org.glassfish.jaxb.core.v2.model.core.ReferencePropertyInfo;
+import org.glassfish.jaxb.core.v2.model.core.TypeRef;
+
 import com.kscs.util.plugins.xjc.SchemaAnnotationUtils;
 import com.sun.codemodel.JClass;
 import com.sun.codemodel.JFieldVar;
@@ -35,19 +48,8 @@ import com.sun.tools.xjc.model.nav.NClass;
 import com.sun.tools.xjc.model.nav.NType;
 import com.sun.tools.xjc.outline.ClassOutline;
 import com.sun.tools.xjc.outline.FieldOutline;
-import com.sun.xml.bind.v2.model.core.Element;
-import com.sun.xml.bind.v2.model.core.ElementPropertyInfo;
-import com.sun.xml.bind.v2.model.core.PropertyInfo;
-import com.sun.xml.bind.v2.model.core.ReferencePropertyInfo;
-import com.sun.xml.bind.v2.model.core.TypeRef;
 
-import javax.xml.bind.JAXBElement;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import jakarta.xml.bind.JAXBElement;
 
 /**
  * @author Mirko Klemm 2015-01-28

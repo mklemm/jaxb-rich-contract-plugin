@@ -2,25 +2,27 @@
 
 ####  General
 
-jaxb2-rich-contract-plugin is a plugin to the XJC "XML to Java compiler" shipped with the reference implementation of JAXB, included in all JDKs since 1.6. It is targeted on version 2.3 of the JAXB API. In order to make it work, you need to:
+jaxb2-rich-contract-plugin is a plugin to the XJC "XML to Java compiler" shipped with the reference implementation of JAXB. It is targeted on version 4.0 of the JAXB API. In order to make it work, you need to:
 
 * Add the jar file to the classpath of XJC
-* Add the JAXB 2.3 XJC API to the classpath of XJC, if your environment is running by default under JAXB 2.2 or lower.
 * Add the corresponding activating command-line option to XJC's invocation, see below for details of each of the plugins
 * Each of the plugins, except "-Ximmutable", has one or more sub-options to fine-control its behavior. These sub-option must be given after the corresponding main "-X..." activation option, to avoid naming conflicts. Names of sub-options can be given dash-separated or in camelCase.
 * The "immutable" and "constrained-properties" plugins are mutually exclusive. An object cannot be both immutable and send change notifications.
 
 ####  From Maven
 
-You should add "maven-jaxb2-plugin" to your `<build>` configuration. Then add "jaxb2-rich-contract-plugin" as an XJC plugin ("plugin for plugin") to the maven plugin declaration. The following cheat sheet shows all possible options reflecting their default values:
+The plugin has been tested with the [highsource jaxb-maven plugin](https://github.com/highsource/jaxb-tools), version 4.0.0 or later. Other JAXB maven plugins may or may not work.
+You should add the highsource jaxb-maven-plugin to your `<build>` configuration. Of course you must add the JAXB API and implementation dependencies as well.
+The current version 4.0.0 of the plugin supports JAXB 4.0 or later. If you need compatibility with earlier JAXB versions, please use an older version of this plugin.
+Then add "jaxb2-rich-contract-plugin" as an XJC plugin ("plugin for plugin") to the maven plugin declaration. The following cheat sheet shows all possible options reflecting their default values:
 
 ``` xml
     <build>
         <plugins>
             <plugin>
-                <groupId>org.jvnet.jaxb2.maven2</groupId>
-                <artifactId>maven-jaxb2-plugin</artifactId>
-                <version>0.14.0</version>
+                <groupId>org.jvnet.jaxb</groupId>
+                <artifactId>jaxb-maven-plugin</artifactId>
+                <version>4.0.0</version>
                 <executions>
                     <execution>
                         <id>xsd-generate</id>
@@ -94,28 +96,9 @@ You should add "maven-jaxb2-plugin" to your `<build>` configuration. Then add "j
                         <plugin>
                             <groupId>net.codesup.util</groupId>
                             <artifactId>jaxb2-rich-contract-plugin</artifactId>
-                            <version>2.1.0</version>
+                            <version>4.0.0</version>
                         </plugin>
                     </plugins>
-                    <dependencies>
-                        <!-- Put this in if your default JAXB version is 2.2 or lower,
-                        or if &quot;tools.jar&quot; isn't in your classpath -->
-                        <dependency>
-                            <groupId>org.glassfish.jaxb</groupId>
-                            <artifactId>jaxb-runtime</artifactId>
-                            <version>2.3</version>
-                        </dependency>
-                        <dependency>
-                            <groupId>org.glassfish.jaxb</groupId>
-                            <artifactId>jaxb-core</artifactId>
-                            <version>2.3</version>
-                        </dependency>
-                        <dependency>
-                            <groupId>org.glassfish.jaxb</groupId>
-                            <artifactId>jaxb-xjc</artifactId>
-                            <version>2.3</version>
-                        </dependency>
-                    </dependencies>
                 </configuration>
             </plugin>
         </plugins>
@@ -123,6 +106,5 @@ You should add "maven-jaxb2-plugin" to your `<build>` configuration. Then add "j
 ```
 Note: the `<extension/>` flag must be set to "true" in order to make XJC accept any extensions at all.
 
-Note: jaxb2-rich-contract-plugin implements JAXB and XJC APIs version 2.3. You most likely will have to add the dependencies to these libraries to your classpath effective at XJC runtime. See the `<dependencies>` element above on how to do this.
-
+Note: jaxb2-rich-contract-plugin implements JAXB and XJC APIs version 4.0. You most likely will have to add the dependencies to these libraries to your classpath effective at XJC runtime. See the `<dependencies>` element above on how to do this.
 

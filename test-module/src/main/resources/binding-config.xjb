@@ -1,12 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<jxb:bindings version="2.1"
-			  xmlns:jxb="http://java.sun.com/xml/ns/jaxb"
+<jxb:bindings version="3.0"
+			  xmlns:jxb="https://jakarta.ee/xml/ns/jaxb"
 			  xmlns:xs="http://www.w3.org/2001/XMLSchema"
 			  xmlns:test="http://www.kscs.com/jaxb2/contract/test"
-			  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 			  xmlns:xjc="http://java.sun.com/xml/ns/jaxb/xjc"
-			  xsi:schemaLocation="http://java.sun.com/xml/ns/jaxb http://java.sun.com/xml/ns/jaxb/bindingschema_2_1.xsd"
-			  xmlns:jcb="http://java.sun.com/xml/ns/jaxb">
+			  xmlns:jcb="https://jakarta.ee/xml/ns/jaxb">
 
 
 	<jcb:globalBindings

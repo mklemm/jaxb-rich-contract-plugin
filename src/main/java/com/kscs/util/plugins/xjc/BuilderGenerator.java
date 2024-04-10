@@ -23,6 +23,20 @@
  */
 package com.kscs.util.plugins.xjc;
 
+import java.beans.Introspector;
+import java.lang.reflect.Modifier;
+import java.text.MessageFormat;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.ResourceBundle;
+
+import javax.xml.namespace.QName;
+
+import org.glassfish.jaxb.core.v2.model.core.TypeInfo;
+import org.xml.sax.SAXException;
+import org.xml.sax.SAXParseException;
+
 import com.kscs.util.jaxb.Buildable;
 import com.kscs.util.jaxb.PropertyTree;
 import com.kscs.util.plugins.xjc.codemodel.ClassName;
@@ -56,18 +70,6 @@ import com.sun.tools.xjc.model.nav.NClass;
 import com.sun.tools.xjc.model.nav.NType;
 import com.sun.tools.xjc.outline.Aspect;
 import com.sun.tools.xjc.outline.Outline;
-import com.sun.xml.bind.v2.model.core.TypeInfo;
-import org.xml.sax.SAXException;
-import org.xml.sax.SAXParseException;
-
-import javax.xml.namespace.QName;
-import java.beans.Introspector;
-import java.lang.reflect.Modifier;
-import java.text.MessageFormat;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.ResourceBundle;
 
 import static com.kscs.util.plugins.xjc.base.PluginUtil.nullSafe;
 

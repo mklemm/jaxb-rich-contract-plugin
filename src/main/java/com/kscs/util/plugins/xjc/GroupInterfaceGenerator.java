@@ -38,12 +38,14 @@ import java.util.Map;
 import java.util.ResourceBundle;
 import java.util.logging.Logger;
 
-import javax.xml.bind.JAXB;
 import javax.xml.namespace.QName;
 import javax.xml.transform.Transformer;
 import javax.xml.transform.dom.DOMResult;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamSource;
+
+import org.xml.sax.SAXException;
+import org.xml.sax.SAXParseException;
 
 import com.kscs.util.jaxb.PropertyVisitor;
 import com.kscs.util.jaxb._interface.Interface;
@@ -82,8 +84,8 @@ import com.sun.xml.xsom.XSParticle;
 import com.sun.xml.xsom.XSTerm;
 import com.sun.xml.xsom.impl.util.SchemaWriter;
 import com.sun.xml.xsom.visitor.XSFunction;
-import org.xml.sax.SAXException;
-import org.xml.sax.SAXParseException;
+
+import jakarta.xml.bind.JAXB;
 
 import static com.kscs.util.plugins.xjc.PluginContext.coalesce;
 

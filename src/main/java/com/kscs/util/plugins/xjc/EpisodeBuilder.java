@@ -33,6 +33,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.glassfish.jaxb.core.v2.schemagen.episode.Bindings;
+import org.glassfish.jaxb.core.v2.schemagen.episode.SchemaBindings;
 import org.xml.sax.SAXException;
 import org.xml.sax.SAXParseException;
 
@@ -42,8 +44,6 @@ import com.sun.codemodel.fmt.JTextFile;
 import com.sun.tools.xjc.outline.ClassOutline;
 import com.sun.tools.xjc.outline.EnumOutline;
 import com.sun.tools.xjc.reader.Const;
-import com.sun.xml.bind.v2.schemagen.episode.Bindings;
-import com.sun.xml.bind.v2.schemagen.episode.SchemaBindings;
 import com.sun.xml.txw2.TXW;
 import com.sun.xml.txw2.output.StreamSerializer;
 import com.sun.xml.xsom.XSAnnotation;
@@ -135,7 +135,7 @@ public class EpisodeBuilder {
 			else
 				bindings._namespace(Const.JAXB_NSURI, "");
 			bindings._namespace(Namespaces.KSCS_BINDINGS_NS, "kscs");
-			bindings.version("2.1");
+			bindings.version("3.0");
 			bindings._comment("\n\n" + this.pluginContext.opt.getPrologComment() + "\n  ");
 
 			// generate listing per schema

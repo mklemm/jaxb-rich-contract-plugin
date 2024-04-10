@@ -2,7 +2,7 @@
 
 ####  Allgemein
 
-jaxb2-rich-contract-plugin ist ein Plugin für den XJC "XML to Java compiler" der JAXB API, die in allen Java SE-Versionen seit 1.6 enthalten ist.
+jaxb2-rich-contract-plugin ist ein Plugin für den XJC "XML to Java compiler" der JAXB API.
 Um das Plugin zu aktivieren, sind folgende Schritte erforderlich:
 
 * JAR des Plugins zum Klassenpfad des XJC-Compilers hinzufügen.
@@ -19,12 +19,12 @@ Das "maven-jaxb2-plugin" der `<build>` -Konfiguration hinzufügen. In dessen Kon
 Dieses "cheat sheet" gibt alle verfügbaren Plugin-Optionen an und zeigt, wie die Abhängigkeit zum Plugin-JAR in den XJC-Klassenpfad konfiguriert wird:
 
 ``` xml
-    <build>
+   <build>
         <plugins>
             <plugin>
-                <groupId>org.jvnet.jaxb2.maven2</groupId>
-                <artifactId>maven-jaxb2-plugin</artifactId>
-                <version>0.14.0</version>
+                <groupId>org.jvnet.jaxb</groupId>
+                <artifactId>jaxb-maven-plugin</artifactId>
+                <version>4.0.0</version>
                 <executions>
                     <execution>
                         <id>xsd-generate</id>
@@ -98,28 +98,9 @@ Dieses "cheat sheet" gibt alle verfügbaren Plugin-Optionen an und zeigt, wie di
                         <plugin>
                             <groupId>net.codesup.util</groupId>
                             <artifactId>jaxb2-rich-contract-plugin</artifactId>
-                            <version>1.18.0</version>
+                            <version>4.0.0</version>
                         </plugin>
                     </plugins>
-                    <dependencies>
-                        <!-- Put this in if your default JAXB version is 2.2 or lower,
-                        or if &quot;tools.jar&quot; isn't in your classpath -->
-                        <dependency>
-                            <groupId>org.glassfish.jaxb</groupId>
-                            <artifactId>jaxb-runtime</artifactId>
-                            <version>2.3</version>
-                        </dependency>
-                        <dependency>
-                            <groupId>org.glassfish.jaxb</groupId>
-                            <artifactId>jaxb-core</artifactId>
-                            <version>2.3</version>
-                        </dependency>
-                        <dependency>
-                            <groupId>org.glassfish.jaxb</groupId>
-                            <artifactId>jaxb-xjc</artifactId>
-                            <version>2.3</version>
-                        </dependency>
-                    </dependencies>
                 </configuration>
             </plugin>
         </plugins>
@@ -127,7 +108,6 @@ Dieses "cheat sheet" gibt alle verfügbaren Plugin-Optionen an und zeigt, wie di
 ```
 Hinweis: Das Flag `<extension/>` muss auf "true" gesetzt sein, damit XJC überhaupt plugins akzeptiert.
 
-Hinweis: jaxb2-rich-contract-plugin implementiert JAXB und XJC APIs in der Version 2.3. Falls Sie mit einem älteren JDK arbeiten, müssen sie diese Bibliotheken ebenfalls zum Klassenpfad hinzufügen.
-Wie dies gemacht wird, ist im `<dependencies>`-Element oben zu sehen.
+Hinweis: jaxb2-rich-contract-plugin implementiert JAXB und XJC APIs in der Version 4.0. Falls Sie mit einem älteren JDK oder einer älteren JAXB-Version arbeiten, verwenden Sie bitte eine ältere Version des Plugins, bis 2.1.0.
 
 

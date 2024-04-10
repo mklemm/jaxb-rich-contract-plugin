@@ -26,7 +26,7 @@ package com.kscs.util.jaxb;
 
 import java.util.List;
 
-import javax.xml.bind.JAXBElement;
+import jakarta.xml.bind.JAXBElement;
 
 /**
  * Represents the instance of a {@link IndirectCollectionPropertyInfo}, i.e. represents the

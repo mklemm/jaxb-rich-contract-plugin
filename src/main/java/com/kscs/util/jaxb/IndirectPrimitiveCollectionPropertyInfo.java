@@ -2,8 +2,9 @@ package com.kscs.util.jaxb;
 
 import java.util.List;
 
-import javax.xml.bind.JAXBElement;
 import javax.xml.namespace.QName;
+
+import jakarta.xml.bind.JAXBElement;
 
 /**
  * Represents a multi-value property of a JAXB-generated java class where the individual values are wrapped in

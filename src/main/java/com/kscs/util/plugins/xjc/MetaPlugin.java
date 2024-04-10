@@ -26,7 +26,7 @@ package com.kscs.util.plugins.xjc;
 import java.lang.reflect.Method;
 import java.util.List;
 
-import javax.xml.bind.JAXBElement;
+import jakarta.xml.bind.JAXBElement;
 import javax.xml.namespace.QName;
 
 import org.xml.sax.ErrorHandler;

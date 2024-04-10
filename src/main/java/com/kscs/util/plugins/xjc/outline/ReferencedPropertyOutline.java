@@ -28,7 +28,7 @@ import com.sun.codemodel.JCodeModel;
 import com.sun.codemodel.JFieldVar;
 import com.sun.codemodel.JType;
 
-import javax.xml.bind.JAXBElement;
+import jakarta.xml.bind.JAXBElement;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.ParameterizedType;

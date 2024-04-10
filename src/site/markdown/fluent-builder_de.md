@@ -256,7 +256,7 @@ Ist diese Option 'yes', werden alle withXXX-Methoden, die JAXB-generierte Objekt
 
 
 ##### -buildMethodName=`<string>` (build)
-Name der generierten "build"-Methode, die das gebaute Objekt zurÃ¼ckliefert.
+Name der generierten "build"-Methode, die das gebaute Objekt zurückliefert.
 
 
 ##### -endMethodName=`<string>` (end)

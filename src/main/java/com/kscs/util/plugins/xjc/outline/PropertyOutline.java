@@ -24,15 +24,17 @@
 
 package com.kscs.util.plugins.xjc.outline;
 
+import java.util.List;
+import java.util.Optional;
+
+import javax.xml.namespace.QName;
+
+import org.glassfish.jaxb.core.v2.model.core.TypeInfo;
+
 import com.sun.codemodel.JFieldVar;
 import com.sun.codemodel.JType;
 import com.sun.tools.xjc.model.nav.NClass;
 import com.sun.tools.xjc.model.nav.NType;
-import com.sun.xml.bind.v2.model.core.TypeInfo;
-
-import javax.xml.namespace.QName;
-import java.util.List;
-import java.util.Optional;
 
 /**
  * @author Mirko Klemm 2015-01-28
