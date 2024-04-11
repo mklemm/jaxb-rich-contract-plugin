@@ -27,10 +27,10 @@ Wenn das `group-contract`-Plugin ebenfalls aktiviert ist, werden diese Konstrukt
 
 #### Optionen
 
-##### -modifierClassName=`<string>` (Modifier)
+##### -modifier.modifierClassName=`<string>` (Modifier)
 Name der generierten Mutator-Klasse
 
 
-##### -modifierMethodName=`<string>` (modifier)
+##### -modifier.modifierMethodName=`<string>` (modifier)
 Name der generierten methode zum Abruf einer Instanz der Mutator-Klasse
 

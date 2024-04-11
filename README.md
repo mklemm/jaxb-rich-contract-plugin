@@ -164,8 +164,9 @@ Get it with Maven (Now hosted on maven central):
     * Reverted JAXBElement handling because of ObjectFactory problems
 * **2.1.0**
 	* Merged some pull requests to handle documentation annotations
-* * **4.0.0**
+* **4.0.0**
   	* Supports JAXB 4.0 and later *only*. For compatibility with earlier JAXB versions, use plugin version 2.1.0 or earlier.
+    * Handling of command-line plugin arguments changed completely, see NOTES.
     
 
 
@@ -214,55 +215,55 @@ Then add "jaxb2-rich-contract-plugin" as an XJC plugin ("plugin for plugin") to 
                     <removeOldOutput>true</removeOldOutput>
                     <args>
                         <arg>-Xconstrained-properties</arg>
-                            <arg>-constrained=y</arg>
-                            <arg>-bound=y</arg>
-                            <arg>-setterThrows=n</arg>
-                            <arg>-generateTools=y</arg>
+                            <arg>-constrained-properties.constrained=y</arg>
+                            <arg>-constrained-properties.bound=y</arg>
+                            <arg>-constrained-properties.setterThrows=n</arg>
+                            <arg>-constrained-properties.generateTools=y</arg>
                         <arg>-Xclone</arg>
-                            <arg>-cloneThrows=y</arg>
+                            <arg>-clone.cloneThrows=y</arg>
                         <arg>-Xcopy</arg>
-                            <arg>-partial=y</arg>
-                            <arg>-generateTools=y</arg>
-                            <arg>-constructor=y</arg>
-                            <arg>-narrow=n</arg>
-                            <arg>-selectorClassName=Selector</arg>
-                            <arg>-rootSelectorClassName=Select</arg>
+                            <arg>-copy.partial=y</arg>
+                            <arg>-copy.generateTools=y</arg>
+                            <arg>-copy.constructor=y</arg>
+                            <arg>-copy.narrow=n</arg>
+                            <arg>-copy.selectorClassName=Selector</arg>
+                            <arg>-copy.rootSelectorClassName=Select</arg>
                         <arg>-Xgroup-contract</arg>
-                            <arg>-declareSetters=y</arg>
-                            <arg>-declareBuilderInterface=y</arg>
-                            <arg>-supportInterfaceNameSuffix=Lifecycle</arg>
-                            <arg>-upstreamEpisodeFile=META-INF/jaxb-interfaces.episode</arg>
-                            <arg>-downstreamEpisodeFile=/META-INF/jaxb-interfaces.episode</arg>
+                            <arg>-group-contract.declareSetters=y</arg>
+                            <arg>-group-contract.declareBuilderInterface=y</arg>
+                            <arg>-group-contract.supportInterfaceNameSuffix=Lifecycle</arg>
+                            <arg>-group-contract.upstreamEpisodeFile=META-INF/jaxb-interfaces.episode</arg>
+                            <arg>-group-contract.downstreamEpisodeFile=/META-INF/jaxb-interfaces.episode</arg>
                         <arg>-Ximmutable</arg>
-                            <arg>-fake=n</arg>
-                            <arg>-overrideCollectionClass=null</arg>
-                            <arg>-constructorAccess=public</arg>
+                            <arg>-immutable.fake=n</arg>
+                            <arg>-immutable.overrideCollectionClass=null</arg>
+                            <arg>-immutable.constructorAccess=public</arg>
                         <arg>-Xmodifier</arg>
-                            <arg>-modifierClassName=Modifier</arg>
-                            <arg>-modifierMethodName=modifier</arg>
+                            <arg>-modifier.modifierClassName=Modifier</arg>
+                            <arg>-modifier.modifierMethodName=modifier</arg>
                         <arg>-Xfluent-builder</arg>
-                            <arg>-rootSelectorClassName=Select</arg>
-                            <arg>-newBuilderMethodName=builder</arg>
-                            <arg>-newCopyBuilderMethodName=newCopyBuilder</arg>
-                            <arg>-copyToMethodName=copyTo</arg>
-                            <arg>-builderFieldSuffix=_Builder</arg>
-                            <arg>-generateTools=y</arg>
-                            <arg>-narrow=n</arg>
-                            <arg>-copyPartial=y</arg>
-                            <arg>-selectorClassName=Selector</arg>
-                            <arg>-builderClassName=Builder</arg>
-                            <arg>-builderInterfaceName=BuildSupport</arg>
-                            <arg>-copyAlways=n</arg>
-                            <arg>-buildMethodName=build</arg>
-                            <arg>-endMethodName=end</arg>
-                            <arg>-generateJavadocFromAnnotations=n</arg>
+                            <arg>-fluent-builder.rootSelectorClassName=Select</arg>
+                            <arg>-fluent-builder.newBuilderMethodName=builder</arg>
+                            <arg>-fluent-builder.newCopyBuilderMethodName=newCopyBuilder</arg>
+                            <arg>-fluent-builder.copyToMethodName=copyTo</arg>
+                            <arg>-fluent-builder.builderFieldSuffix=_Builder</arg>
+                            <arg>-fluent-builder.generateTools=y</arg>
+                            <arg>-fluent-builder.narrow=n</arg>
+                            <arg>-fluent-builder.copyPartial=y</arg>
+                            <arg>-fluent-builder.selectorClassName=Selector</arg>
+                            <arg>-fluent-builder.builderClassName=Builder</arg>
+                            <arg>-fluent-builder.builderInterfaceName=BuildSupport</arg>
+                            <arg>-fluent-builder.copyAlways=n</arg>
+                            <arg>-fluent-builder.buildMethodName=build</arg>
+                            <arg>-fluent-builder.endMethodName=end</arg>
+                            <arg>-fluent-builder.generateJavadocFromAnnotations=n</arg>
                         <arg>-Xmeta</arg>
-                            <arg>-generateTools=y</arg>
-                            <arg>-extended=n</arg>
-                            <arg>-camelCase=n</arg>
-                            <arg>-metaClassName=PropInfo</arg>
-                            <arg>-allowSet=y</arg>
-                            <arg>-visitMethodName=visit</arg>
+                            <arg>-meta.generateTools=y</arg>
+                            <arg>-meta.extended=n</arg>
+                            <arg>-meta.camelCase=n</arg>
+                            <arg>-meta.metaClassName=PropInfo</arg>
+                            <arg>-meta.allowSet=y</arg>
+                            <arg>-meta.visitMethodName=visit</arg>
                     </args>
                     <plugins>
                         <plugin>
@@ -278,6 +279,10 @@ Then add "jaxb2-rich-contract-plugin" as an XJC plugin ("plugin for plugin") to 
 ```
 Note: the `<extension/>` flag must be set to "true" in order to make XJC accept any extensions at all.
 
+Note: Version 4.0.0 brings an entirely different handling of plugin-specific command-line arguments, since the previous behavior has caused trouble for a lot of people trying to use different plugins.
+Now. every argument has to be prefixed with the plugin's name (see example above) and the order of appearance of arguments is completely arbitrary, i.e. it isn't necessary to put the "-X..."-Option
+that activates the plugin before the argument in the argument list anymore.
+ 
 Note: jaxb2-rich-contract-plugin implements JAXB and XJC APIs version 4.0. You most likely will have to add the dependencies to these libraries to your classpath effective at XJC runtime. See the `<dependencies>` element above on how to do this.
 
 ## constrained-properties
@@ -299,19 +304,19 @@ Currently, **indexed properties** are NOT supported in the way specified by Java
 
 #### Options
 
-##### -constrained=`{y|n}` (y)
+##### -constrained-properties.constrained=`{y|n}` (y)
 switch "constrained" property contract generation on/off. Default: yes
 
 
-##### -bound=`{y|n}` (y)
+##### -constrained-properties.bound=`{y|n}` (y)
 switch "bound" property contract generation on/off. Default: yes
 
 
-##### -setterThrows=`{y|n}` (n)
+##### -constrained-properties.setterThrows=`{y|n}` (n)
 Declare setXXX methods to throw PropertyVetoException (yes), or rethrow as RuntimeException (no). Default: no
 
 
-##### -generateTools=`{y|n}` (y)
+##### -constrained-properties.generateTools=`{y|n}` (y)
 Generate helper classes needed for collection change event detection. Turn off in modules that import other generated modules. Default: yes
 
 ## clone
@@ -335,7 +340,7 @@ There is currently no way for the plugin to determine whether an object in the o
 
 #### Options
 
-##### -cloneThrows=`{y|n}` (y)
+##### -clone.cloneThrows=`{y|n}` (y)
 Declare CloneNotSupportedException to be thrown by 'clone()' (yes), or suppress throws clause and wrap all `CloneNotSupportedException`s as `RuntimeException` (no).
 If you set this to `no`, the resulting code will violate the `java.lang.Cloneable` contract, since it is stated that an object that cannot be cloned should throw CloneNotSupportedException, and nothing else. This option has been added, however, to support legacy code that doesn't catch CloneNotSupportedExceptions.
 
@@ -385,27 +390,27 @@ This works for single and multi-valued properties, where for multi-valued proper
 
 #### Options
 
-##### -partial=`{y|n}` (y)
+##### -copy.partial=`{y|n}` (y)
 Generates an additional 'createCopy'-method and copy-constructor (if constructors are to generated at all) that takes a PropertyTree instance to restrict the copy operation to selected nodes in the object tree.
 
 
-##### -generateTools=`{y|n}` (y)
+##### -copy.generateTools=`{y|n}` (y)
 Generate utility classes as source code. If you say "no" here, you will have to add the plugin JAR to the runtime classpath of the generated class domain.
 
 
-##### -constructor=`{y|n}` (y)
+##### -copy.constructor=`{y|n}` (y)
 Generates a copy constructor on each of the classes generated from the current XSD model.
 
 
-##### -narrow=`{y|n}` (n)
+##### -copy.narrow=`{y|n}` (n)
 Uses copy constructors for all child nodes in the object tree as long as they are available. This will cause the new instance to be as narrow as possible to the declared types.
 
 
-##### -selectorClassName=`<string>` (Selector)
+##### -copy.selectorClassName=`<string>` (Selector)
 Name of the generated nested "Selector" builder class, used to build up a property tree for partial copy functionality. This setting will also affect the "fluent-builder" plugin if it is active and set to "copy-partial=y".
 
 
-##### -rootSelectorClassName=`<string>` (Select)
+##### -copy.rootSelectorClassName=`<string>` (Select)
 Name of the generated nested static "Select" entry point class to be used by client code for the "partial copy" feature. This setting will also affect the "fluent-builder" plugin if it is active and set to "copy-partial=y".
 
 ## group-contract
@@ -484,23 +489,23 @@ name that should be generated for use by other modules.
 
 #### Options
 
-##### -declareSetters=`{y|n}` (y)
+##### -group-contract.declareSetters=`{y|n}` (y)
 Also generate property setter methods in interface declarations.
 
 
-##### -declareBuilderInterface=`{y|n}` (y)
+##### -group-contract.declareBuilderInterface=`{y|n}` (y)
 If the "fluent builder plugin" (-Xfluent-builder) is also active, generate interface for the internal builder classes as well.
 
 
-##### -supportInterfaceNameSuffix=`<string>` (Lifecycle)
+##### -group-contract.supportInterfaceNameSuffix=`<string>` (Lifecycle)
 If this is set, methods that could cause type conflicts when two generated interfaces are used together as type parameter bounds, will be put in another interface named the same as the original interface, but with the suffix specified here.
 
 
-##### -upstreamEpisodeFile=`<string>` (META-INF/jaxb-interfaces.episode)
+##### -group-contract.upstreamEpisodeFile=`<string>` (META-INF/jaxb-interfaces.episode)
 Use the given resource file to obtain information about interfaces defined in an upstream module (refer to "-episode" option of XJC).
 
 
-##### -downstreamEpisodeFile=`<string>` (/META-INF/jaxb-interfaces.episode)
+##### -group-contract.downstreamEpisodeFile=`<string>` (/META-INF/jaxb-interfaces.episode)
 Generate "episode" file for downstream modules in the given resource location.
 
 ## immutable
@@ -519,15 +524,15 @@ This plugin simply makes all "setXXX" methods "protected", thus preventing API c
 
 #### Options
 
-##### -fake=`{y|n}` (n)
+##### -immutable.fake=`{y|n}` (n)
 Do not actually make anything immutable. For test and debug purpose only.
 
 
-##### -overrideCollectionClass=`<string>` (null)
+##### -immutable.overrideCollectionClass=`<string>` (null)
 Modify collection getters to be declared to return a custom type implementing java.lang.Iterable instead of List.
 
 
-##### -constructorAccess=`<string>` (public)
+##### -immutable.constructorAccess=`<string>` (public)
 Generate constructors of an immutable class with the specified access level ("public", "private", "protected", "default"). By specification, JAXB needs a public no-arg constructor for marshalling and unmarshalling objects to an from XML. It turns out, however, that many implementations support protected constructors as well.
 This option has been included since it doesn't make sense to construct an empty object which then cannot be modified, But anyway, use with caution.
 
@@ -558,11 +563,11 @@ If the `group-contract` plugin is also activated, these constructs will also be 
 
 #### Options
 
-##### -modifierClassName=`<string>` (Modifier)
+##### -modifier.modifierClassName=`<string>` (Modifier)
 Name of the generated inner class that allows to modify the state of generated objects.
 
 
-##### -modifierMethodName=`<string>` (modifier)
+##### -modifier.modifierMethodName=`<string>` (modifier)
 Name of the generated method that allows to instantiate the modifier class.
 
 ## fluent-builder
@@ -773,64 +778,64 @@ And java code in the corresponding Builder class as follows:
 
 #### Options
 
-##### -rootSelectorClassName=`<string>` (Select)
+##### -fluent-builder.rootSelectorClassName=`<string>` (Select)
 Name of the generated nested static "Select" entry point class to be used by client code for the "partial copy" feature. This setting will only have an effect if the "deep-copy-plugin" isn't also active. If it is, the "copy" plugin's settings will take precedence.
 
 
-##### -newBuilderMethodName=`<string>` (builder)
+##### -fluent-builder.newBuilderMethodName=`<string>` (builder)
 Name of the generated static method to instantiate a new fluent builder. Can be set to handle naming conflicts.
 
 
-##### -newCopyBuilderMethodName=`<string>` (newCopyBuilder)
+##### -fluent-builder.newCopyBuilderMethodName=`<string>` (newCopyBuilder)
 Name of the generated instance method to instantiate a new fluent builder intitialized with a copy of the current instance.
 
 
-##### -copyToMethodName=`<string>` (copyTo)
+##### -fluent-builder.copyToMethodName=`<string>` (copyTo)
 Name of the generated "copyTo" method.
 
 
-##### -builderFieldSuffix=`<string>` (_Builder)
+##### -fluent-builder.builderFieldSuffix=`<string>` (_Builder)
 Suffix to append to the field holding the builder, change to  prevent name clashes.
 
 
-##### -generateTools=`{y|n}` (y)
+##### -fluent-builder.generateTools=`{y|n}` (y)
 Generate utility classes as static source code artifacts. If no, the plugin JAR must be in compile- and runtime classpath.
 
 
-##### -narrow=`{y|n}` (n)
+##### -fluent-builder.narrow=`{y|n}` (n)
 Uses copy constructors for all child nodes in the object tree as long as they are available. This will cause the new instance to be as narrow as possible to the declared types.
 Abstract types and types not generated from this XSD-model will always be copied by their "clone()"-method.
 
 
-##### -copyPartial=`{y|n}` (y)
+##### -fluent-builder.copyPartial=`{y|n}` (y)
 Generates an additional 'copyOf'-method  that takes a PropertyTree instance to restrict the copy operation to selected nodes in the object tree.
 
 
-##### -selectorClassName=`<string>` (Selector)
+##### -fluent-builder.selectorClassName=`<string>` (Selector)
 Name of the generated nested "Selector" builder class, used to build up a property tree for partial copy functionality. This setting will only have an effect if the "deep-copy-plugin" isn't also active. If it is, the "copy" plugin's settings will take precedence.
 
 
-##### -builderClassName=`<string>` (Builder)
+##### -fluent-builder.builderClassName=`<string>` (Builder)
 Name of the generated nested builder class. Can be set to handle naming conflicts.
 
 
-##### -builderInterfaceName=`<string>` (BuildSupport)
+##### -fluent-builder.builderInterfaceName=`<string>` (BuildSupport)
 Name of the generated nested builder interface. Can be set to handle naming conflicts.
 
 
-##### -copyAlways=`{y|n}` (n)
+##### -fluent-builder.copyAlways=`{y|n}` (n)
 If true, generate code of fluent-builder "withXXX" methods so that all objects passed to the builder are inherently deep-copied.
 
 
-##### -buildMethodName=`<string>` (build)
+##### -fluent-builder.buildMethodName=`<string>` (build)
 Name of the generated "build" method that concludes building and returns the product. Can be set here to handle naming conflicts.
 
 
-##### -endMethodName=`<string>` (end)
+##### -fluent-builder.endMethodName=`<string>` (end)
 Name of the generated "end" method that concludes a nested builder and returns to the outer builder. Can be set here to handle naming conflicts.
 
 
-##### -generateJavadocFromAnnotations=`{y|n}` (n)
+##### -fluent-builder.generateJavadocFromAnnotations=`{y|n}` (n)
 If true, append schema annotation text (./annotation/documentation) to class getters/setters and builder methods.
 
 ## meta
@@ -850,28 +855,28 @@ an object graph.
 
 #### Options
 
-##### -generateTools=`{y|n}` (y)
+##### -meta.generateTools=`{y|n}` (y)
 Generate helper class used to represent extended metadata as source code.
 If this is set to "n" and "-extended=y", the plugin JAR will have to be in the runtime classpath of the client application.
 
 
-##### -extended=`{y|n}` (n)
+##### -meta.extended=`{y|n}` (n)
 Generate extended meta data for each property: Name, type, multiplicity, default value.
 
 
-##### -camelCase=`{y|n}` (n)
+##### -meta.camelCase=`{y|n}` (n)
 Generate names of constant meta fields like field names, instead of Java constant name convention.
 
 
-##### -metaClassName=`<string>` (PropInfo)
+##### -meta.metaClassName=`<string>` (PropInfo)
 Name of the generated meta-information nested class.
 
 
-##### -allowSet=`{y|n}` (y)
+##### -meta.allowSet=`{y|n}` (y)
 Allow property values to be set via property meta information.
 
 
-##### -visitMethodName=`<string>` (visit)
+##### -meta.visitMethodName=`<string>` (visit)
 Name of the method to apply a visitor.
 
 [1]: #constrained-properties

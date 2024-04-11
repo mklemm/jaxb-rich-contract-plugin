@@ -42,58 +42,58 @@ Dieses "cheat sheet" gibt alle verfügbaren Plugin-Optionen an und zeigt, wie di
                     <verbose>true</verbose>
                     <extension>true</extension>
                     <removeOldOutput>true</removeOldOutput>
-                    <args>
+                   <args>
                         <arg>-Xconstrained-properties</arg>
-                            <arg>-constrained=y</arg>
-                            <arg>-bound=y</arg>
-                            <arg>-setterThrows=n</arg>
-                            <arg>-generateTools=y</arg>
+                            <arg>-constrained-properties.constrained=y</arg>
+                            <arg>-constrained-properties.bound=y</arg>
+                            <arg>-constrained-properties.setterThrows=n</arg>
+                            <arg>-constrained-properties.generateTools=y</arg>
                         <arg>-Xclone</arg>
-                            <arg>-cloneThrows=y</arg>
+                            <arg>-clone.cloneThrows=y</arg>
                         <arg>-Xcopy</arg>
-                            <arg>-partial=y</arg>
-                            <arg>-generateTools=y</arg>
-                            <arg>-constructor=y</arg>
-                            <arg>-narrow=n</arg>
-                            <arg>-selectorClassName=Selector</arg>
-                            <arg>-rootSelectorClassName=Select</arg>
+                            <arg>-copy.partial=y</arg>
+                            <arg>-copy.generateTools=y</arg>
+                            <arg>-copy.constructor=y</arg>
+                            <arg>-copy.narrow=n</arg>
+                            <arg>-copy.selectorClassName=Selector</arg>
+                            <arg>-copy.rootSelectorClassName=Select</arg>
                         <arg>-Xgroup-contract</arg>
-                            <arg>-declareSetters=y</arg>
-                            <arg>-declareBuilderInterface=y</arg>
-                            <arg>-supportInterfaceNameSuffix=Lifecycle</arg>
-                            <arg>-upstreamEpisodeFile=META-INF/jaxb-interfaces.episode</arg>
-                            <arg>-downstreamEpisodeFile=/META-INF/jaxb-interfaces.episode</arg>
+                            <arg>-group-contract.declareSetters=y</arg>
+                            <arg>-group-contract.declareBuilderInterface=y</arg>
+                            <arg>-group-contract.supportInterfaceNameSuffix=Lifecycle</arg>
+                            <arg>-group-contract.upstreamEpisodeFile=META-INF/jaxb-interfaces.episode</arg>
+                            <arg>-group-contract.downstreamEpisodeFile=/META-INF/jaxb-interfaces.episode</arg>
                         <arg>-Ximmutable</arg>
-                            <arg>-fake=n</arg>
-                            <arg>-overrideCollectionClass=null</arg>
-                            <arg>-constructorAccess=public</arg>
+                            <arg>-immutable.fake=n</arg>
+                            <arg>-immutable.overrideCollectionClass=null</arg>
+                            <arg>-immutable.constructorAccess=public</arg>
                         <arg>-Xmodifier</arg>
-                            <arg>-modifierClassName=Modifier</arg>
-                            <arg>-modifierMethodName=modifier</arg>
+                            <arg>-modifier.modifierClassName=Modifier</arg>
+                            <arg>-modifier.modifierMethodName=modifier</arg>
                         <arg>-Xfluent-builder</arg>
-                            <arg>-rootSelectorClassName=Select</arg>
-                            <arg>-newBuilderMethodName=builder</arg>
-                            <arg>-newCopyBuilderMethodName=newCopyBuilder</arg>
-                            <arg>-copyToMethodName=copyTo</arg>
-                            <arg>-builderFieldSuffix=_Builder</arg>
-                            <arg>-generateTools=y</arg>
-                            <arg>-narrow=n</arg>
-                            <arg>-copyPartial=y</arg>
-                            <arg>-selectorClassName=Selector</arg>
-                            <arg>-builderClassName=Builder</arg>
-                            <arg>-builderInterfaceName=BuildSupport</arg>
-                            <arg>-copyAlways=n</arg>
-                            <arg>-buildMethodName=build</arg>
-                            <arg>-endMethodName=end</arg>
-                            <arg>-generateJavadocFromAnnotations=n</arg>
+                            <arg>-fluent-builder.rootSelectorClassName=Select</arg>
+                            <arg>-fluent-builder.newBuilderMethodName=builder</arg>
+                            <arg>-fluent-builder.newCopyBuilderMethodName=newCopyBuilder</arg>
+                            <arg>-fluent-builder.copyToMethodName=copyTo</arg>
+                            <arg>-fluent-builder.builderFieldSuffix=_Builder</arg>
+                            <arg>-fluent-builder.generateTools=y</arg>
+                            <arg>-fluent-builder.narrow=n</arg>
+                            <arg>-fluent-builder.copyPartial=y</arg>
+                            <arg>-fluent-builder.selectorClassName=Selector</arg>
+                            <arg>-fluent-builder.builderClassName=Builder</arg>
+                            <arg>-fluent-builder.builderInterfaceName=BuildSupport</arg>
+                            <arg>-fluent-builder.copyAlways=n</arg>
+                            <arg>-fluent-builder.buildMethodName=build</arg>
+                            <arg>-fluent-builder.endMethodName=end</arg>
+                            <arg>-fluent-builder.generateJavadocFromAnnotations=n</arg>
                         <arg>-Xmeta</arg>
-                            <arg>-generateTools=y</arg>
-                            <arg>-extended=n</arg>
-                            <arg>-camelCase=n</arg>
-                            <arg>-metaClassName=PropInfo</arg>
-                            <arg>-allowSet=y</arg>
-                            <arg>-visitMethodName=visit</arg>
-                    </args>
+                            <arg>-meta.generateTools=y</arg>
+                            <arg>-meta.extended=n</arg>
+                            <arg>-meta.camelCase=n</arg>
+                            <arg>-meta.metaClassName=PropInfo</arg>
+                            <arg>-meta.allowSet=y</arg>
+                            <arg>-meta.visitMethodName=visit</arg>
+                   </args>
                     <plugins>
                         <plugin>
                             <groupId>net.codesup.util</groupId>
@@ -107,6 +107,10 @@ Dieses "cheat sheet" gibt alle verfügbaren Plugin-Optionen an und zeigt, wie di
     </build>
 ```
 Hinweis: Das Flag `<extension/>` muss auf "true" gesetzt sein, damit XJC überhaupt plugins akzeptiert.
+
+Hinweis: Ab Version 4.0.0 hat sich die Behandlung der Kommandozeilenargumente vollständig geändert, da das bisherige Verhalten für einige Leute Probleme verursachte.
+Dem Namen jedes Kommadozeilenarguments muss nun der Name des Plugin, durch einen Punkt getrennt, vorangestellt werden (siehe Beispiel oben). Dafür ist die Reihenfolge der Argumente
+nun unerheblich, sie können irgendwo auf der Kommandozeile auftauchen, nicht nur nach der "-X.."-Option, die das Plugin aktiviert.
 
 Hinweis: jaxb2-rich-contract-plugin implementiert JAXB und XJC APIs in der Version 4.0. Falls Sie mit einem älteren JDK oder einer älteren JAXB-Version arbeiten, verwenden Sie bitte eine ältere Version des Plugins, bis 2.1.0.
 

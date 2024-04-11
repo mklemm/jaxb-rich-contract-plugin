@@ -44,26 +44,26 @@ This works for single and multi-valued properties, where for multi-valued proper
 
 #### Options
 
-##### -partial=`{y|n}` (y)
+##### -copy.partial=`{y|n}` (y)
 Generates an additional 'createCopy'-method and copy-constructor (if constructors are to generated at all) that takes a PropertyTree instance to restrict the copy operation to selected nodes in the object tree.
 
 
-##### -generateTools=`{y|n}` (y)
+##### -copy.generateTools=`{y|n}` (y)
 Generate utility classes as source code. If you say "no" here, you will have to add the plugin JAR to the runtime classpath of the generated class domain.
 
 
-##### -constructor=`{y|n}` (y)
+##### -copy.constructor=`{y|n}` (y)
 Generates a copy constructor on each of the classes generated from the current XSD model.
 
 
-##### -narrow=`{y|n}` (n)
+##### -copy.narrow=`{y|n}` (n)
 Uses copy constructors for all child nodes in the object tree as long as they are available. This will cause the new instance to be as narrow as possible to the declared types.
 
 
-##### -selectorClassName=`<string>` (Selector)
+##### -copy.selectorClassName=`<string>` (Selector)
 Name of the generated nested "Selector" builder class, used to build up a property tree for partial copy functionality. This setting will also affect the "fluent-builder" plugin if it is active and set to "copy-partial=y".
 
 
-##### -rootSelectorClassName=`<string>` (Select)
+##### -copy.rootSelectorClassName=`<string>` (Select)
 Name of the generated nested static "Select" entry point class to be used by client code for the "partial copy" feature. This setting will also affect the "fluent-builder" plugin if it is active and set to "copy-partial=y".
 

@@ -17,18 +17,18 @@ Currently, **indexed properties** are NOT supported in the way specified by Java
 
 #### Options
 
-##### -constrained=`{y|n}` (y)
+##### -constrained-properties.constrained=`{y|n}` (y)
 switch "constrained" property contract generation on/off. Default: yes
 
 
-##### -bound=`{y|n}` (y)
+##### -constrained-properties.bound=`{y|n}` (y)
 switch "bound" property contract generation on/off. Default: yes
 
 
-##### -setterThrows=`{y|n}` (n)
+##### -constrained-properties.setterThrows=`{y|n}` (n)
 Declare setXXX methods to throw PropertyVetoException (yes), or rethrow as RuntimeException (no). Default: no
 
 
-##### -generateTools=`{y|n}` (y)
+##### -constrained-properties.generateTools=`{y|n}` (y)
 Generate helper classes needed for collection change event detection. Turn off in modules that import other generated modules. Default: yes
 

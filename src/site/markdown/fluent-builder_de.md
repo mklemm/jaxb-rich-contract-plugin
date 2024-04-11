@@ -206,63 +206,63 @@ And java code in the corresponding Builder class as follows:
 
 #### Optionen
 
-##### -rootSelectorClassName=`<string>` (Select)
+##### -fluent-builder.rootSelectorClassName=`<string>` (Select)
 Name der generierten inneren "Select" -Klasse, die vom aufrufenden Code als Einstieg in den Aufbau eines Property-Baumes für das partielle Kopieren verwendet werden kann. Diese Einstellung wird nur dann berücksichtigt, wenn das "Deep Copy"-Plugin nicht aktiv ist, und "copy-partial=y" ist. Ansonsten gilt die Einstellung des "Deep Copy"-Plugins.
 
 
-##### -newBuilderMethodName=`<string>` (builder)
+##### -fluent-builder.newBuilderMethodName=`<string>` (builder)
 Name der generierten statischen Methode zum Erzeugen eines neuen Builders. Kann hier gesetzt werden, um Namenskonflikte zu lösen.
 
 
-##### -newCopyBuilderMethodName=`<string>` (newCopyBuilder)
+##### -fluent-builder.newCopyBuilderMethodName=`<string>` (newCopyBuilder)
 Name der generierten Instanzmethode zum Erzeugen eines neuen Builders, der mit dem von dieser Instanz kopierten Zustand initialisiert ist.
 
 
-##### -copyToMethodName=`<string>` (copyTo)
+##### -fluent-builder.copyToMethodName=`<string>` (copyTo)
 Name der generierten Methode zum kopieren des internen Zustands dieses Builders auf einen anderen Builder.
 
 
-##### -builderFieldSuffix=`<string>` (_Builder)
+##### -fluent-builder.builderFieldSuffix=`<string>` (_Builder)
 Suffix, das an den Namen der generierten Sub-Builder Instanzvariablen angefügt wird.
 
 
-##### -generateTools=`{y|n}` (y)
+##### -fluent-builder.generateTools=`{y|n}` (y)
 Generiere Hilfsklassen als Quelltext. Wenn dies ausgeschaltet ist, muss sich das Plugin-JAR zur Laufzeit im Klassenpfad der generierten Klassendefinitionen befinden.
 
 
-##### -narrow=`{y|n}` (n)
+##### -fluent-builder.narrow=`{y|n}` (n)
 Für untergeordnete Knoten im zu kopierenden Objektbaum werden ebenfalls die Copy-Konstruktoren der deklarierten Typen verwendet, soweit diese vorhanden sind und die Typen der entsprechenden Instanzen ebenfalls aus dem XSD-Model generierte Klassen sind. Dies erzeugt eine möglichst "schmale" Kopie des Ausgangsobjekts, was in bestimmten Fällen nützlich sein kann.
 Ein Unterknoten, dessen Typ nicht im aktuellen XSD-Modell deklariert ist, wird immer wie bei der 'clone()'-Methode kopiert. Ist diese Option "no", gilt dies auch für generierte Typen.
 
 
-##### -copyPartial=`{y|n}` (y)
+##### -fluent-builder.copyPartial=`{y|n}` (y)
 Generiert zusätzlich eine 'copyOf()'-Methode mit der sich Objekte partiell kopieren lassen. Dabei wird ein PropertyTree-Objekt mitgegeben, welches die zu kopierenden Knoten des Objektbaumes angibt.
 
 
-##### -selectorClassName=`<string>` (Selector)
+##### -fluent-builder.selectorClassName=`<string>` (Selector)
 Name der generierten inneren "Selector" Builder-Klasse, die intern zum Aufbau des Property-Baums für das partielle Kopieren benutzt wird. Diese Einstellung wird nur dann berücksichtigt, wenn das "Deep Copy"-Plugin nicht aktiv ist, und "copy-partial=y" ist. Ansonsten gilt die Einstellung des "Deep Copy"-Plugins.
 
 
-##### -builderClassName=`<string>` (Builder)
+##### -fluent-builder.builderClassName=`<string>` (Builder)
 Name der generierten inneren Builder-Klasse. Kann hier gesetzt werden, um Namenskonflikte zu lösen.
 
 
-##### -builderInterfaceName=`<string>` (BuildSupport)
+##### -fluent-builder.builderInterfaceName=`<string>` (BuildSupport)
 Name des generierten inneren Builder-Interfaces. Kann hier gesetzt werden, um Namenskonflikte zu lösen.
 
 
-##### -copyAlways=`{y|n}` (n)
+##### -fluent-builder.copyAlways=`{y|n}` (n)
 Ist diese Option 'yes', werden alle withXXX-Methoden, die JAXB-generierte Objekte akzeptieren, so generiert, dass die übergebenen Objekte kopiert werden.
 
 
-##### -buildMethodName=`<string>` (build)
+##### -fluent-builder.buildMethodName=`<string>` (build)
 Name der generierten "build"-Methode, die das gebaute Objekt zurückliefert.
 
 
-##### -endMethodName=`<string>` (end)
+##### -fluent-builder.endMethodName=`<string>` (end)
 Name der generierten "end"-Methode, die einen sub-Builder beendet.
 
 
-##### -generateJavadocFromAnnotations=`{y|n}` (n)
+##### -fluent-builder.generateJavadocFromAnnotations=`{y|n}` (n)
 TODO
 

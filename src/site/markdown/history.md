@@ -120,8 +120,9 @@
     * Reverted JAXBElement handling because of ObjectFactory problems
 * **2.1.0**
 	* Merged some pull requests to handle documentation annotations
-* * **4.0.0**
+* **4.0.0**
   	* Supports JAXB 4.0 and later *only*. For compatibility with earlier JAXB versions, use plugin version 2.1.0 or earlier.
+    * Handling of command-line plugin arguments changed completely, see NOTES.
     
 
 

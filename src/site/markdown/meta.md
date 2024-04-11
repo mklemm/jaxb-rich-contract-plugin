@@ -15,27 +15,27 @@ an object graph.
 
 #### Options
 
-##### -generateTools=`{y|n}` (y)
+##### -meta.generateTools=`{y|n}` (y)
 Generate helper class used to represent extended metadata as source code.
 If this is set to "n" and "-extended=y", the plugin JAR will have to be in the runtime classpath of the client application.
 
 
-##### -extended=`{y|n}` (n)
+##### -meta.extended=`{y|n}` (n)
 Generate extended meta data for each property: Name, type, multiplicity, default value.
 
 
-##### -camelCase=`{y|n}` (n)
+##### -meta.camelCase=`{y|n}` (n)
 Generate names of constant meta fields like field names, instead of Java constant name convention.
 
 
-##### -metaClassName=`<string>` (PropInfo)
+##### -meta.metaClassName=`<string>` (PropInfo)
 Name of the generated meta-information nested class.
 
 
-##### -allowSet=`{y|n}` (y)
+##### -meta.allowSet=`{y|n}` (y)
 Allow property values to be set via property meta information.
 
 
-##### -visitMethodName=`<string>` (visit)
+##### -meta.visitMethodName=`<string>` (visit)
 Name of the method to apply a visitor.
 

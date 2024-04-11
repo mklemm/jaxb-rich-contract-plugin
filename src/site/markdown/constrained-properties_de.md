@@ -17,19 +17,19 @@ Currently, **indexed properties** are NOT supported in the way specified by Java
 
 #### Optionen
 
-##### -constrained=`{y|n}` (y)
+##### -constrained-properties.constrained=`{y|n}` (y)
 Erzeuge "constrained properties", die durch das Werfen einer  Exception eine Änderung ihres Zustandes unterbinden können.
 
 
-##### -bound=`{y|n}` (y)
+##### -constrained-properties.bound=`{y|n}` (y)
 Erzeuge "bound properties", die die Änderung ihres Zustandes als Event weitermelden.
 
 
-##### -setterThrows=`{y|n}` (n)
+##### -constrained-properties.setterThrows=`{y|n}` (n)
 Wenn Constrained Properties verwendet werden, soll eine PropertyVetoException bei unerlaubter Zustandsänderung geworfen werden.
 Wenn dies auf "no" gesetzt ist, wird stattdessen eine "RuntimeException" erzeugt.
 
 
-##### -generateTools=`{y|n}` (y)
+##### -constrained-properties.generateTools=`{y|n}` (y)
 Generiere die Hilfsklassen, die zur Realisierung der nicht-standardkonformen "Collection Changed" events gebraucht werden, als Quelltext.
 

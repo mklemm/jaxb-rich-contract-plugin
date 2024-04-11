@@ -14,27 +14,27 @@ In Version 1.10 wurde neu ein "Visitor"-Muster eingeführt, über das sich der g
 
 #### Optionen
 
-##### -generateTools=`{y|n}` (y)
+##### -meta.generateTools=`{y|n}` (y)
 Generiere die Hilfsklasse zur Darstellung der erweiterten Metadaten als Quelltext.
 Wenn hier "n" angegeben wird und "extended=y", so muss das plugin JAR zur Laufzeit im Klassenpfad der client-Anwendung sein.
 
 
-##### -extended=`{y|n}` (n)
+##### -meta.extended=`{y|n}` (n)
 Generiere erweiterte Metadaten für jedes Property: Name, Typ, Multiplizität, Standardwert
 
 
-##### -camelCase=`{y|n}` (n)
+##### -meta.camelCase=`{y|n}` (n)
 Namen der Konstanten wie Feldnamen generieren, nicht nach Java-Konstanten-Konvention.
 
 
-##### -metaClassName=`<string>` (PropInfo)
+##### -meta.metaClassName=`<string>` (PropInfo)
 Name der generierten inneren Metainfoklasse.
 
 
-##### -allowSet=`{y|n}` (y)
+##### -meta.allowSet=`{y|n}` (y)
 Generiere eine Möglichkeit, den Wert eines Propertys über die Metadaten zu ändern.
 
 
-##### -visitMethodName=`<string>` (visit)
+##### -meta.visitMethodName=`<string>` (visit)
 Name der Methode, mit der ein Visitor durch das Objekt geschickt werden kann.
 

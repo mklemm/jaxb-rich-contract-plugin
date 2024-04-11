@@ -14,14 +14,14 @@ This plugin simply makes all "setXXX" methods "protected", thus preventing API c
 
 #### Optionen
 
-##### -fake=`{y|n}` (n)
+##### -immutable.fake=`{y|n}` (n)
 Nur für Test und Debug: Es wird nichts wirklich unveränderlich gemacht, aber das Plugin bleibt aktiv.
 
 
-##### -overrideCollectionClass=`<string>` (null)
+##### -immutable.overrideCollectionClass=`<string>` (null)
 Modify collection getters to be declared to return a custom type implementing java.lang.Iterable instead of List.
 
 
-##### -constructorAccess=`<string>` (public)
+##### -immutable.constructorAccess=`<string>` (public)
 Setzt die Sichtbarkeit des von JAXB geforderten argumentlosen Konstruktors auf den angegebenen Wert ("public", "private", "protected", "default"). Die JAXB-Spezifikation fordert eigentlich, dass der Konstruktor "public" sein soll, aber in vielen Implementierungen funktioniert auch "protected". Diese Option wurde eingeführt, da es normalerweise wenig sinnvoll ist, ein leeres Objekt zu erzeugen, das danach nicht mehr verändert werden kann. Dennoch ist dies nicht standardkonform und daher mit Vorsicht zu benutzen.
 

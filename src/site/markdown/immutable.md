@@ -14,15 +14,15 @@ This plugin simply makes all "setXXX" methods "protected", thus preventing API c
 
 #### Options
 
-##### -fake=`{y|n}` (n)
+##### -immutable.fake=`{y|n}` (n)
 Do not actually make anything immutable. For test and debug purpose only.
 
 
-##### -overrideCollectionClass=`<string>` (null)
+##### -immutable.overrideCollectionClass=`<string>` (null)
 Modify collection getters to be declared to return a custom type implementing java.lang.Iterable instead of List.
 
 
-##### -constructorAccess=`<string>` (public)
+##### -immutable.constructorAccess=`<string>` (public)
 Generate constructors of an immutable class with the specified access level ("public", "private", "protected", "default"). By specification, JAXB needs a public no-arg constructor for marshalling and unmarshalling objects to an from XML. It turns out, however, that many implementations support protected constructors as well.
 This option has been included since it doesn't make sense to construct an empty object which then cannot be modified, But anyway, use with caution.
 
