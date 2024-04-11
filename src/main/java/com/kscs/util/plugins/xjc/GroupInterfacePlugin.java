@@ -41,10 +41,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import jakarta.xml.bind.JAXB;
-import jakarta.xml.bind.JAXBContext;
-import jakarta.xml.bind.JAXBException;
-import jakarta.xml.bind.Unmarshaller;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
@@ -59,6 +55,14 @@ import javax.xml.xpath.XPathExpression;
 import javax.xml.xpath.XPathExpressionException;
 import javax.xml.xpath.XPathFactory;
 
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
+import org.xml.sax.ErrorHandler;
+import org.xml.sax.InputSource;
+import org.xml.sax.SAXException;
+
 import com.kscs.util.jaxb.bindings.Interface;
 import com.kscs.util.plugins.xjc.base.AbstractPlugin;
 import com.kscs.util.plugins.xjc.base.MappingNamespaceContext;
@@ -69,13 +73,11 @@ import com.kscs.util.plugins.xjc.outline.TypeOutline;
 import com.sun.tools.xjc.BadCommandLineException;
 import com.sun.tools.xjc.Options;
 import com.sun.tools.xjc.outline.Outline;
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
-import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
-import org.xml.sax.ErrorHandler;
-import org.xml.sax.InputSource;
-import org.xml.sax.SAXException;
+
+import jakarta.xml.bind.JAXB;
+import jakarta.xml.bind.JAXBContext;
+import jakarta.xml.bind.JAXBException;
+import jakarta.xml.bind.Unmarshaller;
 
 /**
  * Generates interface declarations from &lt;group&gt; and &lt;attributeGroup&gt;
@@ -222,6 +224,7 @@ public class GroupInterfacePlugin extends AbstractPlugin {
 	private static Document copyInputSource(final InputSource inputSource) throws IOException,SAXException {
 		final Reader characterStream = inputSource.getCharacterStream(); // aliasing because of possible getCharacterStream side effects
 		final InputStream byteStream =  inputSource.getByteStream(); // aliasing because of possible getByteStream side effects
+		final var validSystemIdOrNull = inputSource.getSystemId().equals("null") ? null : inputSource.getSystemId();
 		if (characterStream != null) {
 			final StringWriter stringWriter = new StringWriter();
 			final BufferedReader bufferedReader = new BufferedReader(characterStream);
@@ -233,7 +236,7 @@ public class GroupInterfacePlugin extends AbstractPlugin {
 			}
 			inputSource.setCharacterStream(new StringReader(stringWriter.toString()));
 			final InputSource copy = new InputSource(new StringReader(stringWriter.toString()));
-			copy.setSystemId(inputSource.getSystemId());
+			copy.setSystemId(validSystemIdOrNull);
 			copy.setPublicId(inputSource.getPublicId());
 			copy.setEncoding(inputSource.getEncoding());
 			return GroupInterfacePlugin.DOCUMENT_BUILDER.parse(copy);
@@ -249,12 +252,12 @@ public class GroupInterfacePlugin extends AbstractPlugin {
 			final byte[] allBytes = byteArrayOutputStream.toByteArray();
 			inputSource.setByteStream(new ByteArrayInputStream(allBytes));
 			final InputSource copy = new InputSource(new ByteArrayInputStream(allBytes));
-			copy.setSystemId(inputSource.getSystemId());
+			copy.setSystemId(validSystemIdOrNull);
 			copy.setPublicId(inputSource.getPublicId());
 			copy.setEncoding(inputSource.getEncoding());
 			return GroupInterfacePlugin.DOCUMENT_BUILDER.parse(copy);
 		} else {
-			final InputSource copy = new InputSource(inputSource.getSystemId());
+			final InputSource copy = new InputSource(validSystemIdOrNull);
 			copy.setPublicId(inputSource.getPublicId());
 			copy.setEncoding(inputSource.getEncoding());
 			return GroupInterfacePlugin.DOCUMENT_BUILDER.parse(copy);
