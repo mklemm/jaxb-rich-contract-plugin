@@ -10,7 +10,6 @@
 	<jxb:globalBindings
 	    fixedAttributeAsConstantProperty="true"
 		localScoping="toplevel">
-		<jxb:javaType name="java.util.Date" xmlType="xs:date" />
 	</jxb:globalBindings>
 
 	<jxb:bindings schemaLocation="jaxb2-plugin-test.xsd">

@@ -62,7 +62,7 @@ Dieses "cheat sheet" gibt alle verfügbaren Plugin-Optionen an und zeigt, wie di
                             <arg>-group-contract.declareBuilderInterface=y</arg>
                             <arg>-group-contract.supportInterfaceNameSuffix=Lifecycle</arg>
                             <arg>-group-contract.upstreamEpisodeFile=META-INF/jaxb-interfaces.episode</arg>
-                            <arg>-group-contract.downstreamEpisodeFile=/META-INF/jaxb-interfaces.episode</arg>
+                            <arg>-group-contract.downstreamEpisodeFile=META-INF/jaxb-interfaces.episode</arg>
                         <arg>-Ximmutable</arg>
                             <arg>-immutable.fake=n</arg>
                             <arg>-immutable.overrideCollectionClass=null</arg>

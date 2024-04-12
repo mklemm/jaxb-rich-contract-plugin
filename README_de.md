@@ -235,7 +235,7 @@ Dieses "cheat sheet" gibt alle verfügbaren Plugin-Optionen an und zeigt, wie di
                             <arg>-group-contract.declareBuilderInterface=y</arg>
                             <arg>-group-contract.supportInterfaceNameSuffix=Lifecycle</arg>
                             <arg>-group-contract.upstreamEpisodeFile=META-INF/jaxb-interfaces.episode</arg>
-                            <arg>-group-contract.downstreamEpisodeFile=/META-INF/jaxb-interfaces.episode</arg>
+                            <arg>-group-contract.downstreamEpisodeFile=META-INF/jaxb-interfaces.episode</arg>
                         <arg>-Ximmutable</arg>
                             <arg>-immutable.fake=n</arg>
                             <arg>-immutable.overrideCollectionClass=null</arg>
@@ -511,7 +511,7 @@ Methoden, die zu Typkonflikten führen können, wenn zwei oder mehr interfaces a
 Suche die angegebene "episode"-Datei (Resource-Pfad), um Informationen über interfaces zu erhalten, die in Modulen definiert wurden, von denen dieses hier abhängig ist (siehe "-episode"-Mechanismus in der XJC-Dokumentation).
 
 
-##### -group-contract.downstreamEpisodeFile=`<string>` (/META-INF/jaxb-interfaces.episode)
+##### -group-contract.downstreamEpisodeFile=`<string>` (META-INF/jaxb-interfaces.episode)
 Generiere "episode"-Datei für abhängige Module an der angegebene Stelle (Resource-Pfad).
 
 ## immutable

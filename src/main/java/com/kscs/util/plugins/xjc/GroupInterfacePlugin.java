@@ -95,7 +95,7 @@ public class GroupInterfacePlugin extends AbstractPlugin {
 	@Opt
 	private String upstreamEpisodeFile = "META-INF/jaxb-interfaces.episode";
 	@Opt
-	private String downstreamEpisodeFile = "/META-INF/jaxb-interfaces.episode";
+	private String downstreamEpisodeFile = "META-INF/jaxb-interfaces.episode";
 	private GroupInterfaceGenerator generator = null;
 	public static final TransformerFactory TRANSFORMER_FACTORY;
 	private static final DocumentBuilderFactory DOCUMENT_BUILDER_FACTORY;

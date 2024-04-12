@@ -60,7 +60,7 @@ Then add "jaxb2-rich-contract-plugin" as an XJC plugin ("plugin for plugin") to 
                             <arg>-group-contract.declareBuilderInterface=y</arg>
                             <arg>-group-contract.supportInterfaceNameSuffix=Lifecycle</arg>
                             <arg>-group-contract.upstreamEpisodeFile=META-INF/jaxb-interfaces.episode</arg>
-                            <arg>-group-contract.downstreamEpisodeFile=/META-INF/jaxb-interfaces.episode</arg>
+                            <arg>-group-contract.downstreamEpisodeFile=META-INF/jaxb-interfaces.episode</arg>
                         <arg>-Ximmutable</arg>
                             <arg>-immutable.fake=n</arg>
                             <arg>-immutable.overrideCollectionClass=null</arg>

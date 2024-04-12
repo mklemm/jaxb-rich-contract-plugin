@@ -90,6 +90,6 @@ If this is set, methods that could cause type conflicts when two generated inter
 Use the given resource file to obtain information about interfaces defined in an upstream module (refer to "-episode" option of XJC).
 
 
-##### -group-contract.downstreamEpisodeFile=`<string>` (/META-INF/jaxb-interfaces.episode)
+##### -group-contract.downstreamEpisodeFile=`<string>` (META-INF/jaxb-interfaces.episode)
 Generate "episode" file for downstream modules in the given resource location.
 

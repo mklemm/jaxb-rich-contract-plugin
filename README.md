@@ -233,7 +233,7 @@ Then add "jaxb2-rich-contract-plugin" as an XJC plugin ("plugin for plugin") to 
                             <arg>-group-contract.declareBuilderInterface=y</arg>
                             <arg>-group-contract.supportInterfaceNameSuffix=Lifecycle</arg>
                             <arg>-group-contract.upstreamEpisodeFile=META-INF/jaxb-interfaces.episode</arg>
-                            <arg>-group-contract.downstreamEpisodeFile=/META-INF/jaxb-interfaces.episode</arg>
+                            <arg>-group-contract.downstreamEpisodeFile=META-INF/jaxb-interfaces.episode</arg>
                         <arg>-Ximmutable</arg>
                             <arg>-immutable.fake=n</arg>
                             <arg>-immutable.overrideCollectionClass=null</arg>
@@ -505,7 +505,7 @@ If this is set, methods that could cause type conflicts when two generated inter
 Use the given resource file to obtain information about interfaces defined in an upstream module (refer to "-episode" option of XJC).
 
 
-##### -group-contract.downstreamEpisodeFile=`<string>` (/META-INF/jaxb-interfaces.episode)
+##### -group-contract.downstreamEpisodeFile=`<string>` (META-INF/jaxb-interfaces.episode)
 Generate "episode" file for downstream modules in the given resource location.
 
 ## immutable
