@@ -862,7 +862,7 @@ class BuilderGenerator {
 
 	private BuilderOutline getReferencedBuilderOutline(final JType type) {
 		BuilderOutline builderOutline = null;
-		if (this.pluginContext.getClassOutline(type) == null && this.pluginContext.getEnumOutline(type) == null && type.isReference() && !type.isPrimitive() && !type.isArray() && type.fullName().contains(".")) {
+		if (this.pluginContext.getClassOutline(type) == null && this.pluginContext.getEnumOutline(type) == null && type.isReference() && !type.isArray() && type.fullName().contains(".")) {
 			final Class<?> runtimeParentClass;
 			try {
 				runtimeParentClass = Class.forName(type.binaryName());
@@ -882,7 +882,7 @@ class BuilderGenerator {
 		final JClass parentClass = this.pluginContext.codeModel.ref(runtimeParentClass);
 		final String innerClassName = className.getName(runtimeParentClass.isInterface());
 		final Class<?> runtimeInnerClass = PluginContext.findInnerClass(runtimeParentClass, innerClassName);
-		if (runtimeInnerClass != null) {
+		if (runtimeInnerClass != null && Buildable.class.isAssignableFrom(runtimeInnerClass)) { // look for generated builders in upstream compiled code.
 			final JClass innerSuperClass = runtimeParentClass.getSuperclass() != null ? this.pluginContext.codeModel.ref(runtimeInnerClass.getSuperclass()) : null;
 			return this.pluginContext.ref(parentClass, innerClassName, runtimeInnerClass.isInterface(), Modifier.isAbstract(runtimeInnerClass.getModifiers()), innerSuperClass);
 		} else {
