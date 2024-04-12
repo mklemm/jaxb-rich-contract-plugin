@@ -24,7 +24,8 @@
   ~ THE SOFTWARE.
   -->
 
-<!DOCTYPE xs:schema PUBLIC "-//W3C//DTD XMLSCHEMA 200102//EN" "XMLSchema.dtd" >
+<!DOCTYPE xs:schema PUBLIC "-//W3C//DTD XMLSCHEMA 200102//EN"
+		"/Users/mirko/src/git/jaxb2-rich-contract-plugin/src/test/resources/XMLSchema.dtd" >
 <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
 		   targetNamespace="http://www.w3.org/XML/1998/namespace" xml:lang="en"
 		>

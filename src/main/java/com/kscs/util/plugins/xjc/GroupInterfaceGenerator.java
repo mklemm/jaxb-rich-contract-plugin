@@ -421,6 +421,7 @@ class GroupInterfaceGenerator {
 	}
 
 	private void removeDummyImplementation(final DefinedInterfaceOutline interfaceOutline) {
+		final var allClasses = this.pluginContext.outline.getClasses(); // save class list here before we remove anything, which will cause an assertion failure
 		final ClassOutline classToRemove = interfaceOutline.getClassOutline();
 		if (classToRemove != null) {
 			final List<JMethod> methodsToRemove = new ArrayList<>();
@@ -432,7 +433,8 @@ class GroupInterfaceGenerator {
 			for (final JMethod method : methodsToRemove) {
 				classToRemove._package().objectFactory().methods().remove(method);
 			}
-			this.pluginContext.outline.getClasses().remove(classToRemove);
+			this.pluginContext.outline.getModel().beans().remove(classToRemove.target.getClazz());
+			allClasses.remove(classToRemove);
 		}
 	}
 

@@ -170,9 +170,11 @@ public class EpisodeBuilder {
 
 			bindings.commit();
 
-			final JTextFile jTextFile = new JTextFile(this.episodeFileName);
+			final var unqualifiedEpisodeFileName = this.episodeFileName.substring(this.episodeFileName.lastIndexOf('/') + 1);
+			final var jPackage = this.pluginContext.codeModel._package(this.episodeFileName.substring(0, this.episodeFileName.lastIndexOf('/')).replace('/', '.'));
+			final JTextFile jTextFile = new JTextFile(unqualifiedEpisodeFileName);
 			jTextFile.setContents(stringWriter.toString());
-			this.pluginContext.codeModel.rootPackage().addResourceFile(jTextFile);
+			jPackage.addResourceFile(jTextFile);
 		} catch (final IOException e) {
 			this.pluginContext.errorHandler.error(new SAXParseException("Failed to write to " + this.episodeFileName, null, e));
 		}

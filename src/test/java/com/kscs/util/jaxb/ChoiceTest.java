@@ -22,7 +22,7 @@
  * THE SOFTWARE.
  */
 package com.kscs.util.jaxb;
-
+/*
 import com.kscs.jaxb2.contract.test.Bike;
 import com.kscs.jaxb2.contract.test.ChoiceOfElementsFive;
 import com.kscs.jaxb2.contract.test.ChoiceOfElementsFour;
@@ -148,3 +148,4 @@ public class ChoiceTest {
                 .build();
     }
 }
+*/

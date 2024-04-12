@@ -4,16 +4,16 @@
 			  xmlns:xs="http://www.w3.org/2001/XMLSchema"
 			  xmlns:test="http://www.kscs.com/jaxb2/contract/test"
 			  xmlns:xjc="http://java.sun.com/xml/ns/jaxb/xjc"
-			  xmlns:jcb="https://jakarta.ee/xml/ns/jaxb">
+			  >
 
 
-	<jcb:globalBindings
+	<jxb:globalBindings
 	    fixedAttributeAsConstantProperty="true"
-	    localScoping="toplevel" />
+		localScoping="toplevel">
+		<jxb:javaType name="java.util.Date" xmlType="xs:date" />
+	</jxb:globalBindings>
 
 	<jxb:bindings schemaLocation="jaxb2-plugin-test.xsd">
-		<jxb:bindings>
-		</jxb:bindings>
 		<jxb:bindings node="//xs:element[@name='phone']">
 			<jxb:property name="phoneNumber" />
 		</jxb:bindings>

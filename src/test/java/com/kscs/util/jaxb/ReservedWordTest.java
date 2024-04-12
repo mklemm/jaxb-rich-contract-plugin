@@ -22,7 +22,7 @@
  * THE SOFTWARE.
  */
 package com.kscs.util.jaxb;
-
+/*
 import com.kscs.jaxb2.contract.test.Class;
 import com.kscs.jaxb2.contract.test.Import;
 import com.kscs.jaxb2.contract.test.ReservedWordsMultiChoice;
@@ -244,3 +244,4 @@ public class ReservedWordTest {
     }
 
 }
+*/

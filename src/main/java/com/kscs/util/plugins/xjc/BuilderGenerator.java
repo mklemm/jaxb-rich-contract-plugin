@@ -154,8 +154,8 @@ class BuilderGenerator {
 			final CClassInfo classInfo = (CClassInfo)typeInfo.getTypeInfo();
 			final QName elementName = typeInfo.getTagName();
 			final JClass elementType = classInfo.toType(this.pluginContext.outline, Aspect.EXPOSED);
-			final String fieldName = this.pluginContext.outline.getModel().getNameConverter().toVariableName(elementName.getLocalPart());
-			final String propertyName = this.pluginContext.outline.getModel().getNameConverter().toPropertyName(elementName.getLocalPart());
+			final String fieldName = this.pluginContext.toVariableName(elementName.getLocalPart());
+			final String propertyName = this.pluginContext.toPropertyName(elementName.getLocalPart());
 			final BuilderOutline childBuilderOutline = getBuilderDeclaration(elementType);
 			final BuilderOutline choiceChildBuilderOutline = getBuilderDeclaration(propertyOutline.getElementType());
 			if (childBuilderOutline == null) {
