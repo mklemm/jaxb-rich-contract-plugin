@@ -174,12 +174,12 @@ class BuilderGenerator {
 				final JVar param = withValueMethod.param(JMod.FINAL, elementType, fieldName);
 				generateWithMethodJavadoc(withValueMethod, param, propertyOutline.getSchemaAnnotationText(typeInfo).orElse(null));
 				final JMethod withBuilderMethod = this.builderClass.raw.method(JMod.PUBLIC, builderWithMethodReturnType, PluginContext.WITH_METHOD_PREFIX + propertyName);
-				generateBuilderMethodJavadoc(withBuilderMethod, "with", fieldName, propertyOutline.getSchemaAnnotationText(typeInfo).orElse(null));
+				generateBuilderMethodJavadoc(withBuilderMethod, WITH_METHOD_PREFIX, fieldName, propertyOutline.getSchemaAnnotationText(typeInfo).orElse(null));
 				if (this.implement) {
 					final JFieldVar builderField = this.builderClass.raw.field(JMod.PRIVATE, builderFieldElementType, fieldName);
-					withValueMethod.body().assign(JExpr._this().ref(builderField), nullSafe(param, JExpr._new(builderFieldElementType).arg(JExpr._this()).arg(param)));
+					withValueMethod.body().assign(JExpr._this().ref(builderField), nullSafe(param, JExpr._new(builderFieldElementType).arg(JExpr._this()).arg(param).arg(this.settings.isCopyAlways() ? JExpr.TRUE : JExpr.FALSE)));
 					withValueMethod.body()._return(JExpr._this());
-					withBuilderMethod.body()._return(JExpr._this().ref(builderField).assign(JExpr._new(builderFieldElementType).arg(JExpr._this()).arg(JExpr._null())));
+					withBuilderMethod.body()._return(JExpr._this().ref(builderField).assign(JExpr._new(builderFieldElementType).arg(JExpr._this()).arg(JExpr._null()).arg(this.settings.isCopyAlways() ? JExpr.TRUE : JExpr.FALSE)));
 				}
 			}
 		}
@@ -374,7 +374,7 @@ class BuilderGenerator {
 				withValueMethod.body()._return(JExpr._this());
 				if (withBuilderMethod != null) {
 					withBuilderMethod.body()._if(JExpr._this().ref(builderField).ne(JExpr._null()))._then()._return(JExpr._this().ref(builderField));
-					withBuilderMethod.body()._return(JExpr._this().ref(builderField).assign(JExpr._new(builderFieldElementType).arg(JExpr._this()).arg(JExpr._null()).arg(JExpr.FALSE)));
+					withBuilderMethod.body()._return(JExpr._this().ref(builderField).assign(JExpr._new(builderFieldElementType).arg(JExpr._this()).arg(JExpr._null()).arg(this.settings.isCopyAlways() ? JExpr.TRUE : JExpr.FALSE)));
 				}
 				initBody.assign(productParam.ref(fieldName), nullSafe(JExpr._this().ref(builderField), JExpr._this().ref(builderField).invoke(this.settings.getBuildMethodName())));
 			}
