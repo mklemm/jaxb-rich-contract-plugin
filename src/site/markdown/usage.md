@@ -13,7 +13,7 @@ jaxb2-rich-contract-plugin is a plugin to the XJC "XML to Java compiler" shipped
 
 The plugin has been tested with the [highsource jaxb-maven plugin](https://github.com/highsource/jaxb-tools), version 4.0.0 or later. Other JAXB maven plugins may or may not work.
 You should add the highsource jaxb-maven-plugin to your `<build>` configuration. Of course you must add the JAXB API and implementation dependencies as well.
-The current version 4.0.0 of the plugin supports JAXB 4.0 or later. If you need compatibility with earlier JAXB versions, please use an older version of this plugin.
+The current version of the plugin supports JAXB 4.0 or later. If you need compatibility with earlier JAXB versions, please use an older version of this plugin.
 Then add "jaxb2-rich-contract-plugin" as an XJC plugin ("plugin for plugin") to the maven plugin declaration. The following cheat sheet shows all possible options reflecting their default values:
 
 ``` xml
@@ -22,7 +22,7 @@ Then add "jaxb2-rich-contract-plugin" as an XJC plugin ("plugin for plugin") to 
             <plugin>
                 <groupId>org.jvnet.jaxb</groupId>
                 <artifactId>jaxb-maven-plugin</artifactId>
-                <version>4.0.0</version>
+                <version>4.1.0</version>
                 <executions>
                     <execution>
                         <id>xsd-generate</id>
@@ -96,7 +96,7 @@ Then add "jaxb2-rich-contract-plugin" as an XJC plugin ("plugin for plugin") to 
                         <plugin>
                             <groupId>net.codesup.util</groupId>
                             <artifactId>jaxb2-rich-contract-plugin</artifactId>
-                            <version>4.0.0</version>
+                            <version>4.1.0</version>
                         </plugin>
                     </plugins>
                 </configuration>

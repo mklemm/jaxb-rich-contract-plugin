@@ -39,7 +39,7 @@ Get it with Maven (Now hosted on maven central):
 ``` xml
     <groupId>net.codesup.util</groupId>
     <artifactId>jaxb2-rich-contract-plugin</artifactId>
-    <version>4.0.0</version>
+    <version>4.1.0</version>
 ```
 
 ###  Version History
@@ -167,6 +167,9 @@ Get it with Maven (Now hosted on maven central):
 * **4.0.0**
   	* Supports JAXB 4.0 and later *only*. For compatibility with earlier JAXB versions, use plugin version 2.1.0 or earlier.
     * Handling of command-line plugin arguments changed completely, see NOTES.
+* **4.1.0**
+  	* Bugfixes: 46, 68
+	* Re-integrated some unit tests into the main module and fixed test suite.
     
 
 
@@ -271,7 +274,7 @@ Dieses "cheat sheet" gibt alle verfügbaren Plugin-Optionen an und zeigt, wie di
                         <plugin>
                             <groupId>net.codesup.util</groupId>
                             <artifactId>jaxb2-rich-contract-plugin</artifactId>
-                            <version>4.0.0</version>
+                            <version>4.1.0</version>
                         </plugin>
                     </plugins>
                 </configuration>

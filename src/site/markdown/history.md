@@ -123,6 +123,9 @@
 * **4.0.0**
   	* Supports JAXB 4.0 and later *only*. For compatibility with earlier JAXB versions, use plugin version 2.1.0 or earlier.
     * Handling of command-line plugin arguments changed completely, see NOTES.
+* **4.1.0**
+  	* Bugfixes: 46, 68
+	* Re-integrated some unit tests into the main module and fixed test suite.
     
 
 
