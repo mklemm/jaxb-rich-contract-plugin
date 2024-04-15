@@ -1,0 +1,13 @@
+<!DOCTYPE catalog
+    PUBLIC "-//OASIS//DTD Entity Resolution XML Catalog V1.0//EN"
+           "http://www.oasis-open.org/committees/entity/release/1.0/catalog.dtd">
+<catalog xmlns="urn:oasis:names:tc:entity:xmlns:xml:catalog">
+    <system systemId="datatypes.dtd" uri="file:///Users/mirko/src/git/jaxb2-rich-contract-plugin/src/test/resources/datatypes.dtd"/>
+    <system systemId="datatypes.dtd" uri="file:///Users/mirko/src/git/jaxb2-rich-contract-plugin/src/test/resources/datatypes.dtd"/>
+    <system systemId="XMLSchema.dtd" uri="file:///Users/mirko/src/git/jaxb2-rich-contract-plugin/src/test/resources/XMLSchema.dtd"/>
+    <system systemId="math.xsd" uri="file:///Users/mirko/src/git/jaxb2-rich-contract-plugin/src/test/resources/math.xsd"/>
+    <system systemId="svg.xsd" uri="file:///Users/mirko/src/git/jaxb2-rich-contract-plugin/src/test/resources/svg.xsd"/>
+    <system systemId="XInclude.xsd" uri="file:///Users/mirko/src/git/jaxb2-rich-contract-plugin/src/test/resources/XInclude.xsd"/>
+    <system systemId="xml-ns.xsd" uri="file:///Users/mirko/src/git/jaxb2-rich-contract-plugin/src/test/resources/xml-ns.xsd"/>
+</catalog>
+

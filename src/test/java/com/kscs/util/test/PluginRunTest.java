@@ -37,17 +37,22 @@ import org.junit.Test;
 import com.sun.tools.xjc.Driver;
 
 public class PluginRunTest {
+	final Path outputDir = Paths.get("target/generated-test-sources/xjc");
+	final Path xsdDir = Paths.get("src/test/resources");
+
+	private String inFile(final String name) {
+		return xsdDir.resolve(name).toString();
+	}
+	private String outFile(final String name) {
+		return outputDir.resolve(name).toString();
+	}
 	/**
 	 * Useful for debugging the plugin
 	 */
-	void runPlugin(final String inputFileName, final String bindingFileName, final String... pluginNamesAndArgs) throws Exception {
-		final Path resourcesDir = Paths.get("src/test/resources");
-		final Path schemaFile = resourcesDir.resolve(inputFileName);
-		final Path bindingFile = resourcesDir.resolve(bindingFileName);
+	void runPlugin(final String... pluginArgs) throws Exception {
+		System.setProperty("javax.xml.accessExternalDTD", "all");
+		System.setProperty("javax.xml.accessExternalSchema", "all");
 		// Use the same dir that the maven plugin uses
-		final Path outputDir = Paths.get("target/generated-test-sources/xjc");
-		System.out.println("schemaFile: " + schemaFile.toAbsolutePath().toString());
-		System.out.println("bindingFile: " + bindingFile.toAbsolutePath().toString());
 		System.out.println("outputDir: " + outputDir.toAbsolutePath().toString());
 		clearDirectory(outputDir);
 		// Ensure the full path exists
@@ -58,11 +63,10 @@ public class PluginRunTest {
 				"-verbose",
 				//                "-p", PACKAGE_NAME,
 				"-d", outputDir.toString(),
-				"-b", bindingFile.toString(),
-				schemaFile.toString(),
+				"-catalog", inFile("catalog.xml"),
 				"-extension"
 		));
-		xjcBaseOptions.addAll(List.of(pluginNamesAndArgs));
+		xjcBaseOptions.addAll(List.of(pluginArgs));
 		final String[] xjcOptions = xjcBaseOptions.toArray(new String[0]);
 		System.out.println("Running XJC with arguments:");
 		Arrays.stream(xjcOptions)
@@ -98,8 +102,17 @@ public class PluginRunTest {
 	}
 
 	@Test
-	public void testStandardUse() throws Exception {
-		runPlugin("jaxb2-plugin-test.xsd", "binding-config.xjb", "-Xclone",
+	public void testGenerateAll() throws Exception {
+		runPlugin("-b", inFile("binding-config.xjb"),
+				"-b", inFile("binding-config-xhtml.xjb"),
+				inFile("jaxb2-plugin-test.xsd"),
+				inFile("xml-ns.xsd"),
+				inFile("math.xsd"),
+				inFile("svg.xsd"),
+				inFile("xhtml5.xsd"),
+				"-Xclone",
+				"-meta.generateTools=n",
+				"-fluent-builder.generateTools=n",
 				"-Xfluent-builder",
 				"-Xgroup-contract",
 				"-group-contract.declareSetters=n",
@@ -107,6 +120,7 @@ public class PluginRunTest {
 				"-Xmodifier",
 				"-Xmeta",
 				"-meta.extended=y",
-				"-meta.camelCase=y");
+				"-meta.camelCase=y"
+				);
 	}
 }

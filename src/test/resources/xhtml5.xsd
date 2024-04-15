@@ -39,7 +39,8 @@
            targetNamespace="http://www.w3.org/1999/xhtml"
            elementFormDefault="qualified">
 
-    <xs:import namespace="http://www.w3.org/XML/1998/namespace"/>
+    <xs:import namespace="http://www.w3.org/XML/1998/namespace"
+               schemaLocation="xml-ns.xsd"/>
 
     <xs:import namespace="http://www.w3.org/2000/svg"
                schemaLocation="svg.xsd"/>
