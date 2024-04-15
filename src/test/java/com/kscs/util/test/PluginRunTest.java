@@ -123,4 +123,22 @@ public class PluginRunTest {
 				"-meta.camelCase=y"
 				);
 	}
+
+	@Test
+	public void testGenerateIdRef() throws Exception {
+		runPlugin("-b", inFile("binding-config-idrefs.xjb"),
+				inFile("idrefs-test.xsd"),
+				"-Xclone",
+				"-meta.generateTools=n",
+				"-fluent-builder.generateTools=n",
+				"-Xfluent-builder",
+				"-Xgroup-contract",
+				"-group-contract.declareSetters=n",
+				"-Ximmutable",
+				"-Xmodifier",
+				"-Xmeta",
+				"-meta.extended=y",
+				"-meta.camelCase=y"
+				);
+	}
 }

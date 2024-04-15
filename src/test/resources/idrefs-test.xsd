@@ -1,0 +1,26 @@
+<schema xmlns="http://www.w3.org/2001/XMLSchema" version="1.0"
+  targetNamespace="http://www.kscs.com/jaxb2/contract/test/idrefs"
+  xmlns:tns="http://www.kscs.com/jaxb2/contract/test/idrefs"
+  elementFormDefault="qualified">
+
+  <complexType name="referencing">
+    <sequence>
+      <element name="name" type="string"/>
+      <element name="referenceOne" type="IDREF"/>
+    </sequence>
+    <attribute name="referenceTwo" type="IDREF"/>
+  </complexType>
+
+  <complexType name="referencedOne">
+    <sequence>
+      <element name="content" type="string"/>
+    </sequence>
+    <attribute name="id" type="ID" use="required"/>
+  </complexType>
+  <complexType name="referencedTwo">
+    <sequence>
+      <element name="content" type="string"/>
+    </sequence>
+    <attribute name="id" type="ID" use="required"/>
+  </complexType>
+</schema>
