@@ -32,28 +32,33 @@ import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
 
+import javax.tools.ToolProvider;
+
+import org.junit.Assert;
 import org.junit.Test;
 
 import com.sun.tools.xjc.Driver;
 
+import io.github.classgraph.ClassGraph;
+
 public class PluginRunTest {
-	final Path outputDir = Paths.get("target/generated-test-sources/xjc");
+	final Path compiledCodeDir = Paths.get("target/test/classes");
+	final Path generatedSourcesDir = Paths.get("target/test/generated-sources/xjc");
 	final Path xsdDir = Paths.get("src/test/resources");
 
 	private String inFile(final String name) {
 		return xsdDir.resolve(name).toString();
 	}
-	private String outFile(final String name) {
-		return outputDir.resolve(name).toString();
-	}
+
 	/**
 	 * Useful for debugging the plugin
 	 */
-	void runPlugin(final String... pluginArgs) throws Exception {
+	void runPlugin(final String subDirectory, final String... pluginArgs) throws Exception {
+		final var outputDir = generatedSourcesDir.resolve(subDirectory);
 		System.setProperty("javax.xml.accessExternalDTD", "all");
 		System.setProperty("javax.xml.accessExternalSchema", "all");
 		// Use the same dir that the maven plugin uses
-		System.out.println("outputDir: " + outputDir.toAbsolutePath().toString());
+		System.out.println("outputDir: " + outputDir);
 		// Ensure the full path exists
 		Files.createDirectories(outputDir);
 		final var xjcBaseOptions = new ArrayList<>(List.of(
@@ -100,10 +105,29 @@ public class PluginRunTest {
 		}
 	}
 
+	private void compileTestCode(final String sourceSubDirectory) throws IOException {
+		final var classpath = new ClassGraph().getClasspathFiles();
+
+		final var args = new ArrayList<>(Arrays.asList(
+				"-classpath", classpath.stream().map(java.io.File::toString).reduce((s1, s2) -> s1 + ":" + s2).orElse(""),
+				"-d", this.compiledCodeDir.resolve(sourceSubDirectory).toString()
+		));
+		try(final var s = Files.walk(this.generatedSourcesDir.resolve(sourceSubDirectory))) {
+			s.map(Path::toString).filter(p -> p.endsWith(".java")).forEach(args::add);
+		}
+		final var compiler = ToolProvider.getSystemJavaCompiler();
+		Assert.assertEquals("Test code compiled with errors", 0, compiler.run(System.in, System.out, System.err, args.toArray(new String[0])));
+	}
+
+	public void generateAndCompile(final String subDir, final String... pluginArgs) throws Exception {
+		clearDirectory(this.generatedSourcesDir.resolve(subDir));
+		runPlugin(subDir, pluginArgs);
+		compileTestCode(subDir);
+	}
+
 	@Test
 	public void testGenerateAll() throws Exception {
-		clearDirectory(outputDir);
-		runPlugin("-b", inFile("binding-config.xjb"),
+		generateAndCompile("all","-b", inFile("binding-config.xjb"),
 				"-b", inFile("binding-config-xhtml.xjb"),
 				inFile("jaxb2-plugin-test.xsd"),
 				inFile("xml-ns.xsd"),
@@ -126,8 +150,7 @@ public class PluginRunTest {
 
 	@Test
 	public void testGenerateIdRef() throws Exception {
-		clearDirectory(outputDir.resolve("com.kscs.jaxb2.contract.test.idrefs"));
-		runPlugin("-b", inFile("binding-config-idrefs.xjb"),
+		generateAndCompile("idrefs", "-b", inFile("binding-config-idrefs.xjb"),
 				inFile("idrefs-test.xsd"),
 				"-Xclone",
 				"-meta.generateTools=n",
@@ -144,8 +167,7 @@ public class PluginRunTest {
 	}
 	@Test
 	public void testGenerateCustomList() throws Exception {
-		clearDirectory(outputDir.resolve("com.kscs.jaxb2.contract.test.customlist"));
-		runPlugin("-b", inFile("binding-config-custom-list.xjb"),
+		generateAndCompile("customList","-b", inFile("binding-config-custom-list.xjb"),
 				inFile("custom-list-test.xsd"),
 				"-Xclone",
 				"-meta.generateTools=n",
@@ -162,8 +184,7 @@ public class PluginRunTest {
 	}
 	@Test
 	public void testGenerateDefaultValue() throws Exception {
-		clearDirectory(outputDir.resolve("com.kscs.jaxb2.contract.test.defaultvalue"));
-		runPlugin("-b", inFile("binding-config-default-value.xjb"),
+		generateAndCompile("defaultValue","-b", inFile("binding-config-default-value.xjb"),
 				inFile("default-value-test.xsd"),
 				"-Xclone",
 				"-meta.generateTools=n",
