@@ -54,7 +54,6 @@ public class PluginRunTest {
 		System.setProperty("javax.xml.accessExternalSchema", "all");
 		// Use the same dir that the maven plugin uses
 		System.out.println("outputDir: " + outputDir.toAbsolutePath().toString());
-		clearDirectory(outputDir);
 		// Ensure the full path exists
 		Files.createDirectories(outputDir);
 		final var xjcBaseOptions = new ArrayList<>(List.of(
@@ -103,6 +102,7 @@ public class PluginRunTest {
 
 	@Test
 	public void testGenerateAll() throws Exception {
+		clearDirectory(outputDir);
 		runPlugin("-b", inFile("binding-config.xjb"),
 				"-b", inFile("binding-config-xhtml.xjb"),
 				inFile("jaxb2-plugin-test.xsd"),
@@ -126,8 +126,27 @@ public class PluginRunTest {
 
 	@Test
 	public void testGenerateIdRef() throws Exception {
+		clearDirectory(outputDir.resolve("com.kscs.jaxb2.contract.test.idrefs"));
 		runPlugin("-b", inFile("binding-config-idrefs.xjb"),
 				inFile("idrefs-test.xsd"),
+				"-Xclone",
+				"-meta.generateTools=n",
+				"-fluent-builder.generateTools=n",
+				"-Xfluent-builder",
+				"-Xgroup-contract",
+				"-group-contract.declareSetters=n",
+				"-Ximmutable",
+				"-Xmodifier",
+				"-Xmeta",
+				"-meta.extended=y",
+				"-meta.camelCase=y"
+				);
+	}
+	@Test
+	public void testGenerateCustomList() throws Exception {
+		clearDirectory(outputDir.resolve("com.kscs.jaxb2.contract.test.customlist"));
+		runPlugin("-b", inFile("binding-config-custom-list.xjb"),
+				inFile("custom-list-test.xsd"),
 				"-Xclone",
 				"-meta.generateTools=n",
 				"-fluent-builder.generateTools=n",

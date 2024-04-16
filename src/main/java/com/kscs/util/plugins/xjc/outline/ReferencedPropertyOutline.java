@@ -24,17 +24,19 @@
 
 package com.kscs.util.plugins.xjc.outline;
 
-import com.sun.codemodel.JCodeModel;
-import com.sun.codemodel.JFieldVar;
-import com.sun.codemodel.JType;
-
-import jakarta.xml.bind.JAXBElement;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.ParameterizedType;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+
+import com.sun.codemodel.JClass;
+import com.sun.codemodel.JCodeModel;
+import com.sun.codemodel.JFieldVar;
+import com.sun.codemodel.JType;
+
+import jakarta.xml.bind.JAXBElement;
 
 /**
  * @author Mirko Klemm 2015-01-28
@@ -126,5 +128,10 @@ public class ReferencedPropertyOutline implements PropertyOutline {
 	@Override
 	public List<TagRef> getChoiceProperties() {
 		return Collections.emptyList();
+	}
+
+	@Override
+	public JClass getMutableListClass() {
+		return codeModel.ref(field.getType());
 	}
 }

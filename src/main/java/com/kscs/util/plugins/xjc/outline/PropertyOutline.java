@@ -31,6 +31,7 @@ import javax.xml.namespace.QName;
 
 import org.glassfish.jaxb.core.v2.model.core.TypeInfo;
 
+import com.sun.codemodel.JClass;
 import com.sun.codemodel.JFieldVar;
 import com.sun.codemodel.JType;
 import com.sun.tools.xjc.model.nav.NClass;
@@ -49,6 +50,7 @@ public interface PropertyOutline {
 	boolean isCollection();
 	boolean isIndirect();
 	List<TagRef> getChoiceProperties();
+	JClass getMutableListClass();
 
 	/**
 	 * @return The annotation description text from the corresponding part of the schema if there is any.

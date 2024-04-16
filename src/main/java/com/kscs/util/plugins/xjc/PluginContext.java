@@ -306,6 +306,25 @@ public class PluginContext extends Plugin {
 		return null;
 	}
 
+	public static JClass extractMutableListClass(final FieldOutline fieldOutline) {
+		// This is a dirty hack, but there is no other way to get the configured collection class.
+		// Standard customizations don't appear in the "customizations" collection, customizations aren't even accessible
+		// on the schema component level if they are not defined in the schema document itself as annotations.
+		final var customMutableListClass = (JClass)readPrivateField(fieldOutline, "coreList");
+		return customMutableListClass == null ? fieldOutline.getRawType().owner().ref(ArrayList.class) : customMutableListClass.erasure();
+	}
+
+	private static Object readPrivateField(final Object obj, final String fieldName) {
+		try {
+			final var cls = obj.getClass();
+			final var field = cls.getDeclaredField(fieldName);
+			field.setAccessible(true);
+			return field.get(obj);
+		} catch (IllegalAccessException | NoSuchFieldException e) {
+			return null;
+		}
+	}
+
 	private boolean cloneThrows(final Class<? extends Cloneable> cloneableClass) {
 		if (cloneableClass.getSuperclass() == null) {
 			// java.lang.Object.clone() throws CloneNotSupportedException
@@ -358,15 +377,15 @@ public class PluginContext extends Plugin {
 		return this.enums.get(typeSpec.fullName());
 	}
 
-	public JForEach loop(final JBlock block, final JExpression source, final JType sourceElementType, final JAssignmentTarget target, final JType targetElementType) {
+	public JForEach loop(final JBlock block, final JExpression source, final JType sourceElementType, final JAssignmentTarget target, final JType targetElementType, final FieldOutline fieldOutline) {
 		final JConditional ifNull = block._if(source.eq(JExpr._null()));
 		ifNull._then().assign(target, JExpr._null());
-		ifNull._else().assign(target, JExpr._new(this.arrayListClass.narrow(targetElementType)));
+		ifNull._else().assign(target, JExpr._new(extractMutableListClass(fieldOutline).narrow(targetElementType)));
 		return ifNull._else().forEach(sourceElementType, "_item", source);
 	}
 
-	public JInvocation newArrayList(final JClass elementType) {
-		return JExpr._new(this.arrayListClass.narrow(elementType));
+	public JInvocation newArrayList(final JClass mutableListClass, final JClass elementType) {
+		return JExpr._new(mutableListClass.narrow(elementType));
 	}
 
 

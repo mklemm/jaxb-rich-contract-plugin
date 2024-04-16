@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8" ?>
+
+<jxb:bindings version="3.0" xmlns:jxb="https://jakarta.ee/xml/ns/jaxb" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+
+	<jxb:bindings schemaLocation="custom-list-test.xsd" node="/xs:schema">
+		<jxb:bindings node="xs:complexType[@name='CustomListTest']">
+			<jxb:bindings node="xs:sequence/xs:element[@name='customList']">
+				<jxb:property collectionType="java.util.LinkedList" />
+			</jxb:bindings>
+		</jxb:bindings>
+	</jxb:bindings>
+
+</jxb:bindings>

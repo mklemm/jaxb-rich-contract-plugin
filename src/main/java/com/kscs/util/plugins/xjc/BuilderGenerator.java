@@ -220,7 +220,7 @@ class BuilderGenerator {
 			final BuilderOutline choiceChildBuilderOutline = getBuilderDeclaration(propertyOutline.getElementType());
 			final JClass childBuilderType = childBuilderOutline == null ? this.pluginContext.buildableInterface : childBuilderOutline.getBuilderClass().narrow(this.builderClass.type);
 			final JClass builderFieldElementType = choiceChildBuilderOutline == null ? this.pluginContext.buildableInterface : choiceChildBuilderOutline.getBuilderClass().narrow(this.builderClass.type);
-			final JClass builderArrayListClass = this.pluginContext.arrayListClass.narrow(builderFieldElementType);
+			final JClass builderArrayListClass = propertyOutline.getMutableListClass().narrow(builderFieldElementType);
 			final JFieldVar builderField = this.builderClass.raw.fields().get(propertyOutline.getFieldName());
 			addVarargsMethod.body()._return(JExpr.invoke(addIterableMethod).arg(this.pluginContext.asList(addVarargsParam)));
 			if (addMethod == null) {
@@ -304,7 +304,7 @@ class BuilderGenerator {
 		}
 		if (this.implement) {
 			final JClass childBuilderType = childBuilderOutline == null ? this.pluginContext.buildableInterface : childBuilderOutline.getBuilderClass().narrow(this.builderClass.type);
-			final JClass builderArrayListClass = this.pluginContext.arrayListClass.narrow(childBuilderType);
+			final JClass builderArrayListClass = propertyOutline.getMutableListClass().narrow(childBuilderType);
 			final JClass builderListClass = this.pluginContext.listClass.narrow(childBuilderType);
 			final JFieldVar builderField = this.builderClass.raw.field(JMod.PRIVATE, builderListClass, fieldName);
 			addVarargsMethod.body().invoke(addIterableMethod).arg(this.pluginContext.asList(addVarargsParam));
@@ -324,7 +324,10 @@ class BuilderGenerator {
 			withIterableIfNull._then().add(JExpr._this().ref(builderField).invoke("clear"));
 			withIterableMethod.body()._return(JExpr.invoke(addIterableMethod).arg(withIterableParam));
 			final JConditional ifNull = initBody._if(JExpr._this().ref(builderField).ne(JExpr._null()));
-			final JVar collectionVar = ifNull._then().decl(JMod.FINAL, this.pluginContext.listClass.narrow(elementType), fieldName, JExpr._new(this.pluginContext.arrayListClass.narrow(elementType)).arg(JExpr._this().ref(builderField).invoke("size")));
+			final var newMutableListExpression = JExpr._new(propertyOutline.getMutableListClass().narrow(elementType));
+			final var mutableListClassFullName = propertyOutline.getMutableListClass().fullName();
+			final var newMutableListExpressionWithArg = mutableListClassFullName.equals("java.util.ArrayList") ? newMutableListExpression.arg(JExpr._this().ref(builderField).invoke("size")) : newMutableListExpression;
+			final JVar collectionVar = ifNull._then().decl(JMod.FINAL, this.pluginContext.listClass.narrow(elementType), fieldName, newMutableListExpressionWithArg);
 			final JForEach initForEach = ifNull._then().forEach(childBuilderType, BuilderGenerator.ITEM_VAR_NAME, JExpr._this().ref(builderField));
 			final JInvocation buildMethodInvocation = initForEach.var().invoke(this.settings.getBuildMethodName());
 			final JExpression buildExpression = childBuilderOutline == null ? JExpr.cast(elementType, buildMethodInvocation) : buildMethodInvocation;
@@ -643,24 +646,24 @@ class BuilderGenerator {
 							final BuilderOutline childBuilderOutline = getBuilderDeclaration(elementType);
 							if (this.settings.isGeneratingNarrowCopy() && this.pluginContext.canInstantiate(elementType)) {
 								final JClass childBuilderType = childBuilderOutline.getBuilderClass().narrow(this.builderClass.type);
-								final JForEach forLoop = loop(currentBlock, sourceRef, elementType, targetField, childBuilderType);
+								final JForEach forLoop = loop(currentBlock, sourceRef, elementType, targetField, childBuilderType, fieldOutline);
 								forLoop.body().invoke(targetField, ADD_METHOD_PREFIX).arg(nullSafe(forLoop.var(), treeVarGenerator.generatePartialArgs(this.pluginContext.invoke(elementType, this.pluginContext.buildCopyMethodName).narrow(this.builderClass.type).arg(forLoop.var()))));
 							} else if (childBuilderOutline != null) {
 								final JClass childBuilderType = childBuilderOutline.getBuilderClass().narrow(this.builderClass.type);
-								final JForEach forLoop = loop(currentBlock, sourceRef, elementType, targetField, childBuilderType);
+								final JForEach forLoop = loop(currentBlock, sourceRef, elementType, targetField, childBuilderType, fieldOutline);
 								forLoop.body().invoke(targetField, ADD_METHOD_PREFIX).arg(nullSafe(forLoop.var(), treeVarGenerator.generatePartialArgs(this.pluginContext.invoke(forLoop.var(), this.settings.getNewCopyBuilderMethodName()).arg(targetObject))));
 							} else if (this.pluginContext.partialCopyableInterface.isAssignableFrom(elementType)) {
-								final JForEach forLoop = loop(currentBlock, sourceRef, elementType, targetField, elementType);
+								final JForEach forLoop = loop(currentBlock, sourceRef, elementType, targetField, elementType, fieldOutline);
 								forLoop.body().invoke(targetField, ADD_METHOD_PREFIX).arg(nullSafe(forLoop.var(), JExpr._new(this.pluginContext.buildableClass).arg(treeVarGenerator.generatePartialArgs(forLoop.var().invoke(this.pluginContext.copyMethodName)))));
 							} else if (this.pluginContext.copyableInterface.isAssignableFrom(elementType)) {
-								final JForEach forLoop = loop(currentBlock, sourceRef, elementType, targetField, elementType);
+								final JForEach forLoop = loop(currentBlock, sourceRef, elementType, targetField, elementType, fieldOutline);
 								forLoop.body().invoke(targetField, ADD_METHOD_PREFIX).arg(nullSafe(forLoop.var(), JExpr._new(this.pluginContext.buildableClass).arg(forLoop.var().invoke(this.pluginContext.copyMethodName))));
 							} else if (this.pluginContext.cloneableInterface.isAssignableFrom(elementType)) {
 								final JBlock maybeTryBlock = this.pluginContext.catchCloneNotSupported(currentBlock, elementType);
-								final JForEach forLoop = loop(maybeTryBlock, sourceRef, elementType, targetField, this.pluginContext.buildableInterface);
+								final JForEach forLoop = loop(maybeTryBlock, sourceRef, elementType, targetField, this.pluginContext.buildableInterface, fieldOutline);
 								forLoop.body().invoke(targetField, ADD_METHOD_PREFIX).arg(nullSafe(forLoop.var(), JExpr._new(this.pluginContext.buildableClass).arg(forLoop.var().invoke(this.pluginContext.cloneMethodName))));
 							} else {
-								final JForEach forLoop = loop(currentBlock, sourceRef, elementType, targetField, this.pluginContext.buildableInterface);
+								final JForEach forLoop = loop(currentBlock, sourceRef, elementType, targetField, this.pluginContext.buildableInterface, fieldOutline);
 								forLoop.body().invoke(targetField, ADD_METHOD_PREFIX).arg(nullSafe(forLoop.var(), JExpr._new(this.pluginContext.buildableClass).arg(forLoop.var())));
 							}
 						} else {
@@ -808,10 +811,10 @@ class BuilderGenerator {
 		}
 	}
 
-	JForEach loop(final JBlock block, final JExpression source, final JType sourceElementType, final JAssignmentTarget target, final JType targetElementType) {
+	JForEach loop(final JBlock block, final JExpression source, final JType sourceElementType, final JAssignmentTarget target, final JType targetElementType, final PropertyOutline propertyOutline) {
 		final JConditional ifNull = block._if(source.eq(JExpr._null()));
 		ifNull._then().assign(target, JExpr._null());
-		ifNull._else().assign(target, JExpr._new(this.pluginContext.arrayListClass.narrow(targetElementType)));
+		ifNull._else().assign(target, JExpr._new(propertyOutline.getMutableListClass().narrow(targetElementType)));
 		return ifNull._else().forEach(sourceElementType, BuilderGenerator.ITEM_VAR_NAME, source);
 	}
 

@@ -37,6 +37,7 @@ import org.glassfish.jaxb.core.v2.model.core.PropertyInfo;
 import org.glassfish.jaxb.core.v2.model.core.ReferencePropertyInfo;
 import org.glassfish.jaxb.core.v2.model.core.TypeRef;
 
+import com.kscs.util.plugins.xjc.PluginContext;
 import com.kscs.util.plugins.xjc.SchemaAnnotationUtils;
 import com.sun.codemodel.JClass;
 import com.sun.codemodel.JFieldVar;
@@ -61,11 +62,14 @@ public class DefinedPropertyOutline implements PropertyOutline {
 	private final Map<TagRef, String> referencedAnnotations;
 	private final JClass jaxbElementClass;
 	private final String annotationText;
+	private final JClass mutableListClass;
 
 	public DefinedPropertyOutline(final FieldOutline fieldOutline) {
+		fieldOutline.getRawType();
+		final var codeModel = fieldOutline.getRawType().owner();
 		this.fieldOutline = fieldOutline;
 		this.propertyInfo = fieldOutline.getPropertyInfo();
-		this.jaxbElementClass = fieldOutline.getRawType().owner().ref(JAXBElement.class);
+		this.jaxbElementClass = codeModel.ref(JAXBElement.class);
 
 		final ClassOutline classOutline = fieldOutline.parent();
 		final CClassInfo classInfo = classOutline.target;
@@ -108,6 +112,7 @@ public class DefinedPropertyOutline implements PropertyOutline {
 			this.referencedAnnotations = Collections.emptyMap();
 			this.annotationText = SchemaAnnotationUtils.getFieldAnnotationDescription(property);
 		}
+		this.mutableListClass = PluginContext.extractMutableListClass(fieldOutline);
 	}
 
 	private CPropertyInfo getPropertyInfo(final CClassInfo classInfo, final String fieldName) {
@@ -199,4 +204,8 @@ public class DefinedPropertyOutline implements PropertyOutline {
 		return getRawType().isArray();
 	}
 
+	@Override
+	public JClass getMutableListClass() {
+		return this.mutableListClass;
+	}
 }

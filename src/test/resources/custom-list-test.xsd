@@ -1,0 +1,13 @@
+<schema xmlns="http://www.w3.org/2001/XMLSchema" version="1.0"
+  targetNamespace="http://www.kscs.com/jaxb2/contract/test/customlist"
+  xmlns:tns="http://www.kscs.com/jaxb2/contract/test/idrefs"
+  elementFormDefault="qualified">
+
+  <complexType name="CustomListTest">
+    <sequence>
+      <element name="customList" type="string" minOccurs="0" maxOccurs="unbounded"/>
+      <element name="normalList" type="string" minOccurs="0" maxOccurs="unbounded"/>
+    </sequence>
+  </complexType>
+
+</schema>

@@ -24,6 +24,9 @@
 
 package com.kscs.util.plugins.xjc;
 
+import org.xml.sax.ErrorHandler;
+import org.xml.sax.SAXException;
+
 import com.kscs.util.plugins.xjc.base.AbstractPlugin;
 import com.kscs.util.plugins.xjc.base.Opt;
 import com.kscs.util.plugins.xjc.base.PluginUtil;
@@ -41,8 +44,6 @@ import com.sun.tools.xjc.Options;
 import com.sun.tools.xjc.outline.ClassOutline;
 import com.sun.tools.xjc.outline.FieldOutline;
 import com.sun.tools.xjc.outline.Outline;
-import org.xml.sax.ErrorHandler;
-import org.xml.sax.SAXException;
 
 import static com.kscs.util.plugins.xjc.base.PluginUtil.nullSafe;
 
@@ -100,10 +101,10 @@ public class DeepClonePlugin extends AbstractPlugin {
 						if (pluginContext.cloneableInterface.isAssignableFrom(elementType)) {
 							final JBlock maybeTryBlock = this.cloneThrows ? body : pluginContext.catchCloneNotSupported(body, elementType);
 							cloneNotSupportedExceptionPossible |= pluginContext.mustCatch(elementType);
-							final JForEach forLoop = pluginContext.loop(maybeTryBlock, fieldRef, elementType, newField, elementType);
+							final JForEach forLoop = pluginContext.loop(maybeTryBlock, fieldRef, elementType, newField, elementType, fieldOutline);
 							forLoop.body().invoke(newField, "add").arg(nullSafe(forLoop.var(), pluginContext.castOnDemand(elementType, forLoop.var().invoke(pluginContext.cloneMethodName))));
 						} else {
-							body.assign(newField, nullSafe(fieldRef, pluginContext.newArrayList(elementType).arg(fieldRef)));
+							body.assign(newField, nullSafe(fieldRef, pluginContext.newArrayList(PluginContext.extractMutableListClass(fieldOutline), elementType).arg(fieldRef)));
 						}
 						pluginContext.generateImmutableFieldInit(body, newObjectVar, field);
 					} else if (pluginContext.cloneableInterface.isAssignableFrom(fieldType)) {

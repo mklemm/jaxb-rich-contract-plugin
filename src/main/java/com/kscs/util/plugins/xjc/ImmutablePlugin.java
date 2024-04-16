@@ -87,7 +87,7 @@ public class ImmutablePlugin extends AbstractPlugin {
 						definedClass.methods().remove(oldGetter);
 						final JMethod newGetter = definedClass.method(JMod.PUBLIC, getterType, oldGetter.name());
 						final JConditional ifFieldNull = newGetter.body()._if(JExpr._this().ref(declaredField).eq(JExpr._null()));
-						ifFieldNull._then().assign(JExpr._this().ref(declaredField), JExpr._new(pluginContext.arrayListClass.narrow(elementType)));
+						ifFieldNull._then().assign(JExpr._this().ref(declaredField), JExpr._new(PluginContext.extractMutableListClass(fieldOutline).narrow(elementType)));
 
 						final JConditional ifImmutableFieldNull = newGetter.body()._if(JExpr._this().ref(immutableField).eq(JExpr._null()));
 						immutableInit(pluginContext, ifImmutableFieldNull._then(), JExpr._this(), declaredField);

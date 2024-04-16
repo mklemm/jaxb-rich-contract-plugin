@@ -59,7 +59,7 @@ public class DeepCopyGenerator {
 		this.classOutline = classOutline;
 	}
 
-	public void generateFieldCopyExpression(final CopyGenerator cloneGenerator, final JBlock body, final JExpression targetObject, final JFieldVar field, final JAssignmentTarget targetField, final JExpression sourceField) {
+	public void generateFieldCopyExpression(final CopyGenerator cloneGenerator, final JBlock body, final JExpression targetObject, final JFieldVar field, final JAssignmentTarget targetField, final JExpression sourceField, final FieldOutline fieldOutline) {
 		final PropertyTreeVarGenerator treeVarGenerator = cloneGenerator.createPropertyTreeVarGenerator(body, field.name());
 		final JBlock currentBlock = treeVarGenerator.generateEnclosingBlock(body);
 		if (field.type().isReference()) {
@@ -67,17 +67,17 @@ public class DeepCopyGenerator {
 			if (this.pluginContext.collectionClass.isAssignableFrom(fieldType)) {
 				final JClass elementType = fieldType.getTypeParameters().get(0);
 				if (this.pluginContext.partialCopyableInterface.isAssignableFrom(elementType)) {
-					final JForEach forLoop = this.pluginContext.loop(currentBlock, sourceField, elementType, targetField, elementType);
+					final JForEach forLoop = this.pluginContext.loop(currentBlock, sourceField, elementType, targetField, elementType, fieldOutline);
 					forLoop.body().invoke(targetField, "add").arg(nullSafe(forLoop.var(), this.pluginContext.castOnDemand(elementType, treeVarGenerator.generatePartialArgs(forLoop.var().invoke(this.pluginContext.copyMethodName)))));
 				} else if (this.pluginContext.copyableInterface.isAssignableFrom(elementType)) {
-					final JForEach forLoop = this.pluginContext.loop(currentBlock, sourceField, elementType, targetField, elementType);
+					final JForEach forLoop = this.pluginContext.loop(currentBlock, sourceField, elementType, targetField, elementType, fieldOutline);
 					forLoop.body().invoke(targetField, "add").arg(nullSafe(forLoop.var(), this.pluginContext.castOnDemand(elementType, forLoop.var().invoke(this.pluginContext.copyMethodName))));
 				} else if (this.pluginContext.cloneableInterface.isAssignableFrom(elementType)) {
 					final JBlock maybeTryBlock = this.pluginContext.catchCloneNotSupported(currentBlock, elementType);
-					final JForEach forLoop = this.pluginContext.loop(maybeTryBlock, sourceField, elementType, targetField, elementType);
+					final JForEach forLoop = this.pluginContext.loop(maybeTryBlock, sourceField, elementType, targetField, elementType, fieldOutline);
 					forLoop.body().invoke(targetField, "add").arg(nullSafe(forLoop.var(), this.pluginContext.castOnDemand(elementType, forLoop.var().invoke(this.pluginContext.cloneMethodName))));
 				} else {
-					currentBlock.assign(targetField, nullSafe(sourceField, this.pluginContext.newArrayList(elementType).arg(sourceField)));
+					currentBlock.assign(targetField, nullSafe(sourceField, this.pluginContext.newArrayList(PluginContext.extractMutableListClass(fieldOutline), elementType).arg(sourceField)));
 				}
 
 				this.pluginContext.generateImmutableFieldInit(body, targetObject, field);
@@ -129,7 +129,7 @@ public class DeepCopyGenerator {
 			final JFieldVar field = PluginUtil.getDeclaredField(fieldOutline);
 			if (field != null) {
 				if ((field.mods().getValue() & (JMod.FINAL | JMod.STATIC)) == 0) {
-					generateFieldCopyExpression(cloneGenerator, body, targetObject, field, targetObject.ref(field.name()), sourceObject.ref(field.name()));
+					generateFieldCopyExpression(cloneGenerator, body, targetObject, field, targetObject.ref(field.name()), sourceObject.ref(field.name()), fieldOutline);
 				}
 			}
 		}
