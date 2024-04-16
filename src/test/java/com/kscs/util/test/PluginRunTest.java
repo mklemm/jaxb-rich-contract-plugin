@@ -160,4 +160,22 @@ public class PluginRunTest {
 				"-meta.camelCase=y"
 				);
 	}
+	@Test
+	public void testGenerateDefaultValue() throws Exception {
+		clearDirectory(outputDir.resolve("com.kscs.jaxb2.contract.test.defaultvalue"));
+		runPlugin("-b", inFile("binding-config-default-value.xjb"),
+				inFile("default-value-test.xsd"),
+				"-Xclone",
+				"-meta.generateTools=n",
+				"-fluent-builder.generateTools=n",
+				"-Xfluent-builder",
+				"-Xgroup-contract",
+				"-group-contract.declareSetters=n",
+				"-Ximmutable",
+				"-Xmodifier",
+				"-Xmeta",
+				"-meta.extended=y",
+				"-meta.camelCase=y"
+				);
+	}
 }

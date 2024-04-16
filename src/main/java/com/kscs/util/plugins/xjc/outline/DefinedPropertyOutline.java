@@ -208,4 +208,8 @@ public class DefinedPropertyOutline implements PropertyOutline {
 	public JClass getMutableListClass() {
 		return this.mutableListClass;
 	}
+
+	public FieldOutline getFieldOutline() {
+		return this.fieldOutline;
+	}
 }

@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8" ?>
+
+<jxb:bindings version="3.0" xmlns:jxb="https://jakarta.ee/xml/ns/jaxb" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+
+	<jxb:bindings schemaLocation="default-value-test.xsd" node="/xs:schema">
+
+	</jxb:bindings>
+
+</jxb:bindings>

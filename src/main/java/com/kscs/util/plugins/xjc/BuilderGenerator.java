@@ -127,7 +127,7 @@ class BuilderGenerator {
 		}
 	}
 
-	void generateBuilderMember(final PropertyOutline propertyOutline, final JBlock initBody, final JVar productParam) {
+	void generateBuilderMember(final DefinedPropertyOutline propertyOutline, final JBlock initBody, final JVar productParam) {
 		final JType fieldType = propertyOutline.getRawType();
 		if (propertyOutline.isCollection()) {
 			if (propertyOutline.getRawType().isArray()) {
@@ -344,7 +344,7 @@ class BuilderGenerator {
 		}
 	}
 
-	private void generateSingularProperty(final JBlock initBody, final JVar productParam, final PropertyOutline propertyOutline) {
+	private void generateSingularProperty(final JBlock initBody, final JVar productParam, final DefinedPropertyOutline propertyOutline) {
 		final String propertyName = propertyOutline.getBaseName();
 		final String fieldName = propertyOutline.getFieldName();
 		final JType fieldType = propertyOutline.getRawType();
@@ -355,7 +355,11 @@ class BuilderGenerator {
 			generateWithMethodJavadoc(withMethod, param, propertyOutline.getSchemaAnnotationText().orElse(null));
 			final JFieldVar builderField;
 			if (this.implement) {
-				builderField = this.builderClass.raw.field(JMod.PRIVATE, fieldType, fieldName);
+				if(propertyOutline.getFieldOutline().getPropertyInfo().defaultValue != null) {
+					builderField = this.builderClass.raw.field(JMod.PRIVATE, fieldType, fieldName, propertyOutline.getFieldOutline().getPropertyInfo().defaultValue.compute(this.pluginContext.outline));
+				} else {
+					builderField = this.builderClass.raw.field(JMod.PRIVATE, fieldType, fieldName);
+				}
 				withMethod.body().assign(JExpr._this().ref(builderField), param);
 				withMethod.body()._return(JExpr._this());
 				initBody.assign(productParam.ref(fieldName), JExpr._this().ref(builderField));
@@ -710,9 +714,9 @@ class BuilderGenerator {
 		generateDefinedClassJavadoc();
 
 		if (this.typeOutline.getDeclaredFields() != null) {
-			for (final PropertyOutline fieldOutline : this.typeOutline.getDeclaredFields()) {
-				if (fieldOutline.hasGetter()) {
-					generateBuilderMember(fieldOutline, initBody, productParam);
+			for (final DefinedPropertyOutline propertyOutline : this.typeOutline.getDeclaredFields()) {
+				if (propertyOutline.hasGetter()) {
+					generateBuilderMember(propertyOutline, initBody, productParam);
 				}
 			}
 		}
