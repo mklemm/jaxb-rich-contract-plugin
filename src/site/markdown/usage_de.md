@@ -24,7 +24,7 @@ Dieses "cheat sheet" gibt alle verfügbaren Plugin-Optionen an und zeigt, wie di
             <plugin>
                 <groupId>org.jvnet.jaxb</groupId>
                 <artifactId>jaxb-maven-plugin</artifactId>
-                <version>4.0.0</version>
+                <version>4.0.6</version>
                 <executions>
                     <execution>
                         <id>xsd-generate</id>
