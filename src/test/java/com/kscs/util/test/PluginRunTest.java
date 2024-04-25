@@ -39,6 +39,7 @@ import org.junit.Test;
 
 import com.kscs.util.plugins.xjc.GroupInterfaceDirectStrategy;
 import com.kscs.util.plugins.xjc.GroupInterfaceDummyStrategy;
+import com.kscs.util.plugins.xjc.GroupInterfaceModelProcessingStrategy;
 import com.sun.tools.xjc.Driver;
 
 import io.github.classgraph.ClassGraph;
@@ -203,7 +204,7 @@ public class PluginRunTest {
 	}
 	@Test
 	public void testGroupInterfaceDummy() throws Exception {
-		System.setProperty("group-contract.complexTypeGeneratorStrategy", GroupInterfaceDummyStrategy.class.getName());
+		System.setProperty(GroupInterfaceModelProcessingStrategy.class.getName(), GroupInterfaceDummyStrategy.class.getName());
 		generateAndCompile("gidummy",
 				//"-b", inFile("binding-config-group-interface.xjb"),
 				inFile("group-interface-test.xsd"),
@@ -213,7 +214,7 @@ public class PluginRunTest {
 	}
 	@Test
 	public void testGroupInterfaceDirect() throws Exception {
-		System.setProperty("group-contract.complexTypeGeneratorStrategy", GroupInterfaceDirectStrategy.class.getName());
+		System.setProperty(GroupInterfaceModelProcessingStrategy.class.getName(), GroupInterfaceDirectStrategy.class.getName());
 		generateAndCompile("gidirect",
 				//"-b", inFile("binding-config-group-interface.xjb"),
 				inFile("group-interface-test.xsd"),
@@ -223,7 +224,7 @@ public class PluginRunTest {
 	}
 	@Test
 	public void testGroupInterfaceDirectFull() throws Exception {
-		System.setProperty("group-contract.complexTypeGeneratorStrategy", GroupInterfaceDirectStrategy.class.getName());
+		System.setProperty(GroupInterfaceModelProcessingStrategy.class.getName(), GroupInterfaceDirectStrategy.class.getName());
 		generateAndCompile("gidifu",
 				"-b", inFile("binding-config-group-interface.xjb"),
 				inFile("group-interface-test.xsd"),
@@ -242,7 +243,7 @@ public class PluginRunTest {
 	}
 	@Test
 	public void testGroupInterfaceCustom() throws Exception {
-		System.setProperty("group-contract.complexTypeGeneratorStrategy", GroupInterfaceDirectStrategy.class.getName());
+		System.setProperty(GroupInterfaceModelProcessingStrategy.class.getName(), GroupInterfaceDirectStrategy.class.getName());
 		generateAndCompile("gicustom",
 				"-b", inFile("binding-config-group-interface.xjb"),
 				inFile("group-interface-test.xsd")

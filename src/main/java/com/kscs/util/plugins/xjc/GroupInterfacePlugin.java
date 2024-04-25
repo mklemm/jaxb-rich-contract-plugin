@@ -24,7 +24,6 @@
 package com.kscs.util.plugins.xjc;
 
 import java.io.IOException;
-import java.lang.reflect.InvocationTargetException;
 import java.net.URL;
 import java.util.Collections;
 import java.util.Enumeration;
@@ -36,6 +35,7 @@ import org.xml.sax.SAXException;
 import com.kscs.util.plugins.xjc.base.AbstractPlugin;
 import com.kscs.util.plugins.xjc.base.Namespaces;
 import com.kscs.util.plugins.xjc.base.Opt;
+import com.kscs.util.plugins.xjc.base.PluginUtil;
 import com.kscs.util.plugins.xjc.outline.TypeOutline;
 import com.sun.tools.xjc.BadCommandLineException;
 import com.sun.tools.xjc.Options;
@@ -62,7 +62,7 @@ public class GroupInterfacePlugin extends AbstractPlugin {
 	private GroupInterfaceGenerator generator = null;
 
 	public GroupInterfacePlugin() {
-		this.complexTypeGeneratorStrategy = getConfiguredObject("group-contract.complexTypeGeneratorStrategy", GroupInterfaceDirectStrategy.class);
+		this.complexTypeGeneratorStrategy = PluginUtil.getConfiguredObject(GroupInterfaceModelProcessingStrategy.class, GroupInterfaceDirectStrategy.class);
 	}
 
 	@Override
@@ -126,24 +126,4 @@ public class GroupInterfacePlugin extends AbstractPlugin {
 		}
 	}
 
-	public final <T> T getConfiguredObject(final String systemPropertyName, final Class<T> defaultClass) {
-		final String strategyClassName = System.getProperty(systemPropertyName);
-		Class<T> strategyClass;
-		if (strategyClassName == null || strategyClassName.trim().isEmpty()) {
-			strategyClass = defaultClass;
-		} else {
-			try {
-				strategyClass = ((Class<T>)Class.forName(strategyClassName));
-			} catch (final ClassNotFoundException cnfe) {
-				strategyClass = defaultClass;
-			}
-		}
-		try {
-			return strategyClass.getConstructor().newInstance();
-		} catch (final NoSuchMethodException e) {
-			throw new RuntimeException(getMessage("error.no-such-constructor", strategyClassName), e);
-		} catch (final InvocationTargetException | InstantiationException | IllegalAccessException ex) {
-			throw new RuntimeException(getMessage("error.cannot-instatiate-strategy", strategyClassName), ex);
-		}
-	}
 }

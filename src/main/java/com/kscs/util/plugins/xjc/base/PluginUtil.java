@@ -24,6 +24,10 @@
 
 package com.kscs.util.plugins.xjc.base;
 
+import java.lang.reflect.InvocationTargetException;
+import java.text.MessageFormat;
+import java.util.ResourceBundle;
+
 import com.kscs.util.plugins.xjc.outline.PropertyOutline;
 import com.sun.codemodel.JClass;
 import com.sun.codemodel.JExpr;
@@ -37,6 +41,15 @@ import com.sun.tools.xjc.outline.FieldOutline;
  * Common utilities for XJC plugins
  */
 public final class PluginUtil {
+	private static final ResourceBundle resourceBundle = PropertyDirectoryResourceBundle.getInstance(PluginUtil.class);
+
+	private static String getMessage(final String key, final Object... args) {
+		return MessageFormat.format(PluginUtil.resourceBundle.getString(key), args);
+	}
+
+	private PluginUtil() {
+	}
+
 	public static JFieldVar getDeclaredField(final FieldOutline fieldOutline) {
 		return fieldOutline.parent().implClass.fields().get(fieldOutline.getPropertyInfo().getName(false));
 	}
@@ -66,4 +79,24 @@ public final class PluginUtil {
 		}
 	}
 
+	public static <I,T extends I> T getConfiguredObject(final Class<I> interfaceClass, final Class<T> defaultClass) {
+		final String strategyClassName = System.getProperty(interfaceClass.getName());
+		Class<T> strategyClass;
+		if (strategyClassName == null || strategyClassName.trim().isEmpty()) {
+			strategyClass = defaultClass;
+		} else {
+			try {
+				strategyClass = ((Class<T>)Class.forName(strategyClassName));
+			} catch (final ClassNotFoundException cnfe) {
+				strategyClass = defaultClass;
+			}
+		}
+		try {
+			return strategyClass.getConstructor().newInstance();
+		} catch (final NoSuchMethodException e) {
+			throw new RuntimeException(getMessage("error.no-such-constructor", strategyClassName), e);
+		} catch (final InvocationTargetException | InstantiationException | IllegalAccessException ex) {
+			throw new RuntimeException(getMessage("error.cannot-instatiate-strategy", strategyClassName), ex);
+		}
+	}
 }
