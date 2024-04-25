@@ -33,6 +33,7 @@ import java.util.List;
 
 import com.sun.codemodel.JClass;
 import com.sun.codemodel.JCodeModel;
+import com.sun.codemodel.JDefinedClass;
 import com.sun.codemodel.JFieldVar;
 import com.sun.codemodel.JType;
 
@@ -133,5 +134,10 @@ public class ReferencedPropertyOutline implements PropertyOutline {
 	@Override
 	public JClass getMutableListClass() {
 		return codeModel.ref(field.getType());
+	}
+
+	@Override
+	public JDefinedClass getReferencedModelClass() {
+		return null;
 	}
 }

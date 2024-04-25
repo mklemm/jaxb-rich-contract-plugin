@@ -250,4 +250,23 @@ public class PluginRunTest {
 //				"-group-contract.declareSetters=n"
 				);
 	}
+
+	@Test
+	public void testGenerateChoices() throws Exception {
+		generateAndCompile("choices","-b", inFile("binding-config.xjb"),
+				inFile("jaxb2-plugin-test.xsd"),
+				"-Xclone",
+				"-Xfluent-builder",
+				"-fluent-builder.generateTools=n",
+				"-Xgroup-contract",
+				"-group-contract.declareSetters=n",
+				"-Ximmutable",
+				"-Xmodifier",
+				"-Xmeta",
+				"-meta.generateTools=n",
+				"-meta.extended=y",
+				"-meta.camelCase=y"
+				);
+	}
+
 }
