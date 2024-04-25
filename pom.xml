@@ -5,7 +5,7 @@
 	<modelVersion>4.0.0</modelVersion>
 
 	<artifactId>jaxb-rich-contract-plugin</artifactId>
-	<version>4.1.2-SNAPSHOT</version>
+	<version>4.1.2</version>
 
 	<parent>
 		<groupId>net.codesup.util</groupId>
@@ -29,7 +29,7 @@
 		<connection>scm:git:https://github.com/mklemm/jaxb-rich-contract-plugin.git</connection>
 		<developerConnection>scm:git:https://github.com/mklemm/jaxb-rich-contract-plugin.git</developerConnection>
 		<url>http://mklemm.github.io/jaxb-rich-contract-plugin</url>
-		<tag>HEAD</tag>
+		<tag>4.1.2</tag>
 	</scm>
 
 	<dependencies>
