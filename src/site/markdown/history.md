@@ -130,7 +130,8 @@
     * Bugfixes #17, #30, #66
     * Complete rewrite of group-contract generation process (EXPERIMENTAL). This should fix many issues with command line syntax, use of the Plugin in JAX-WS generators etc. If the old implementation worked better for you, set the system property "com.kscs.util.plugins.xjc.GroupInterfaceModelProcessingStrategy" to "com.kscs.util.plugins.xjc.GroupInterfaceDummyStrategy".
   	* Bugfixes with choice expansion in fluent-builder.
-    
+* **4.1.2**
+  	* Renamed repository so that there is no "jaxb2" referenced anymore, since the plugin doesn't support JAXB 2 since version 4.0.0 anymore.
 
 
 

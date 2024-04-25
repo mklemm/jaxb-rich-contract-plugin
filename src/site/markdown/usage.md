@@ -96,7 +96,7 @@ Then add "jaxb-rich-contract-plugin" as an XJC plugin ("plugin for plugin") to t
                         <plugin>
                             <groupId>net.codesup.util</groupId>
                             <artifactId>jaxb-rich-contract-plugin</artifactId>
-                            <version>4.1.1</version>
+                            <version>4.1.2</version>
                         </plugin>
                     </plugins>
                 </configuration>

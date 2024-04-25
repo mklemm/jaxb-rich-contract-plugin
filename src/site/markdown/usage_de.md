@@ -98,7 +98,7 @@ Dieses "cheat sheet" gibt alle verfügbaren Plugin-Optionen an und zeigt, wie di
                         <plugin>
                             <groupId>net.codesup.util</groupId>
                             <artifactId>jaxb-rich-contract-plugin</artifactId>
-                            <version>4.1.1</version>
+                            <version>4.1.2</version>
                         </plugin>
                     </plugins>
                 </configuration>
