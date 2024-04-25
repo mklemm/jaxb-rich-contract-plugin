@@ -1,4 +1,4 @@
-# jaxb2-rich-contract-plugin
+# jaxb-rich-contract-plugin
 
 ## A collection of JAXB / XJC plugins to generate advanced contract scenarios from XSD
 
@@ -22,19 +22,19 @@ These plugins are intended to add support for additional contracts to the classe
 
 ### How to get it
 
-[Full documentation on GitHub](http://mklemm.github.io/jaxb2-rich-contract-plugin)
+[Full documentation on GitHub](http://mklemm.github.io/jaxb-rich-contract-plugin)
 
-[Get the source on GitHub](https://github.com/mklemm/jaxb2-rich-contract-plugin)
+[Get the source on GitHub](https://github.com/mklemm/jaxb-rich-contract-plugin)
 
-[Download this project as a .zip file](https://github.com/mklemm/jaxb2-rich-contract-plugin/zipball/master)
+[Download this project as a .zip file](https://github.com/mklemm/jaxb-rich-contract-plugin/zipball/master)
 
-[Download this project as a tar.gz file](https://github.com/mklemm/jaxb2-rich-contract-plugin/tarball/master)
+[Download this project as a tar.gz file](https://github.com/mklemm/jaxb-rich-contract-plugin/tarball/master)
 
 Get it with Maven (Now hosted on maven central):
 
 ``` xml
     <groupId>net.codesup.util</groupId>
-    <artifactId>jaxb2-rich-contract-plugin</artifactId>
+    <artifactId>jaxb-rich-contract-plugin</artifactId>
     <version>4.1.1</version>
 ```
 
@@ -178,7 +178,7 @@ Get it with Maven (Now hosted on maven central):
 
 ####  General
 
-jaxb2-rich-contract-plugin is a plugin to the XJC "XML to Java compiler" shipped with the reference implementation of JAXB. It is targeted on version 4.0 of the JAXB API. In order to make it work, you need to:
+jaxb-rich-contract-plugin is a plugin to the XJC "XML to Java compiler" shipped with the reference implementation of JAXB. It is targeted on version 4.0 of the JAXB API. In order to make it work, you need to:
 
 * Add the jar file to the classpath of XJC
 * Add the corresponding activating command-line option to XJC's invocation, see below for details of each of the plugins
@@ -190,7 +190,7 @@ jaxb2-rich-contract-plugin is a plugin to the XJC "XML to Java compiler" shipped
 The plugin has been tested with the [highsource jaxb-maven plugin](https://github.com/highsource/jaxb-tools), version 4.0.0 or later. Other JAXB maven plugins may or may not work.
 You should add the highsource jaxb-maven-plugin to your `<build>` configuration. Of course you must add the JAXB API and implementation dependencies as well.
 The current version of the plugin supports JAXB 4.0 or later. If you need compatibility with earlier JAXB versions, please use an older version of this plugin.
-Then add "jaxb2-rich-contract-plugin" as an XJC plugin ("plugin for plugin") to the maven plugin declaration. The following cheat sheet shows all possible options reflecting their default values:
+Then add "jaxb-rich-contract-plugin" as an XJC plugin ("plugin for plugin") to the maven plugin declaration. The following cheat sheet shows all possible options reflecting their default values:
 
 ``` xml
     <build>
@@ -271,7 +271,7 @@ Then add "jaxb2-rich-contract-plugin" as an XJC plugin ("plugin for plugin") to 
                     <plugins>
                         <plugin>
                             <groupId>net.codesup.util</groupId>
-                            <artifactId>jaxb2-rich-contract-plugin</artifactId>
+                            <artifactId>jaxb-rich-contract-plugin</artifactId>
                             <version>4.1.1</version>
                         </plugin>
                     </plugins>
@@ -286,7 +286,7 @@ Note: Version 4.0.0 brings an entirely different handling of plugin-specific com
 Now. every argument has to be prefixed with the plugin's name (see example above) and the order of appearance of arguments is completely arbitrary, i.e. it isn't necessary to put the "-X..."-Option
 that activates the plugin before the argument in the argument list anymore.
  
-Note: jaxb2-rich-contract-plugin implements JAXB and XJC APIs version 4.0. You most likely will have to add the dependencies to these libraries to your classpath effective at XJC runtime. See the `<dependencies>` element above on how to do this.
+Note: jaxb-rich-contract-plugin implements JAXB and XJC APIs version 4.0. You most likely will have to add the dependencies to these libraries to your classpath effective at XJC runtime. See the `<dependencies>` element above on how to do this.
 
 ## constrained-properties
 ### Motivation

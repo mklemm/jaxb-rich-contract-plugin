@@ -28,7 +28,7 @@ import java.util.List;
 
 /**
  * @author klemm0 2014-03-27
- * Created by jaxb2-rich-contract-plugin.
+ * Created by jaxb-rich-contract-plugin.
  * Defines the contract for a List implementaion
  * that supports change and vetoable change events.
  */

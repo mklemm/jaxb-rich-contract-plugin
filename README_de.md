@@ -1,8 +1,8 @@
-[![Issue Stats](http://issuestats.com/github/mklemm/jaxb2-rich-contract-plugin/badge/pr)](http://issuestats.com/github/mklemm/jaxb2-rich-contract-plugin)
-[![Issue Stats](http://issuestats.com/github/mklemm/jaxb2-rich-contract-plugin/badge/issue)](http://issuestats.com/github/mklemm/jaxb2-rich-contract-plugin)
+[![Issue Stats](http://issuestats.com/github/mklemm/jaxb-rich-contract-plugin/badge/pr)](http://issuestats.com/github/mklemm/jaxb-rich-contract-plugin)
+[![Issue Stats](http://issuestats.com/github/mklemm/jaxb-rich-contract-plugin/badge/issue)](http://issuestats.com/github/mklemm/jaxb-rich-contract-plugin)
 
 
-# jaxb2-rich-contract-plugin
+# jaxb-rich-contract-plugin
 
 ## A collection of JAXB / XJC plugins to generate advanced contract scenarios from XSD
 
@@ -26,19 +26,19 @@ These plugins are intended to add support for additional contracts to the classe
 
 ### How to get it
 
-[Full documentation on GitHub](http://mklemm.github.io/jaxb2-rich-contract-plugin)
+[Full documentation on GitHub](http://mklemm.github.io/jaxb-rich-contract-plugin)
 
-[Get the source on GitHub](https://github.com/mklemm/jaxb2-rich-contract-plugin)
+[Get the source on GitHub](https://github.com/mklemm/jaxb-rich-contract-plugin)
 
-[Download this project as a .zip file](https://github.com/mklemm/jaxb2-rich-contract-plugin/zipball/master)
+[Download this project as a .zip file](https://github.com/mklemm/jaxb-rich-contract-plugin/zipball/master)
 
-[Download this project as a tar.gz file](https://github.com/mklemm/jaxb2-rich-contract-plugin/tarball/master)
+[Download this project as a tar.gz file](https://github.com/mklemm/jaxb-rich-contract-plugin/tarball/master)
 
 Get it with Maven (Now hosted on maven central):
 
 ``` xml
     <groupId>net.codesup.util</groupId>
-    <artifactId>jaxb2-rich-contract-plugin</artifactId>
+    <artifactId>jaxb-rich-contract-plugin</artifactId>
     <version>4.1.1</version>
 ```
 
@@ -182,7 +182,7 @@ Get it with Maven (Now hosted on maven central):
 
 ####  Allgemein
 
-jaxb2-rich-contract-plugin ist ein Plugin für den XJC "XML to Java compiler" der JAXB API.
+jaxb-rich-contract-plugin ist ein Plugin für den XJC "XML to Java compiler" der JAXB API.
 Um das Plugin zu aktivieren, sind folgende Schritte erforderlich:
 
 * JAR des Plugins zum Klassenpfad des XJC-Compilers hinzufügen.
@@ -194,7 +194,7 @@ Um das Plugin zu aktivieren, sind folgende Schritte erforderlich:
 
 ####  Benutzung mit Apache Maven
 
-Das "maven-jaxb2-plugin" der `<build>` -Konfiguration hinzufügen. In dessen Konfigurationsabschnitt müssen dann die einzelnen Plugins aktiviert werden. Ebenso wird hier der Klassenpfad so gesetzt, dass bei der Ausführung von XJC das Plugin-JAR `jaxb2-rich-contract-plugin` im Klassenpfad ist.
+Das "maven-jaxb2-plugin" der `<build>` -Konfiguration hinzufügen. In dessen Konfigurationsabschnitt müssen dann die einzelnen Plugins aktiviert werden. Ebenso wird hier der Klassenpfad so gesetzt, dass bei der Ausführung von XJC das Plugin-JAR `jaxb-rich-contract-plugin` im Klassenpfad ist.
 
 Dieses "cheat sheet" gibt alle verfügbaren Plugin-Optionen an und zeigt, wie die Abhängigkeit zum Plugin-JAR in den XJC-Klassenpfad konfiguriert wird:
 
@@ -277,7 +277,7 @@ Dieses "cheat sheet" gibt alle verfügbaren Plugin-Optionen an und zeigt, wie di
                     <plugins>
                         <plugin>
                             <groupId>net.codesup.util</groupId>
-                            <artifactId>jaxb2-rich-contract-plugin</artifactId>
+                            <artifactId>jaxb-rich-contract-plugin</artifactId>
                             <version>4.1.1</version>
                         </plugin>
                     </plugins>
@@ -292,7 +292,7 @@ Hinweis: Ab Version 4.0.0 hat sich die Behandlung der Kommandozeilenargumente vo
 Dem Namen jedes Kommadozeilenarguments muss nun der Name des Plugin, durch einen Punkt getrennt, vorangestellt werden (siehe Beispiel oben). Dafür ist die Reihenfolge der Argumente
 nun unerheblich, sie können irgendwo auf der Kommandozeile auftauchen, nicht nur nach der "-X.."-Option, die das Plugin aktiviert.
 
-Hinweis: jaxb2-rich-contract-plugin implementiert JAXB und XJC APIs in der Version 4.0. Falls Sie mit einem älteren JDK oder einer älteren JAXB-Version arbeiten, verwenden Sie bitte eine ältere Version des Plugins, bis 2.1.0.
+Hinweis: jaxb-rich-contract-plugin implementiert JAXB und XJC APIs in der Version 4.0. Falls Sie mit einem älteren JDK oder einer älteren JAXB-Version arbeiten, verwenden Sie bitte eine ältere Version des Plugins, bis 2.1.0.
 
 
 ## constrained-properties

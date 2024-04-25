@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<project name="jaxb2-rich-contract-plugin" xmlns="http://maven.apache.org/DECORATION/1.6.0">
+<project name="jaxb-rich-contract-plugin" xmlns="http://maven.apache.org/DECORATION/1.6.0">
 	<skin>
 		<groupId>org.apache.maven.skins</groupId>
 		<artifactId>maven-fluido-skin</artifactId>

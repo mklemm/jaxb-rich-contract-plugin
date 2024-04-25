@@ -14,7 +14,7 @@ Um das Plugin zu aktivieren, sind folgende Schritte erforderlich:
 
 ####  Benutzung mit Apache Maven
 
-Das "maven-jaxb2-plugin" der `<build>` -Konfiguration hinzufügen. In dessen Konfigurationsabschnitt müssen dann die einzelnen Plugins aktiviert werden. Ebenso wird hier der Klassenpfad so gesetzt, dass bei der Ausführung von XJC das Plugin-JAR `jaxb2-rich-contract-plugin` im Klassenpfad ist.
+Das "maven-jaxb2-plugin" der `<build>` -Konfiguration hinzufügen. In dessen Konfigurationsabschnitt müssen dann die einzelnen Plugins aktiviert werden. Ebenso wird hier der Klassenpfad so gesetzt, dass bei der Ausführung von XJC das Plugin-JAR `jaxb-rich-contract-plugin` im Klassenpfad ist.
 
 Dieses "cheat sheet" gibt alle verfügbaren Plugin-Optionen an und zeigt, wie die Abhängigkeit zum Plugin-JAR in den XJC-Klassenpfad konfiguriert wird:
 
@@ -112,6 +112,6 @@ Hinweis: Ab Version 4.0.0 hat sich die Behandlung der Kommandozeilenargumente vo
 Dem Namen jedes Kommadozeilenarguments muss nun der Name des Plugin, durch einen Punkt getrennt, vorangestellt werden (siehe Beispiel oben). Dafür ist die Reihenfolge der Argumente
 nun unerheblich, sie können irgendwo auf der Kommandozeile auftauchen, nicht nur nach der "-X.."-Option, die das Plugin aktiviert.
 
-Hinweis: jaxb2-rich-contract-plugin implementiert JAXB und XJC APIs in der Version 4.0. Falls Sie mit einem älteren JDK oder einer älteren JAXB-Version arbeiten, verwenden Sie bitte eine ältere Version des Plugins, bis 2.1.0.
+Hinweis: jaxb-rich-contract-plugin implementiert JAXB und XJC APIs in der Version 4.0. Falls Sie mit einem älteren JDK oder einer älteren JAXB-Version arbeiten, verwenden Sie bitte eine ältere Version des Plugins, bis 2.1.0.
 
 

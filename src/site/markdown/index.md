@@ -1,5 +1,5 @@
-[![Issue Stats](http://issuestats.com/github/mklemm/jaxb2-rich-contract-plugin/badge/pr)](http://issuestats.com/github/mklemm/jaxb2-rich-contract-plugin)
-[![Issue Stats](http://issuestats.com/github/mklemm/jaxb2-rich-contract-plugin/badge/issue)](http://issuestats.com/github/mklemm/jaxb2-rich-contract-plugin)
+[![Issue Stats](http://issuestats.com/github/mklemm/jaxb-rich-contract-plugin/badge/pr)](http://issuestats.com/github/mklemm/jaxb-rich-contract-plugin)
+[![Issue Stats](http://issuestats.com/github/mklemm/jaxb-rich-contract-plugin/badge/issue)](http://issuestats.com/github/mklemm/jaxb-rich-contract-plugin)
 
 
 # jaxb-rich-contract-plugin
