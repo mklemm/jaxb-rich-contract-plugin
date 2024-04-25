@@ -39,7 +39,7 @@ Get it with Maven (Now hosted on maven central):
 ``` xml
     <groupId>net.codesup.util</groupId>
     <artifactId>jaxb2-rich-contract-plugin</artifactId>
-    <version>4.1.0</version>
+    <version>4.1.1</version>
 ```
 
 ###  Version History
@@ -170,6 +170,10 @@ Get it with Maven (Now hosted on maven central):
 * **4.1.0**
   	* Bugfixes: 46, 68
 	* Re-integrated some unit tests into the main module and fixed test suite.
+* **4.1.1**
+    * Bugfixes #17, #30, #66
+    * Complete rewrite of group-contract generation process (EXPERIMENTAL). This should fix many issues with command line syntax, use of the Plugin in JAX-WS generators etc. If the old implementation worked better for you, set the system property "com.kscs.util.plugins.xjc.GroupInterfaceModelProcessingStrategy" to "com.kscs.util.plugins.xjc.GroupInterfaceDummyStrategy".
+  	* Bugfixes with choice expansion in fluent-builder.
     
 
 
@@ -274,7 +278,7 @@ Dieses "cheat sheet" gibt alle verfügbaren Plugin-Optionen an und zeigt, wie di
                         <plugin>
                             <groupId>net.codesup.util</groupId>
                             <artifactId>jaxb2-rich-contract-plugin</artifactId>
-                            <version>4.1.0</version>
+                            <version>4.1.1</version>
                         </plugin>
                     </plugins>
                 </configuration>
