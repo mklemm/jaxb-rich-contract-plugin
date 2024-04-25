@@ -490,32 +490,29 @@ name that should be generated for use by other modules.
 
 
 
-### Bugs
-Currently none known
-
 ### Aktivierung
 #### -Xgroup-contract
 
 #### Optionen
 
 ##### -group-contract.declareSetters=`{y|n}` (y)
-Auch die Setter-Methoden in den generierten Interfaces deklarieren. Wenn nein, werden nur Getter deklariert.
+Nicht nur "get"-Methoden (Standard) sondern auch "set"-Methoden im Interface generieren.
 
 
 ##### -group-contract.declareBuilderInterface=`{y|n}` (y)
-Wenn das "fluent builder plugin" (-Xfluent-builder) ebenfalls aktive ist, generiere auch Interfaces für die inneren Builder-Klassen.
+Wenn das "fluent builder plugin" (-Xfluent-builder) ebenfalls aktiv ist, auch die Builder als inneres Interface des Gruppen-Interfaces deklarieren.
 
 
 ##### -group-contract.supportInterfaceNameSuffix=`<string>` (Lifecycle)
-Methoden, die zu Typkonflikten führen können, wenn zwei oder mehr interfaces aus diesem Generat gleichzeitig(mit "&") als Grenzen generischer Typparameter verwendet werden, werden in ein eigenes Interface ausgelagert, dessen Name dann mit dem angegebenen Wortbestandteil endet.
+Suffix des namens für das zusätzlich generierte "Support"-Interface, das nur die minimale Deklaration der Gruppeneigenschaften enthält, um Typkonflikte zu vermeiden.
 
 
 ##### -group-contract.upstreamEpisodeFile=`<string>` (META-INF/jaxb-interfaces.episode)
-Suche die angegebene "episode"-Datei (Resource-Pfad), um Informationen über interfaces zu erhalten, die in Modulen definiert wurden, von denen dieses hier abhängig ist (siehe "-episode"-Mechanismus in der XJC-Dokumentation).
+Bei Projekten mit mehreren Modulen aus generiertem Code dieses "episode"-File für den Gewinn von Informationen zu importierten Klassen nutzen (siehe "-episode"-Option von XJC).
 
 
 ##### -group-contract.downstreamEpisodeFile=`<string>` (META-INF/jaxb-interfaces.episode)
-Generiere "episode"-Datei für abhängige Module an der angegebene Stelle (Resource-Pfad).
+Für die Nutzung von nachgeordneten Modulen diese "episode"-Datei zur Beschreibung der generierten Interfaces erzeugen.
 
 ## immutable
 ### Motivation
