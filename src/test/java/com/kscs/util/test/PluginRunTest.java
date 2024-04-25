@@ -37,6 +37,9 @@ import javax.tools.ToolProvider;
 import org.junit.Assert;
 import org.junit.Test;
 
+import com.kscs.util.plugins.xjc.GroupInterfaceDirectStrategy;
+import com.kscs.util.plugins.xjc.GroupInterfaceDummyStrategy;
+import com.kscs.util.plugins.xjc.GroupInterfaceModelProcessingStrategy;
 import com.sun.tools.xjc.Driver;
 
 import io.github.classgraph.ClassGraph;
@@ -135,14 +138,14 @@ public class PluginRunTest {
 				inFile("svg.xsd"),
 				inFile("xhtml5.xsd"),
 				"-Xclone",
-				"-meta.generateTools=n",
-				"-fluent-builder.generateTools=n",
 				"-Xfluent-builder",
+				"-fluent-builder.generateTools=n",
 				"-Xgroup-contract",
 				"-group-contract.declareSetters=n",
 				"-Ximmutable",
 				"-Xmodifier",
 				"-Xmeta",
+				"-meta.generateTools=n",
 				"-meta.extended=y",
 				"-meta.camelCase=y"
 				);
@@ -171,8 +174,8 @@ public class PluginRunTest {
 				inFile("custom-list-test.xsd"),
 				"-Xclone",
 				"-meta.generateTools=n",
-				"-fluent-builder.generateTools=n",
 				"-Xfluent-builder",
+				"-fluent-builder.generateTools=y",
 				"-Xgroup-contract",
 				"-group-contract.declareSetters=n",
 				"-Ximmutable",
@@ -199,4 +202,72 @@ public class PluginRunTest {
 				"-meta.camelCase=y"
 				);
 	}
+	@Test
+	public void testGroupInterfaceDummy() throws Exception {
+		System.setProperty(GroupInterfaceModelProcessingStrategy.class.getName(), GroupInterfaceDummyStrategy.class.getName());
+		generateAndCompile("gidummy",
+				//"-b", inFile("binding-config-group-interface.xjb"),
+				inFile("group-interface-test.xsd"),
+				"-Xgroup-contract",
+				"-group-contract.declareSetters=n"
+				);
+	}
+	@Test
+	public void testGroupInterfaceDirect() throws Exception {
+		System.setProperty(GroupInterfaceModelProcessingStrategy.class.getName(), GroupInterfaceDirectStrategy.class.getName());
+		generateAndCompile("gidirect",
+				//"-b", inFile("binding-config-group-interface.xjb"),
+				inFile("group-interface-test.xsd"),
+				"-Xgroup-contract",
+				"-group-contract.declareSetters=n"
+				);
+	}
+	@Test
+	public void testGroupInterfaceDirectFull() throws Exception {
+		System.setProperty(GroupInterfaceModelProcessingStrategy.class.getName(), GroupInterfaceDirectStrategy.class.getName());
+		generateAndCompile("gidifu",
+				"-b", inFile("binding-config-group-interface.xjb"),
+				inFile("group-interface-test.xsd"),
+				"-Xgroup-contract",
+				"-group-contract.declareSetters=n",
+				"-Xclone",
+				"-meta.generateTools=n",
+				"-fluent-builder.generateTools=n",
+				"-Xfluent-builder",
+				"-Ximmutable",
+				"-Xmodifier",
+				"-Xmeta",
+				"-meta.extended=y",
+				"-meta.camelCase=y"
+				);
+	}
+	@Test
+	public void testGroupInterfaceCustom() throws Exception {
+		System.setProperty(GroupInterfaceModelProcessingStrategy.class.getName(), GroupInterfaceDirectStrategy.class.getName());
+		generateAndCompile("gicustom",
+				"-b", inFile("binding-config-group-interface.xjb"),
+				inFile("group-interface-test.xsd")
+//				"-Xgroup-contract",
+//				"-group-contract.declareSetters=n"
+				);
+	}
+
+	@Test
+	public void testGenerateChoices() throws Exception {
+		generateAndCompile("choices","-b", inFile("binding-config.xjb"),
+				inFile("jaxb2-plugin-test.xsd"),
+				"-Xclone",
+				"-Xfluent-builder",
+				"-fluent-builder.generateTools=n",
+				"-Xgroup-contract",
+				"-group-contract.declareSetters=n",
+				"-Ximmutable",
+				"-Xmodifier",
+				"-Xmeta",
+				"-meta.generateTools=n",
+				"-meta.extended=y",
+				"-meta.camelCase=y"
+				);
+	}
+
 }

@@ -32,6 +32,7 @@ import javax.xml.namespace.QName;
 import org.glassfish.jaxb.core.v2.model.core.TypeInfo;
 
 import com.sun.codemodel.JClass;
+import com.sun.codemodel.JDefinedClass;
 import com.sun.codemodel.JFieldVar;
 import com.sun.codemodel.JType;
 import com.sun.tools.xjc.model.nav.NClass;
@@ -66,6 +67,8 @@ public interface PropertyOutline {
 	default Optional<String> getSchemaAnnotationText(TagRef tagRef) {
 		return Optional.empty();
 	}
+
+	JDefinedClass getReferencedModelClass();
 
 	class TagRef {
 		private final QName tagName;

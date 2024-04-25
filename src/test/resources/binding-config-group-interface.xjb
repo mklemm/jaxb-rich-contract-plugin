@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8" ?>
+
+<jxb:bindings version="3.0" xmlns:jxb="https://jakarta.ee/xml/ns/jaxb" xmlns:xs="http://www.w3.org/2001/XMLSchema" xmlns:gi="http://www.kscs.com/util/jaxb/bindings">
+
+	<jxb:bindings schemaLocation="group-interface-test.xsd" node="/xs:schema">
+		<jxb:bindings node="xs:group[@name='MyModelGroup']/xs:sequence/xs:element[@name='element1']">
+			<jxb:property name="changedPropertyName"/>
+		</jxb:bindings>
+	</jxb:bindings>
+
+</jxb:bindings>

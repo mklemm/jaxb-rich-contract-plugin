@@ -1,0 +1,32 @@
+<schema xmlns="http://www.w3.org/2001/XMLSchema" version="1.0"
+		targetNamespace="http://www.kscs.com/jaxb2/contract/test/groupinterface"
+		xmlns:tns="http://www.kscs.com/jaxb2/contract/test/groupinterface"
+		elementFormDefault="qualified">
+
+	<group name="MyModelGroup">
+		<sequence>
+			<element name="element1" type="string"/>
+			<element name="element2" type="string"/>
+		</sequence>
+	</group>
+
+	<attributeGroup name="MyAttributeGroup">
+		<attribute name="attribute1" type="string"/>
+		<attribute name="attribute2" type="string"/>
+	</attributeGroup>
+
+	<group name="MyDerivedModelGroup">
+		<sequence>
+			<group ref="tns:MyModelGroup"/>
+			<element name="derivedElementA" type="int"/>
+			<element name="derivedElementB" type="int"/>
+		</sequence>
+	</group>
+
+	<complexType name="MyComplexType">
+		<sequence>
+			<group ref="tns:MyDerivedModelGroup"/>
+		</sequence>
+		<attributeGroup ref="tns:MyAttributeGroup"/>
+	</complexType>
+</schema>

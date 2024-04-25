@@ -40,6 +40,7 @@ import java.util.logging.Logger;
 
 import javax.xml.namespace.QName;
 import javax.xml.transform.Transformer;
+import javax.xml.transform.TransformerFactory;
 import javax.xml.transform.dom.DOMResult;
 import javax.xml.transform.dom.DOMSource;
 import javax.xml.transform.stream.StreamSource;
@@ -93,6 +94,7 @@ import static com.kscs.util.plugins.xjc.PluginContext.coalesce;
  * @author mirko 2014-05-29
  */
 class GroupInterfaceGenerator {
+	public static final TransformerFactory TRANSFORMER_FACTORY = TransformerFactory.newInstance();
 	private static final XSFunction<Boolean> IS_FIXED_FUNC = new AbstractXSFunction<Boolean>() {
 
 		@Override
@@ -228,7 +230,7 @@ class GroupInterfaceGenerator {
 
 	private Map<QName, ReferencedInterfaceOutline> loadInterfaceEpisodes() {
 		try {
-			final Transformer transformer = GroupInterfacePlugin.TRANSFORMER_FACTORY.newTransformer(new StreamSource(GroupInterfaceGenerator.class.getResource("interface-bindings.xsl").toString()));
+			final Transformer transformer = TRANSFORMER_FACTORY.newTransformer(new StreamSource(GroupInterfaceGenerator.class.getResource("interface-bindings.xsl").toString()));
 			final Map<QName, ReferencedInterfaceOutline> interfaceMappings = new HashMap<>();
 			while(this.upstreamEpisodes.hasMoreElements()) {
 				final Map<QName, ReferencedInterfaceOutline> result;
