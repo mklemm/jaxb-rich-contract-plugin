@@ -2,7 +2,7 @@
 
 ####  Allgemein
 
-jaxb2-rich-contract-plugin ist ein Plugin für den XJC "XML to Java compiler" der JAXB API.
+jaxb-rich-contract-plugin ist ein Plugin für den XJC "XML to Java compiler" der JAXB API.
 Um das Plugin zu aktivieren, sind folgende Schritte erforderlich:
 
 * JAR des Plugins zum Klassenpfad des XJC-Compilers hinzufügen.
@@ -97,7 +97,7 @@ Dieses "cheat sheet" gibt alle verfügbaren Plugin-Optionen an und zeigt, wie di
                     <plugins>
                         <plugin>
                             <groupId>net.codesup.util</groupId>
-                            <artifactId>jaxb2-rich-contract-plugin</artifactId>
+                            <artifactId>jaxb-rich-contract-plugin</artifactId>
                             <version>4.1.1</version>
                         </plugin>
                     </plugins>
