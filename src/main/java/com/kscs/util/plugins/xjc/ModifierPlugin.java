@@ -58,9 +58,9 @@ public class ModifierPlugin extends AbstractPlugin {
 			try {
 				final GroupInterfacePlugin groupInterfacePlugin = pluginContext.findPlugin(GroupInterfacePlugin.class);
 				if (groupInterfacePlugin != null) {
-					ModifierGenerator.generateClass(pluginContext, new DefinedClassOutline(pluginContext, classOutline), this.modifierClassName, this.modifierClassName, groupInterfacePlugin.getGroupInterfacesForClass(pluginContext, classOutline.implClass.fullName()), this.modifierMethodName);
+					ModifierGenerator.generateClass(pluginContext, new DefinedClassOutline(classOutline), this.modifierClassName, this.modifierClassName, groupInterfacePlugin.getGroupInterfacesForClass(pluginContext, classOutline.implClass.fullName()), this.modifierMethodName);
 				} else {
-					ModifierGenerator.generateClass(pluginContext, new DefinedClassOutline(pluginContext, classOutline), this.modifierClassName, this.modifierMethodName);
+					ModifierGenerator.generateClass(pluginContext, new DefinedClassOutline(classOutline), this.modifierClassName, this.modifierMethodName);
 				}
 			} catch (final JClassAlreadyExistsException e) {
 				errorHandler.error(new SAXParseException(e.getMessage(), classOutline.target.getLocator()));

@@ -111,7 +111,7 @@ public class FluentBuilderPlugin extends AbstractPlugin {
 		for (final ClassOutline classOutline : outline.getClasses()) {
 			final JDefinedClass definedClass = classOutline.implClass;
 			try {
-				final BuilderOutline builderOutline = new BuilderOutline(new DefinedClassOutline(pluginContext, classOutline),
+				final BuilderOutline builderOutline = new BuilderOutline(new DefinedClassOutline(classOutline),
 						classOutline.implClass._class(JMod.PUBLIC | JMod.STATIC, this.builderClassName, ClassType.CLASS));
 				builderClasses.put(definedClass.fullName(), builderOutline);
 			} catch (final JClassAlreadyExistsException caex) {

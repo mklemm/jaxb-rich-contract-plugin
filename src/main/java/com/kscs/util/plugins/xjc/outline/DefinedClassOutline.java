@@ -28,7 +28,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
-import com.kscs.util.plugins.xjc.PluginContext;
 import com.kscs.util.plugins.xjc.SchemaAnnotationUtils;
 import com.sun.codemodel.JDefinedClass;
 import com.sun.tools.xjc.outline.ClassOutline;
@@ -38,25 +37,23 @@ import com.sun.tools.xjc.outline.FieldOutline;
  * @author mirko 2014-05-29
  */
 public class DefinedClassOutline implements DefinedTypeOutline {
-	private final PluginContext pluginContext;
 	private final ClassOutline classOutline;
 	private final List<DefinedPropertyOutline> declaredFields;
 	private final TypeOutline superClass;
 
-	public DefinedClassOutline(final PluginContext pluginContext, final ClassOutline classOutline) {
-		this.pluginContext = pluginContext;
+	public DefinedClassOutline(final ClassOutline classOutline) {
 		this.classOutline = classOutline;
 		final List<DefinedPropertyOutline> properties = new ArrayList<>(classOutline.getDeclaredFields().length);
 		for (final FieldOutline fieldOutline : classOutline.getDeclaredFields()) {
 			properties.add(new DefinedPropertyOutline(fieldOutline));
 		}
 		this.declaredFields = Collections.unmodifiableList(properties);
-		this.superClass = findSuperclass(this.pluginContext, this.classOutline);
+		this.superClass = findSuperclass(this.classOutline);
 	}
 
-	private static TypeOutline findSuperclass(final PluginContext pluginContext, final ClassOutline modelClass) {
+	private static TypeOutline findSuperclass(final ClassOutline modelClass) {
 		if (modelClass.getSuperClass() != null) {
-			return new DefinedClassOutline(pluginContext, modelClass.getSuperClass());
+			return new DefinedClassOutline(modelClass.getSuperClass());
 		} else {
 			try {
 				final Class<?> ungeneratedSuperClass = Class.forName(modelClass.implClass._extends().fullName());
