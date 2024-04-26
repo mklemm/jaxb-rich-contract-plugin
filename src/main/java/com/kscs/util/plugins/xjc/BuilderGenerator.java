@@ -43,7 +43,7 @@ import com.kscs.util.plugins.xjc.outline.DefinedInterfaceOutline;
 import com.kscs.util.plugins.xjc.outline.DefinedPropertyOutline;
 import com.kscs.util.plugins.xjc.outline.DefinedTypeOutline;
 import com.kscs.util.plugins.xjc.outline.PropertyOutline;
-import com.kscs.util.plugins.xjc.outline.ReferencedClassOutline;
+import com.kscs.util.plugins.xjc.outline.ReferencedRuntimeClassOutline;
 import com.kscs.util.plugins.xjc.outline.TypeOutline;
 import com.sun.codemodel.JAssignmentTarget;
 import com.sun.codemodel.JBlock;
@@ -883,7 +883,6 @@ class BuilderGenerator {
 						endMethodClassName)));
 	}
 
-
 	private BuilderOutline getReferencedBuilderOutline(final JType type) {
 		BuilderOutline builderOutline = null;
 		if (this.pluginContext.getClassOutline(type) == null && this.pluginContext.getEnumOutline(type) == null && type.isReference() && !type.isArray() && type.fullName().contains(".")) {
@@ -895,7 +894,7 @@ class BuilderGenerator {
 			}
 			final JClass builderClass = reflectRuntimeInnerClass(runtimeParentClass, this.settings.getBuilderClassName());
 			if (builderClass != null) {
-				final ReferencedClassOutline referencedClassOutline = new ReferencedClassOutline(this.pluginContext.codeModel, runtimeParentClass);
+				final ReferencedRuntimeClassOutline referencedClassOutline = new ReferencedRuntimeClassOutline(this.pluginContext.codeModel, runtimeParentClass);
 				builderOutline = new BuilderOutline(referencedClassOutline, builderClass);
 			}
 		}

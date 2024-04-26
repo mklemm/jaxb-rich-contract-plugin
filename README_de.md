@@ -1,6 +1,5 @@
-[![Issue Stats](http://issuestats.com/github/mklemm/jaxb-rich-contract-plugin/badge/pr)](http://issuestats.com/github/mklemm/jaxb-rich-contract-plugin)
-[![Issue Stats](http://issuestats.com/github/mklemm/jaxb-rich-contract-plugin/badge/issue)](http://issuestats.com/github/mklemm/jaxb-rich-contract-plugin)
 
+[![Maven Central](https://maven-badges.herokuapp.com/maven-central/net.codesup.util/jaxb-rich-contract-plugin/badge.svg?gav=true)](https://maven-badges.herokuapp.com/maven-central/net.codesup.util/jaxb-rich-contract-plugin/?gav=true)
 
 # jaxb-rich-contract-plugin
 

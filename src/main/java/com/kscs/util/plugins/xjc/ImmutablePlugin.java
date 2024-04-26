@@ -121,7 +121,7 @@ public class ImmutablePlugin extends AbstractPlugin {
 
 					// use separate loop to avoid concurrentmodificationexception
 					for(final JMethod constructor:constructorsToChange) {
-						if ("private".equals(this.constructorAccess.toLowerCase())) {
+						if ("private".equalsIgnoreCase(this.constructorAccess)) {
 							constructor.mods().setPrivate();
 						} else {
 							constructor.mods().setProtected();

@@ -33,14 +33,14 @@ import com.sun.codemodel.JCodeModel;
 /**
  * @author Mirko Klemm 2015-01-28
  */
-public class ReferencedClassOutline implements TypeOutline {
+public class ReferencedRuntimeClassOutline implements TypeOutline {
 	private final Class<?> referencedClass;
 	private final JCodeModel codeModel;
 	private final List<PropertyOutline> declaredFields;
 
-	private final ReferencedClassOutline superClassOutline;
+	private final ReferencedRuntimeClassOutline superClassOutline;
 
-	public ReferencedClassOutline(final JCodeModel codeModel, final Class<?> referencedClass) {
+	public ReferencedRuntimeClassOutline(final JCodeModel codeModel, final Class<?> referencedClass) {
 		this.codeModel = codeModel;
 		this.referencedClass = referencedClass;
 		this.declaredFields = new ArrayList<>(referencedClass.getDeclaredFields().length);
@@ -48,7 +48,7 @@ public class ReferencedClassOutline implements TypeOutline {
 			this.declaredFields.add(new ReferencedPropertyOutline(codeModel, field));
 		}
 		this.superClassOutline = this.referencedClass.getSuperclass() != null && !Object.class.equals(this.referencedClass.getSuperclass())
-				? new ReferencedClassOutline(this.codeModel, this.referencedClass.getSuperclass())
+				? new ReferencedRuntimeClassOutline(this.codeModel, this.referencedClass.getSuperclass())
 				: null;
 	}
 
@@ -58,7 +58,7 @@ public class ReferencedClassOutline implements TypeOutline {
 	}
 
 	@Override
-	public ReferencedClassOutline getSuperClass() {
+	public ReferencedRuntimeClassOutline getSuperClass() {
 		return this.superClassOutline;
 	}
 
