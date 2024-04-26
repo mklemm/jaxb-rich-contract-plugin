@@ -51,18 +51,22 @@ public class DefinedClassOutline implements DefinedTypeOutline {
 			properties.add(new DefinedPropertyOutline(fieldOutline));
 		}
 		this.declaredFields = Collections.unmodifiableList(properties);
-		if (this.classOutline.getSuperClass() != null) {
-			this.superClass = new DefinedClassOutline(this.pluginContext, this.classOutline.getSuperClass());
+		this.superClass = findSuperclass(this.pluginContext, this.classOutline);
+	}
+
+	private static TypeOutline findSuperclass(final PluginContext pluginContext, final ClassOutline modelClass) {
+		if (modelClass.getSuperClass() != null) {
+			return new DefinedClassOutline(pluginContext, modelClass.getSuperClass());
 		} else {
 			try {
-				final Class<?> ungeneratedSuperClass = Class.forName(this.classOutline.implClass._extends().fullName());
+				final Class<?> ungeneratedSuperClass = Class.forName(modelClass.implClass._extends().fullName());
 				if (Object.class.equals(ungeneratedSuperClass)) {
-					this.superClass = null;
+					return null;
 				} else {
-					this.superClass = new ReferencedRuntimeClassOutline(this.pluginContext.codeModel, ungeneratedSuperClass);
+					return new ReferencedRuntimeClassOutline(modelClass.implClass.owner(), ungeneratedSuperClass);
 				}
-			} catch (final Exception e) {
-				throw new RuntimeException("Cannot find superclass of " + this.classOutline.target.getName() + ": " + this.classOutline.target.getLocator());
+			} catch (final ClassNotFoundException e) {
+				return new ReferencedStubClassOutline(modelClass.implClass.owner(), modelClass.implClass._extends());
 			}
 		}
 	}
