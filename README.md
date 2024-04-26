@@ -199,7 +199,7 @@ Then add "jaxb-rich-contract-plugin" as an XJC plugin ("plugin for plugin") to t
             <plugin>
                 <groupId>org.jvnet.jaxb</groupId>
                 <artifactId>jaxb-maven-plugin</artifactId>
-                <version>4.0.0</version>
+                <version>4.0.6</version>
                 <executions>
                     <execution>
                         <id>xsd-generate</id>
