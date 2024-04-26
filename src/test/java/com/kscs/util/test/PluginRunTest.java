@@ -90,14 +90,20 @@ public class PluginRunTest {
 	private static void clearDirectory(final Path rootDir) {
 		try {
 			if (Files.isDirectory(rootDir)) {
-				Files.walk(rootDir)
-						.sorted(Comparator.reverseOrder())
-						.peek(path -> System.out.println("Deleting " + path))
-						.forEach(PluginRunTest::deleteFileQuiet);
+				try(final var stream = Files.walk(rootDir)) {
+					stream.sorted(Comparator.reverseOrder())
+							.peek(path -> System.out.println("Deleting " + path))
+							.forEach(PluginRunTest::deleteFileQuiet);
+				}
 			}
 		} catch (IOException e) {
-			throw new RuntimeException("Error deleting path " + rootDir.toAbsolutePath().toString(), e);
+			throw new RuntimeException("Error deleting path " + rootDir.toAbsolutePath(), e);
 		}
+	}
+
+	private void clearOutputFor(final String subDir){
+		clearDirectory(this.compiledCodeDir.resolve(subDir));
+		clearDirectory(this.generatedSourcesDir.resolve(subDir));
 	}
 
 	private static void deleteFileQuiet(final Path p) {
@@ -123,7 +129,7 @@ public class PluginRunTest {
 	}
 
 	public void generateAndCompile(final String subDir, final String... pluginArgs) throws Exception {
-		clearDirectory(this.generatedSourcesDir.resolve(subDir));
+		clearOutputFor(subDir);
 		runPlugin(subDir, pluginArgs);
 		compileTestCode(subDir);
 	}
