@@ -35,7 +35,7 @@ Get it with Maven (Now hosted on maven central):
 ``` xml
     <groupId>net.codesup.util</groupId>
     <artifactId>jaxb-rich-contract-plugin</artifactId>
-    <version>4.1.2</version>
+    <version>4.1.3</version>
 ```
 
 ###  Version History
@@ -172,6 +172,9 @@ Get it with Maven (Now hosted on maven central):
   	* Bugfixes with choice expansion in fluent-builder.
 * **4.1.2**
   	* Renamed repository so that there is no "jaxb2" referenced anymore, since the plugin doesn't support JAXB 2 since version 4.0.0 anymore.
+* **4.1.2**
+  	* group-interface-plugin now supports customization of interface names (Issue #45).
+    * Site generation and publishing to github pages has been fixed.	
 
 
 
@@ -201,7 +204,7 @@ Dieses "cheat sheet" gibt alle verfügbaren Plugin-Optionen an und zeigt, wie di
             <plugin>
                 <groupId>org.jvnet.jaxb</groupId>
                 <artifactId>jaxb-maven-plugin</artifactId>
-                <version>4.0.6</version>
+                <version>4.0.0</version>
                 <executions>
                     <execution>
                         <id>xsd-generate</id>
@@ -275,7 +278,7 @@ Dieses "cheat sheet" gibt alle verfügbaren Plugin-Optionen an und zeigt, wie di
                         <plugin>
                             <groupId>net.codesup.util</groupId>
                             <artifactId>jaxb-rich-contract-plugin</artifactId>
-                            <version>4.1.2</version>
+                            <version>4.1.3</version>
                         </plugin>
                     </plugins>
                 </configuration>

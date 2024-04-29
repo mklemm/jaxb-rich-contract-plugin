@@ -61,11 +61,30 @@ Similar effects could be achieved by subclassing complexTypes, but since there i
 hierarchies can get overly complex this way, and inheritance is less flexible than interface implementations.
 
 **Note:** The group-contract plugin supports JAXB modular compilation, i.e. the "episode" mechanism implemented
-in the JAXB reference impplementation.
+in the JAXB reference implementation.
 However, due to the lack of extensibility of the current default episode data structures and processing, this plugin
 has to manage its own "episode" file. There are two command line options to control the  names of the "upstream" episode
 file, i.e. the file name the plugin should look for when using other modules, and the "downstream" file, i.e. the file
 name that should be generated for use by other modules.
+
+**Note:** The group-contract-plugin supports, since 4.1.3, a rudimentary mechanism to modify the name of the generated
+interface similar to the <class... customization supported by standard JAXB.
+Unfortunately, XJC doesn't allow us to place a plugin customization on a group or attributeGroup definition, so the
+approach is a bit awkward: The plugin customization has to be applied on the global (schema) level in the following way:
+
+``` xml
+<?xml version="1.0" encoding="utf-8" ?>
+
+<jxb:bindings version="3.0" xmlns:jxb="https://jakarta.ee/xml/ns/jaxb" xmlns:xs="http://www.w3.org/2001/XMLSchema"
+			  xmlns:gi="http://www.kscs.com/util/jaxb/bindings">
+
+	<jxb:bindings schemaLocation="my-xml-schema-file.xsd" node="/xs:schema">
+		<gi:interface groupNamespace="http://my-target-namespace" groupName="MyModelGroup" name="MyChangedModelGroupName"/>
+	</jxb:bindings>
+
+</jxb:bindings>
+
+```
 
 
 

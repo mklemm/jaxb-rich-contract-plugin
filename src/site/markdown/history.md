@@ -132,6 +132,9 @@
   	* Bugfixes with choice expansion in fluent-builder.
 * **4.1.2**
   	* Renamed repository so that there is no "jaxb2" referenced anymore, since the plugin doesn't support JAXB 2 since version 4.0.0 anymore.
+* **4.1.2**
+  	* group-interface-plugin now supports customization of interface names (Issue #45).
+    * Site generation and publishing to github pages has been fixed.	
 
 
 

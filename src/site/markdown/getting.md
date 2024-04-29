@@ -13,6 +13,6 @@ Get it with Maven (Now hosted on maven central):
 ``` xml
     <groupId>net.codesup.util</groupId>
     <artifactId>jaxb-rich-contract-plugin</artifactId>
-    <version>4.1.2</version>
+    <version>4.1.3</version>
 ```
 
