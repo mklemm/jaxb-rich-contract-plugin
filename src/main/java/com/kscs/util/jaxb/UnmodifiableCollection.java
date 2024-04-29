@@ -33,28 +33,28 @@ import java.util.Iterator;
 public interface UnmodifiableCollection<E> extends Iterable<E> {
 	/**
 	 * Returns the number of elements in this collection.  If this collection
-	 * contains more than <tt>Integer.MAX_VALUE</tt> elements, returns
-	 * <tt>Integer.MAX_VALUE</tt>.
+	 * contains more than Integer.MAX_VALUE elements, returns
+	 * Integer.MAX_VALUE.
 	 *
 	 * @return the number of elements in this collection
 	 */
 	int size();
 
 	/**
-	 * Returns <tt>true</tt> if this collection contains no elements.
+	 * Returns true if this collection contains no elements.
 	 *
-	 * @return <tt>true</tt> if this collection contains no elements
+	 * @return true if this collection contains no elements
 	 */
 	boolean isEmpty();
 
 	/**
-	 * Returns <tt>true</tt> if this collection contains the specified element.
-	 * More formally, returns <tt>true</tt> if and only if this collection
-	 * contains at least one element <tt>e</tt> such that
-	 * <tt>(o==null&nbsp;?&nbsp;e==null&nbsp;:&nbsp;o.equals(e))</tt>.
+	 * Returns true if this collection contains the specified element.
+	 * More formally, returns true if and only if this collection
+	 * contains at least one element e such that
+	 * (o==null&nbsp;?&nbsp;e==null&nbsp;:&nbsp;o.equals(e)).
 	 *
 	 * @param o element whose presence in this collection is to be tested
-	 * @return <tt>true</tt> if this collection contains the specified
+	 * @return true if this collection contains the specified
 	 * element
 	 * @throws ClassCastException   if the type of the specified element
 	 *                              is incompatible with this collection
@@ -71,7 +71,7 @@ public interface UnmodifiableCollection<E> extends Iterable<E> {
 	 * (unless this collection is an instance of some class that provides a
 	 * guarantee).
 	 *
-	 * @return an <tt>Iterator</tt> over the elements in this collection
+	 * @return an <code>Iterator</code> over the elements in this collection
 	 */
 	Iterator<E> iterator();
 
@@ -100,9 +100,9 @@ public interface UnmodifiableCollection<E> extends Iterable<E> {
 	 * <p>If this collection fits in the specified array with room to spare
 	 * (i.e., the array has more elements than this collection), the element
 	 * in the array immediately following the end of the collection is set to
-	 * <tt>null</tt>.  (This is useful in determining the length of this
+	 * null.  (This is useful in determining the length of this
 	 * collection <i>only</i> if the caller knows that this collection does
-	 * not contain any <tt>null</tt> elements.)
+	 * not contain any null elements.)
 	 * <p>If this collection makes any guarantees as to what order its elements
 	 * are returned by its iterator, this method must return the elements in
 	 * the same order.
@@ -110,14 +110,14 @@ public interface UnmodifiableCollection<E> extends Iterable<E> {
 	 * array-based and collection-based APIs.  Further, this method allows
 	 * precise control over the runtime type of the output array, and may,
 	 * under certain circumstances, be used to save allocation costs.
-	 * <p>Suppose <tt>x</tt> is a collection known to contain only strings.
+	 * <p>Suppose x is a collection known to contain only strings.
 	 * The following code can be used to dump the collection into a newly
-	 * allocated array of <tt>String</tt>:
+	 * allocated array of <code>String</code>:
 	 * <pre>
 	 *     String[] y = x.toArray(new String[0]);</pre>
 	 *
-	 * Note that <tt>toArray(new Object[0])</tt> is identical in function to
-	 * <tt>toArray()</tt>.
+	 * Note that <code>toArray(new Object[0])</code> is identical in function to
+	 * <code>toArray()</code>.
 	 *
 	 * @param a the array into which the elements of this collection are to be
 	 *          stored, if it is big enough; otherwise, a new array of the same
@@ -136,11 +136,11 @@ public interface UnmodifiableCollection<E> extends Iterable<E> {
 	// Bulk Operations
 
 	/**
-	 * Returns <tt>true</tt> if this collection contains all of the elements
+	 * Returns <code>true</code> if this collection contains all of the elements
 	 * in the specified collection.
 	 *
 	 * @param c collection to be checked for containment in this collection
-	 * @return <tt>true</tt> if this collection contains all of the elements
+	 * @return <code>true</code> if this collection contains all of the elements
 	 * in the specified collection
 	 * @throws ClassCastException   if the types of one or more elements
 	 *                              in the specified collection are incompatible with this
