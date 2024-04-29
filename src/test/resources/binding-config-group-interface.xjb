@@ -5,9 +5,6 @@
 
 	<jxb:bindings schemaLocation="group-interface-test.xsd" node="/xs:schema">
 		<gi:interface groupNamespace="http://www.kscs.com/jaxb2/contract/test/groupinterface" groupName="MyModelGroup" name="MyChangedModelGroupName"/>
-		<jxb:bindings node="xs:complexType[@name='MyComplexType']">
-			<jxb:class name="com.kscs.jaxb2.contract.test.groupinterface.MyChangedNameComplexClass"/>
-		</jxb:bindings>
 		<jxb:bindings node="xs:group[@name='MyModelGroup']">
 			<jxb:bindings node="xs:sequence/xs:element[@name='element1']">
 				<jxb:property name="changedPropertyName"/>
