@@ -252,9 +252,10 @@ public class PluginRunTest {
 		System.setProperty(GroupInterfaceModelProcessingStrategy.class.getName(), GroupInterfaceDirectStrategy.class.getName());
 		generateAndCompile("gicustom",
 				"-b", inFile("binding-config-group-interface.xjb"),
-				inFile("group-interface-test.xsd")
-//				"-Xgroup-contract",
-//				"-group-contract.declareSetters=n"
+				inFile("group-interface-test.xsd"),
+				"-verbose",
+				"-Xgroup-contract",
+				"-group-contract.declareSetters=n"
 				);
 	}
 

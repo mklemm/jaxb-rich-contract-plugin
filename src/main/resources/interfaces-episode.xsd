@@ -5,7 +5,10 @@
 		   targetNamespace="http://www.kscs.com/util/jaxb/bindings">
 	<xs:element name="interface">
 		<xs:complexType>
+			<xs:attribute name="groupNamespace" type="xs:anyURI"/>
+			<xs:attribute name="groupName" type="xs:NCName"/>
 			<xs:attribute name="name" type="xs:string" use="optional"/>
+			<xs:attribute name="ref" type="xs:string" use="optional"/>
 			<xs:attribute name="declareSetters" type="xs:boolean" use="optional"/>
 			<xs:attribute name="declareBuilderInterface" type="xs:boolean" use="optional"/>
 			<xs:attribute name="supportInterfaceNameSuffix" type="xs:NCName" use="optional"/>
