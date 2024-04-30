@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8" ?>
+
+<jxb:bindings version="3.0" xmlns:jxb="https://jakarta.ee/xml/ns/jaxb" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+	<jxb:globalBindings>
+		<jxb:javaType name="java.util.Date" xmlType="xs:date" />
+	</jxb:globalBindings>
+
+	<!--<jxb:bindings schemaLocation="http://maven.apache.org/xsd/maven-4.0.0.xsd" node="/xs:schema">-->
+		<!--<jxb:bindings node="xs:complexType[@name='Model']">-->
+			<!--<jxb:bindings node=".//xs:element[@name='build']">-->
+				<!--<jxb:property name="BuildElement"/>-->
+			<!--</jxb:bindings>-->
+		<!--</jxb:bindings>-->
+		<!--<jxb:bindings node="xs:complexType[@name='Profile']">-->
+			<!--<jxb:bindings node=".//xs:element[@name='build']">-->
+				<!--<jxb:property name="BuildElement"/>-->
+			<!--</jxb:bindings>-->
+		<!--</jxb:bindings>-->
+	<!--</jxb:bindings>-->
+
+	<jxb:bindings node="/xs:schema" schemaLocation="xlink.xsd">
+		<jxb:bindings node="xs:element[@name='title']">
+			<jxb:property name="titleElement"/>
+		</jxb:bindings>
+	</jxb:bindings>
+
+
+	<jxb:bindings schemaLocation="xhtml5.xsd" node="/xs:schema">
+		<jxb:bindings node="xs:element[@name='select']">
+			<jxb:class name="SelectElement" />
+		</jxb:bindings>
+		<jxb:bindings node="xs:element[@name='p']">
+			<jxb:class name="Paragraph" />
+		</jxb:bindings>
+		<jxb:bindings node="xs:attributeGroup[@name='xmlAttributeGroup']/xs:attribute[@ref='xml:base']">
+			<jxb:property name="xmlBase"/>
+		</jxb:bindings>
+		<jxb:bindings node="xs:attributeGroup[@name='xmlAttributeGroup']/xs:attribute[@ref='xml:space']">
+			<jxb:property name="xmlSpace"/>
+		</jxb:bindings>
+		<jxb:bindings node="xs:attributeGroup[@name='xmlAttributeGroup']/xs:attribute[@ref='xml:lang']">
+			<jxb:property name="xmlLang"/>
+		</jxb:bindings>
+		<jxb:bindings node="xs:element[@name='head']/xs:complexType/xs:sequence/xs:element[@ref='title']">
+			<jxb:property name="htmlTitle"/>
+		</jxb:bindings>
+	</jxb:bindings>
+
+</jxb:bindings>

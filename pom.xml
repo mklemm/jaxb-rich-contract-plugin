@@ -1,20 +1,22 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+		 xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
 
 	<modelVersion>4.0.0</modelVersion>
 
-	<artifactId>jaxb-rich-contract-plugin</artifactId>
+	<artifactId>jaxb-rich-contract-plugin-parent</artifactId>
 	<version>4.1.4-SNAPSHOT</version>
 	<url>https://mklemm.github.io/jaxb-rich-contract-plugin</url>
+
 	<parent>
 		<groupId>net.codesup.util</groupId>
 		<artifactId>jaxb-plugin-parent</artifactId>
-		<version>2.0.2</version>
+		<version>2.0.3-SNAPSHOT</version>
 	</parent>
 
-	<name>JAXB XJC extended contract generation plugin</name>
-	<packaging>jar</packaging>
+	<name>JAXB XJC extended contract generation plugin parent</name>
+	<packaging>pom</packaging>
 	<description>
 		Provides a number of plugins for the JAXB (Java API for XML binding)
 		XML-Schema-to-Java compiler (XJC), that enhance the generated source code
@@ -24,7 +26,6 @@
 		selective object graph copying, meta data generation etc.
 	</description>
 
-
 	<scm>
 		<connection>scm:git:https://github.com/mklemm/jaxb-rich-contract-plugin.git</connection>
 		<developerConnection>scm:git:https://github.com/mklemm/jaxb-rich-contract-plugin.git</developerConnection>
@@ -32,46 +33,9 @@
 		<tag>HEAD</tag>
 	</scm>
 
-	<dependencies>
-		<dependency>
-			<groupId>net.codesup.util</groupId>
-			<artifactId>jaxb-plugin-lib</artifactId>
-			<version>2.0.0</version>
-		</dependency>
-		<dependency>
-			<groupId>com.github.davidmoten</groupId>
-			<artifactId>word-wrap</artifactId>
-			<version>0.1.6</version>
-		</dependency>
-		<dependency>
-			<groupId>io.github.classgraph</groupId>
-			<artifactId>classgraph</artifactId>
-			<version>4.8.171</version>
-			<scope>test</scope>
-		</dependency>
-	</dependencies>
-
-	<build>
-		<plugins>
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-resources-plugin</artifactId>
-			</plugin>
-			<plugin>
-				<groupId>org.codehaus.mojo</groupId>
-				<artifactId>exec-maven-plugin</artifactId>
-			</plugin>
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-site-plugin</artifactId>
-			</plugin>
-		</plugins>
-	</build>
-
-	<distributionManagement>
-		<site>
-			<id>github</id>
-			<url>scm:git:https://github.com/mklemm/jaxb-rich-contract-plugin.git</url>
-		</site>
-	</distributionManagement>
+	<modules>
+		<module>plugin</module>
+		<module>runtime</module>
+		<module>test</module>
+	</modules>
 </project>

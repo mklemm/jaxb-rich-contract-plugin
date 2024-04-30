@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+		 xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+
+	<modelVersion>4.0.0</modelVersion>
+
+	<artifactId>jaxb-rich-contract-runtime</artifactId>
+
+	<parent>
+		<groupId>net.codesup.util</groupId>
+		<artifactId>jaxb-rich-contract-plugin-parent</artifactId>
+		<version>4.1.4-SNAPSHOT</version>
+	</parent>
+
+	<name>JAXB rich-contract-plugin generated code runtime dependencies</name>
+	<packaging>jar</packaging>
+	<description>
+		Runtime classes needed by the code that was generated with one of the JAXB rich-contract-plugins.
+		(see https://github.com/mklemm/jaxb2-rich-contract-plugin)
+	</description>
+	<url>http://mklemm.github.io/jaxb-rich-contract-runtime</url>
+
+	<scm>
+		<connection>scm:git:https://github.com/mklemm/jaxb-rich-contract-runtime.git</connection>
+		<developerConnection>scm:git:https://github.com/mklemm/jaxb-rich-contract-runtime.git</developerConnection>
+		<url>http://mklemm.github.io/jaxb-rich-contract-runtime</url>
+		<tag>HEAD</tag>
+	</scm>
+
+	<build>
+		<plugins>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-javadoc-plugin</artifactId>
+				<version>3.0.1</version>
+				<configuration>
+					<doclint>none</doclint>
+				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-source-plugin</artifactId>
+				<executions>
+					<execution>
+						<id>attach-sources</id>
+						<goals>
+							<goal>jar</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+		</plugins>
+	</build>
+</project>

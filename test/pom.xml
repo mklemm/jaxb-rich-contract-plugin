@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+		 xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+
+	<modelVersion>4.0.0</modelVersion>
+
+
+	<groupId>com.kscs.util</groupId>
+	<artifactId>jaxb2-rich-contract-plugin-test</artifactId>
+
+	<parent>
+		<groupId>net.codesup.util</groupId>
+		<artifactId>jaxb-rich-contract-plugin-parent</artifactId>
+		<version>4.1.4-SNAPSHOT</version>
+	</parent>
+
+	<name>JAXB XJC plugin test suite</name>
+	<packaging>jar</packaging>
+
+	<properties>
+		<github.global.server>github</github.global.server>
+	</properties>
+
+	<scm>
+		<connection>scm:git:https://github.com/mklemm/jaxb2-rich-contract-plugin-test.git</connection>
+		<developerConnection>scm:git:https://github.com/mklemm/jaxb2-rich-contract-plugin-test.git</developerConnection>
+		<url>https://github.com/mklemm/jaxb2-rich-contract-plugin-test.git</url>
+		<tag>HEAD</tag>
+	</scm>
+
+	<dependencies>
+		<dependency>
+			<groupId>org.assertj</groupId>
+			<artifactId>assertj-core</artifactId>
+			<version>3.25.3</version>
+		</dependency>
+	</dependencies>
+
+	<build>
+		<plugins>
+			<plugin>
+				<groupId>org.jvnet.jaxb</groupId>
+				<artifactId>jaxb-maven-plugin</artifactId>
+				<version>4.0.0</version>
+				<configuration>
+					<extension>true</extension>
+					<strict>false</strict>
+					<args>
+						<arg>-Xclone</arg>
+						<arg>-Xfluent-builder</arg>
+						<arg>-Xgroup-contract</arg>
+						<arg>-group-contract.declareSetters=n</arg>
+						<arg>-Ximmutable</arg>
+						<arg>-Xmodifier</arg>
+						<arg>-Xmeta</arg>
+						<arg>-meta.extended=y</arg>
+						<arg>-meta.camelCase=y</arg>
+					</args>
+					<plugins>
+						<plugin>
+							<groupId>net.codesup.util</groupId>
+							<artifactId>jaxb2-rich-contract-plugin</artifactId>
+							<version>${project.version}</version>
+						</plugin>
+					</plugins>
+				</configuration>
+				<executions>
+					<execution>
+						<goals>
+							<goal>generate</goal>
+						</goals>
+						<phase>generate-sources</phase>
+					</execution>
+				</executions>
+			</plugin>
+
+			<plugin>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<version>3.8.0</version>
+				<configuration>
+					<target>20</target>
+					<source>20</source>
+				</configuration>
+			</plugin>
+			<plugin>
+				<artifactId>maven-release-plugin</artifactId>
+				<version>2.3.2</version>
+				<dependencies>
+					<dependency>
+						<groupId>org.apache.maven.scm</groupId>
+						<artifactId>maven-scm-provider-gitexe</artifactId>
+						<version>1.2</version>
+					</dependency>
+				</dependencies>
+				<configuration>
+					<tagBase>https://github.com/mklemm/jaxb-format-plugin.git</tagBase>
+				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-javadoc-plugin</artifactId>
+				<version>3.6.3</version>
+			</plugin>
+		</plugins>
+	</build>
+</project>
