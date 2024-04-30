@@ -6,7 +6,7 @@
 	<modelVersion>4.0.0</modelVersion>
 
 	<artifactId>jaxb-rich-contract-plugin</artifactId>
-	<url>https://mklemm.github.io/jaxb-rich-contract-plugin</url>
+	<url>https://mklemm.github.io/jaxb-rich-contract-plugin/</url>
 	<parent>
 		<groupId>net.codesup.util</groupId>
 		<artifactId>jaxb-rich-contract-plugin-parent</artifactId>
@@ -24,19 +24,23 @@
 		selective object graph copying, meta data generation etc.
 	</description>
 
-
-	<!--	<scm>-->
-	<!--		<connection>scm:git:https://github.com/mklemm/jaxb-rich-contract-plugin.git</connection>-->
-	<!--		<developerConnection>scm:git:https://github.com/mklemm/jaxb-rich-contract-plugin.git</developerConnection>-->
-	<!--		<url>https://github.com/mklemm/jaxb-rich-contract-plugin</url>-->
-	<!--		<tag>HEAD</tag>-->
-	<!--	</scm>-->
+	<scm>
+		<connection>scm:git:https://github.com/mklemm/jaxb-rich-contract-plugin.git</connection>
+		<developerConnection>scm:git:https://github.com/mklemm/jaxb-rich-contract-plugin.git</developerConnection>
+		<url>https://github.com/mklemm/jaxb-rich-contract-plugin</url>
+		<tag>HEAD</tag>
+	</scm>
 
 	<dependencies>
 		<dependency>
 			<groupId>net.codesup.util</groupId>
 			<artifactId>jaxb-plugin-lib</artifactId>
 			<version>2.0.3-SNAPSHOT</version>
+		</dependency>
+		<dependency>
+			<groupId>net.codesup.util</groupId>
+			<artifactId>jaxb-rich-contract-runtime</artifactId>
+			<version>${project.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>com.github.davidmoten</groupId>
@@ -79,20 +83,15 @@
 				<artifactId>maven-resources-plugin</artifactId>
 			</plugin>
 			<plugin>
-				<groupId>org.codehaus.mojo</groupId>
-				<artifactId>exec-maven-plugin</artifactId>
-			</plugin>
-			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-site-plugin</artifactId>
 			</plugin>
 		</plugins>
 	</build>
-
 	<distributionManagement>
 		<site>
 			<id>github</id>
-			<url>scm:git:https://github.com/mklemm/jaxb-rich-contract-plugin.git</url>
+			<url>scm:git:https://github.com/mklemm/jaxb-rich-contract-plugin/</url>
 		</site>
 	</distributionManagement>
 </project>

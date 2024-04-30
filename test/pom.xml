@@ -60,7 +60,7 @@
 					<plugins>
 						<plugin>
 							<groupId>net.codesup.util</groupId>
-							<artifactId>jaxb2-rich-contract-plugin</artifactId>
+							<artifactId>jaxb-rich-contract-plugin</artifactId>
 							<version>${project.version}</version>
 						</plugin>
 					</plugins>
@@ -73,34 +73,6 @@
 						<phase>generate-sources</phase>
 					</execution>
 				</executions>
-			</plugin>
-
-			<plugin>
-				<artifactId>maven-compiler-plugin</artifactId>
-				<version>3.8.0</version>
-				<configuration>
-					<target>20</target>
-					<source>20</source>
-				</configuration>
-			</plugin>
-			<plugin>
-				<artifactId>maven-release-plugin</artifactId>
-				<version>2.3.2</version>
-				<dependencies>
-					<dependency>
-						<groupId>org.apache.maven.scm</groupId>
-						<artifactId>maven-scm-provider-gitexe</artifactId>
-						<version>1.2</version>
-					</dependency>
-				</dependencies>
-				<configuration>
-					<tagBase>https://github.com/mklemm/jaxb-format-plugin.git</tagBase>
-				</configuration>
-			</plugin>
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-javadoc-plugin</artifactId>
-				<version>3.6.3</version>
 			</plugin>
 		</plugins>
 	</build>
