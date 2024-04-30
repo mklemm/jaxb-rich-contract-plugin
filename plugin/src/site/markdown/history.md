@@ -135,8 +135,9 @@
 * **4.1.2**
   	* group-interface-plugin now supports customization of interface names (Issue #45).
     * Site generation and publishing to github pages has been fixed.
-* **4.2.0**
+* **4.2.0.x**
     * Reorganization of project structure, such that code needed at runtime of generated code is separated into a small utility jar "jaxb-rich-contract-runtime". Fixes Issue #55
+    * Structure change introduces the "multi-module-release-maven-plugin". Version numbes have four parts now.
 
 
 
