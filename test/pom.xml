@@ -5,8 +5,6 @@
 
 	<modelVersion>4.0.0</modelVersion>
 
-
-	<groupId>com.kscs.util</groupId>
 	<artifactId>jaxb2-rich-contract-plugin-test</artifactId>
 
 	<parent>
