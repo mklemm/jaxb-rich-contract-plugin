@@ -38,4 +38,10 @@
 		<module>runtime</module>
 		<module>test</module>
 	</modules>
+	<distributionManagement>
+		<site>
+			<id>github</id>
+			<url>scm:git:https://github.com/mklemm/</url>
+		</site>
+	</distributionManagement>
 </project>
