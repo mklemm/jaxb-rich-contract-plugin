@@ -29,7 +29,7 @@
           <ul class="breadcrumb">
         <li id="publishDate">Last Published: 2024-04-30<span class="divider">|</span>
 </li>
-          <li id="projectVersion">Version: 4.1.4-SNAPSHOT</li>
+          <li id="projectVersion">Version: 4.2.0-SNAPSHOT</li>
           </ul>
         </div>
       </header>
@@ -326,6 +326,12 @@ if the child object is an instance of a JAXB-generated class from the same compi
 
 <li>group-interface-plugin now supports customization of interface names (Issue #45).</li>
 <li>Site generation and publishing to github pages has been fixed.</li>
+</ul></li>
+<li><strong>4.2.0.x</strong>
+<ul>
+
+<li>Reorganization of project structure, such that code needed at runtime of generated code is separated into a small utility jar &#x201c;jaxb-rich-contract-runtime&#x201d;. Fixes Issue #55</li>
+<li>Structure change introduces the &#x201c;multi-module-release-maven-plugin&#x201d;. Version numbes have four parts now.</li>
 </ul></li>
 </ul></section></section></section>
         </main>
