@@ -24,6 +24,8 @@
 package com.kscs.util.test;
 
 import java.io.IOException;
+import java.net.URL;
+import java.net.URLClassLoader;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -140,6 +142,36 @@ public class PluginRunTest {
 				inFile("siri.xsd"),
 				"-Xfluent-builder"
 		);
+	}
+
+	@Test
+	public void testGenerateNetex() throws Exception {
+		final var subDir = "netex";
+		final var episodeFile = generatedSourcesDir.resolve(subDir).resolve("siri.episode");
+		final var compiledCodeSubDir = compiledCodeDir.resolve(subDir);
+
+		generateAndCompile(subDir,
+				"-episode", episodeFile.toString(),
+				inFile("siri.xsd"),
+				"-Xfluent-builder"
+		);
+
+		ClassLoader previousClassLoader = Thread.currentThread().getContextClassLoader();
+		ClassLoader testClassLoader =
+				URLClassLoader.newInstance(new URL[]{compiledCodeSubDir.toUri().toURL()}, previousClassLoader);
+
+		try {
+			Thread.currentThread().setContextClassLoader(testClassLoader);
+
+			runPlugin(subDir,
+					"-b", episodeFile.toString(),
+					inFile("netex.xsd"),
+					"-Xfluent-builder"
+			);
+			compileTestCode(subDir);
+		} finally {
+			Thread.currentThread().setContextClassLoader(previousClassLoader);
+		}
 	}
 
 	@Test

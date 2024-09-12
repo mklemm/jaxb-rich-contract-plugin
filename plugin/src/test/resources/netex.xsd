@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<xsd:schema xmlns="http://www.netex.org.uk/netex"
+            xmlns:siri="http://www.siri.org.uk/siri"
+            xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+            xmlns:xs="http://www.w3.org/2001/XMLSchema"
+            targetNamespace="http://www.netex.org.uk/netex"
+            elementFormDefault="qualified" attributeFormDefault="unqualified" version="1.0"
+            xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.siri.org.uk/siri siri.xsd">
+
+    <xs:import namespace="http://www.siri.org.uk/siri"
+               schemaLocation="siri.xsd"/>
+
+    <xsd:element name="DataObjectSubscriptionRequest" type="DataObjectSubscriptionStructure" />
+
+    <xsd:complexType name="DataObjectSubscriptionStructure">
+        <xsd:complexContent>
+            <xsd:extension base="siri:AbstractSubscriptionStructure">
+                <xsd:sequence>
+                    <xsd:element name="DataObjectRequest"/>
+                </xsd:sequence>
+            </xsd:extension>
+        </xsd:complexContent>
+    </xsd:complexType>
+</xsd:schema>

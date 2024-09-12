@@ -2,6 +2,17 @@
 <xsd:schema xmlns="http://www.siri.org.uk/siri" xmlns:xsd="http://www.w3.org/2001/XMLSchema"
             targetNamespace="http://www.siri.org.uk/siri" elementFormDefault="qualified"
             attributeFormDefault="unqualified" version="2.1" id="siri_vehicleMonitoring_service">
+
+    <xsd:complexType name="AbstractSubscriptionStructure" abstract="true">
+        <xsd:sequence>
+            <xsd:element name="InitialTerminationTime" type="xsd:dateTime">
+                <xsd:annotation>
+                    <xsd:documentation>Requested end time for subscription.</xsd:documentation>
+                </xsd:annotation>
+            </xsd:element>
+        </xsd:sequence>
+    </xsd:complexType>
+
     <xsd:complexType name="VehicleActivityStructure">
         <xsd:sequence>
             <xsd:element name="MonitoredVehicleJourney">
