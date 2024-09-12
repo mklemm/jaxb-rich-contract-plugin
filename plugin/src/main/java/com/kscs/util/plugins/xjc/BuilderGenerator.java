@@ -478,10 +478,10 @@ class BuilderGenerator {
 			final BuilderOutline childBuilderOutline = getBuilderDeclaration(fieldType);
 			if (childBuilderOutline != null && !childBuilderOutline.getClassOutline().getImplClass().isAbstract()) {
 				final JClass builderFieldElementType = childBuilderOutline.getBuilderClass().narrow(this.builderClass.type.wildcard());
-				final JMethod addMethod = this.builderClass.raw.method(JMod.PUBLIC, builderFieldElementType, WITH_METHOD_PREFIX + superPropertyName);
-				generateBuilderMethodJavadoc(addMethod, WITH_METHOD_PREFIX, superPropertyOutline.getFieldName(), propertyOutline.getSchemaAnnotationText().orElse(null));
+				final JMethod withChildBuilderMethod = this.builderClass.raw.method(JMod.PUBLIC, builderFieldElementType, WITH_METHOD_PREFIX + superPropertyName);
+				generateBuilderMethodJavadoc(withChildBuilderMethod, WITH_METHOD_PREFIX, superPropertyOutline.getFieldName(), propertyOutline.getSchemaAnnotationText().orElse(null));
 				if (this.implement) {
-					addMethod.body()._return(JExpr.cast(builderFieldElementType, JExpr._super().invoke(addMethod)));
+					withChildBuilderMethod.body()._return(JExpr.cast(builderFieldElementType, JExpr._super().invoke(withChildBuilderMethod)));
 				}
 			}
 		}
