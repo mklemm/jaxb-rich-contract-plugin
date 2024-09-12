@@ -212,7 +212,7 @@ class BuilderGenerator {
 		if (childBuilderOutline != null && !childBuilderOutline.getClassOutline().getImplClass().isAbstract()) {
 			final JClass builderWithMethodReturnType = childBuilderOutline.getBuilderClass().narrow(this.builderClass.type.wildcard());
 			addMethod = this.builderClass.raw.method(JMod.PUBLIC, builderWithMethodReturnType, PluginContext.ADD_METHOD_PREFIX + propertyName);
-			generateBuilderMethodJavadoc(addMethod, "add", fieldName, schemaAnnotation);
+			generateBuilderMethodJavadoc(addMethod, ADD_METHOD_PREFIX, fieldName, schemaAnnotation);
 		} else {
 			addMethod = null;
 		}
