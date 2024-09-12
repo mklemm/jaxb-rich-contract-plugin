@@ -135,6 +135,14 @@ public class PluginRunTest {
 	}
 
 	@Test
+	public void testGenerateSiri() throws Exception {
+		generateAndCompile("siri",
+				inFile("siri.xsd"),
+				"-Xfluent-builder"
+		);
+	}
+
+	@Test
 	public void testGenerateAll() throws Exception {
 		generateAndCompile("all","-b", inFile("binding-config.xjb"),
 				"-b", inFile("binding-config-xhtml.xjb"),
