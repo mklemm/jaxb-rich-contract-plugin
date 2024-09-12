@@ -806,7 +806,7 @@ class BuilderGenerator {
 		if(referencedDefinedClass != null) {
 			return this.builderOutlines.get(referencedDefinedClass.fullName());
 		} else {
-			return getReferencedBuilderOutline(propertyOutline.getRawType());
+			return getBuilderDeclaration(propertyOutline.getRawType());
 		}
 	}
 
