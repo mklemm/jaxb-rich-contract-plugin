@@ -35,7 +35,7 @@ Get it with Maven (Now hosted on maven central):
 ``` xml
     <groupId>net.codesup.util</groupId>
     <artifactId>jaxb-rich-contract-plugin</artifactId>
-    <version>4.2.0.0</version>
+    <version>4.2.1.0</version>
 ```
 
 ###  Version History
@@ -178,7 +178,8 @@ Get it with Maven (Now hosted on maven central):
 * **4.2.0.x**
     * Reorganization of project structure, such that code needed at runtime of generated code is separated into a small utility jar "jaxb-rich-contract-runtime". Fixes Issue #55
     * Structure change introduces the "multi-module-release-maven-plugin". Version numbes have four parts now.
-
+* **4.2.1.x**
+    * Merged Pull Request #82
 
 
 ###  Benutzung
@@ -281,7 +282,7 @@ Dieses "cheat sheet" gibt alle verfügbaren Plugin-Optionen an und zeigt, wie di
                         <plugin>
                             <groupId>net.codesup.util</groupId>
                             <artifactId>jaxb-rich-contract-plugin</artifactId>
-                            <version>4.2.0.0</version>
+                            <version>4.2.1.0</version>
                         </plugin>
                     </plugins>
                 </configuration>
