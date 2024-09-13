@@ -10,7 +10,7 @@
 	<parent>
 		<groupId>net.codesup.util</groupId>
 		<artifactId>jaxb-rich-contract-plugin-parent</artifactId>
-		<version>4.2.0-SNAPSHOT</version>
+		<version>4.2.1-SNAPSHOT</version>
 	</parent>
 
 	<name>JAXB XJC extended contract generation plugin</name>
