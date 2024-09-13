@@ -106,7 +106,7 @@ class BuilderGenerator {
 		this.builderClass = new GenerifiedClass(builderOutline.getDefinedBuilderClass(), BuilderGenerator.PARENT_BUILDER_TYPE_PARAMETER_NAME);
 		this.resources = ResourceBundle.getBundle(BuilderGenerator.class.getName());
 		this.implement = !this.builderClass.raw.isInterface();
-		if (builderOutline.getClassOutline().getSuperClass() == null || !builderOutline.getClassOutline().getSuperClass().isLocal()) {
+		if (!isSuperClassBuildable(builderOutline.getClassOutline())) {
 			final JMethod endMethod = this.builderClass.raw.method(JMod.PUBLIC, this.builderClass.typeParam, this.settings.getEndMethodName());
 			if (this.implement) {
 				this.parentBuilderField = this.builderClass.raw.field(JMod.PROTECTED | JMod.FINAL, this.builderClass.typeParam, BuilderGenerator.PARENT_BUILDER_PARAM_NAME);
@@ -212,7 +212,7 @@ class BuilderGenerator {
 		if (childBuilderOutline != null && !childBuilderOutline.getClassOutline().getImplClass().isAbstract()) {
 			final JClass builderWithMethodReturnType = childBuilderOutline.getBuilderClass().narrow(this.builderClass.type.wildcard());
 			addMethod = this.builderClass.raw.method(JMod.PUBLIC, builderWithMethodReturnType, PluginContext.ADD_METHOD_PREFIX + propertyName);
-			generateBuilderMethodJavadoc(addMethod, "add", fieldName, schemaAnnotation);
+			generateBuilderMethodJavadoc(addMethod, ADD_METHOD_PREFIX, fieldName, schemaAnnotation);
 		} else {
 			addMethod = null;
 		}
@@ -478,10 +478,10 @@ class BuilderGenerator {
 			final BuilderOutline childBuilderOutline = getBuilderDeclaration(fieldType);
 			if (childBuilderOutline != null && !childBuilderOutline.getClassOutline().getImplClass().isAbstract()) {
 				final JClass builderFieldElementType = childBuilderOutline.getBuilderClass().narrow(this.builderClass.type.wildcard());
-				final JMethod addMethod = this.builderClass.raw.method(JMod.PUBLIC, builderFieldElementType, WITH_METHOD_PREFIX + superPropertyName);
-				generateBuilderMethodJavadoc(addMethod, WITH_METHOD_PREFIX, superPropertyOutline.getFieldName(), propertyOutline.getSchemaAnnotationText().orElse(null));
+				final JMethod withChildBuilderMethod = this.builderClass.raw.method(JMod.PUBLIC, builderFieldElementType, WITH_METHOD_PREFIX + superPropertyName);
+				generateBuilderMethodJavadoc(withChildBuilderMethod, WITH_METHOD_PREFIX, superPropertyOutline.getFieldName(), propertyOutline.getSchemaAnnotationText().orElse(null));
 				if (this.implement) {
-					addMethod.body()._return(JExpr.cast(builderFieldElementType, JExpr._super().invoke(addMethod)));
+					withChildBuilderMethod.body()._return(JExpr.cast(builderFieldElementType, JExpr._super().invoke(withChildBuilderMethod)));
 				}
 			}
 		}
@@ -535,7 +535,7 @@ class BuilderGenerator {
 	}
 
 	JMethod generateCopyOfMethod(final TypeOutline paramType, final boolean partial) {
-		if (paramType.getSuperClass() != null && paramType.getSuperClass().isLocal()) {
+		if (isSuperClassBuildable(paramType)) {
 			generateCopyOfMethod(paramType.getSuperClass(), partial);
 		}
 		final JMethod copyOfMethod = this.definedClass.method(JMod.PUBLIC | JMod.STATIC, this.builderClass.raw.narrow(Void.class), this.pluginContext.buildCopyMethodName);
@@ -563,7 +563,7 @@ class BuilderGenerator {
 			copyBuilderMethod.body()._return(copyGenerator.generatePartialArgs(this.pluginContext._new((JClass)copyBuilderMethod.type()).arg(parentBuilderParam).arg(JExpr._this()).arg(JExpr.TRUE)));
 			copyBuilderConvenienceMethod.body()._return(copyConvenienceGenerator.generatePartialArgs(this.pluginContext.invoke(this.settings.getNewCopyBuilderMethodName()).arg(JExpr._null())));
 		}
-		if (this.typeOutline.getSuperClass() != null && this.typeOutline.getSuperClass().isLocal()) {
+		if (isSuperClassBuildable(this.typeOutline)) {
 			copyBuilderMethod.annotate(Override.class);
 			copyBuilderConvenienceMethod.annotate(Override.class);
 		}
@@ -571,7 +571,7 @@ class BuilderGenerator {
 	}
 
 	private JMethod generateConveniencePartialCopyMethod(final TypeOutline paramType, final JMethod partialCopyOfMethod, final String methodName, final JExpression propertyTreeUseArg) {
-		if (paramType.getSuperClass() != null && paramType.getSuperClass().isLocal()) {
+		if (isSuperClassBuildable(paramType)) {
 			generateConveniencePartialCopyMethod(paramType.getSuperClass(), partialCopyOfMethod, methodName, propertyTreeUseArg);
 		}
 		final JMethod conveniencePartialCopyMethod = this.definedClass.method(JMod.PUBLIC | JMod.STATIC, this.builderClass.raw.narrow(Void.class), methodName);
@@ -604,7 +604,7 @@ class BuilderGenerator {
 			final CopyGenerator cloneGenerator = this.pluginContext.createCopyGenerator(copyToMethod, partial);
 			final JBlock body = copyToMethod.body();
 			final JVar otherRef;
-			if (this.typeOutline.getSuperClass() != null && this.typeOutline.getSuperClass().isLocal()) {
+			if (isSuperClassBuildable(this.typeOutline)) {
 				body.add(cloneGenerator.generatePartialArgs(this.pluginContext.invoke(JExpr._super(), copyToMethod.name()).arg(otherParam)));
 			}
 			otherRef = otherParam;
@@ -620,14 +620,14 @@ class BuilderGenerator {
 		final JVar otherParam = constructor.param(JMod.FINAL, this.typeOutline.getImplClass(), BuilderGenerator.OTHER_PARAM_NAME);
 		final JVar copyParam = constructor.param(JMod.FINAL, this.pluginContext.codeModel.BOOLEAN, BuilderGenerator.COPY_FLAG_PARAM_NAME);
 		final CopyGenerator cloneGenerator = this.pluginContext.createCopyGenerator(constructor, partial);
-		if (this.typeOutline.getSuperClass() != null && this.typeOutline.getSuperClass().isLocal()) {
+		if (isSuperClassBuildable(this.typeOutline)) {
 			constructor.body().add(cloneGenerator.generatePartialArgs(this.pluginContext._super().arg(parentBuilderParam).arg(otherParam).arg(copyParam)));
 		} else {
 			constructor.body().assign(JExpr._this().ref(this.parentBuilderField), parentBuilderParam);
 		}
 		final JConditional ifNullStmt = constructor.body()._if(otherParam.ne(JExpr._null()));
 		final JBlock body;
-		if (!this.settings.isCopyAlways() && (this.typeOutline.getSuperClass() == null || !this.typeOutline.getSuperClass().isLocal())) {
+		if (!this.settings.isCopyAlways() && !isSuperClassBuildable(this.typeOutline)) {
 			final JConditional ifCopyStmt = ifNullStmt._then()._if(copyParam);
 			ifCopyStmt._else().assign(this.storedValueField, otherParam);
 			ifNullStmt._else().assign(this.storedValueField, JExpr._null());
@@ -702,7 +702,6 @@ class BuilderGenerator {
 	}
 
 	public void buildProperties() throws SAXException {
-		final TypeOutline superClass = this.typeOutline.getSuperClass();
 		final JMethod initMethod;
 		final JVar productParam;
 		final JBlock initBody;
@@ -726,9 +725,11 @@ class BuilderGenerator {
 				}
 			}
 		}
-		if (superClass != null && superClass.isLocal()) {
+		if (isSuperClassBuildable(this.typeOutline)) {
+			final TypeOutline superClass = this.typeOutline.getSuperClass();
 			BuilderOutline superClassBuilder = getBuilderDeclaration(superClass.getImplClass());
-			if (superClassBuilder == null) throw new RuntimeException("Cannot find builder class name " + this.settings.getBuilderClassName().getClassName() + " of: " + superClass.getImplClass());
+			if (superClassBuilder == null)
+				throw new RuntimeException("Cannot find builder class name " + this.settings.getBuilderClassName().getClassName() + " of: " + superClass.getImplClass());
 			generateExtendsClause(superClassBuilder);
 			if (this.implement) initBody._return(JExpr._super().invoke(initMethod).arg(productParam));
 			generateBuilderMemberOverrides(superClass);
@@ -806,7 +807,7 @@ class BuilderGenerator {
 		if(referencedDefinedClass != null) {
 			return this.builderOutlines.get(referencedDefinedClass.fullName());
 		} else {
-			return getReferencedBuilderOutline(propertyOutline.getRawType());
+			return getBuilderDeclaration(propertyOutline.getRawType());
 		}
 	}
 
@@ -888,7 +889,9 @@ class BuilderGenerator {
 		if (this.pluginContext.getClassOutline(type) == null && this.pluginContext.getEnumOutline(type) == null && type.isReference() && !type.isArray() && type.fullName().contains(".")) {
 			final Class<?> runtimeParentClass;
 			try {
-				runtimeParentClass = Class.forName(type.binaryName());
+				// The Context ClassLoader is used to allow for tests to include files from previous runs on the classpath.
+				// PluginRunTest#testGenerateNetex contains an example.
+				runtimeParentClass = Class.forName(type.binaryName(), true, Thread.currentThread().getContextClassLoader());
 			} catch (final ClassNotFoundException e) {
 				return null;
 			}
@@ -917,4 +920,11 @@ class BuilderGenerator {
 		return MessageFormat.format(this.resources.getString(resourceKey), args);
 	}
 
+	private boolean isSuperClassBuildable(TypeOutline classOutline) {
+		var superClass = classOutline.getSuperClass();
+		if (superClass == null) {
+			return false;
+		}
+		return superClass.isLocal() || getReferencedBuilderOutline(superClass.getImplClass()) != null;
+	}
 }
